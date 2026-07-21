@@ -17,6 +17,8 @@ header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content
 .range{display:flex;gap:6px}
 .range button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:13px}
 .range button.on{background:var(--gold);color:#161616;border-color:var(--gold);font-weight:600}
+.back{display:inline-block;color:var(--gold);font-weight:700;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 12px;margin-bottom:10px}
+.back:hover{background:var(--card2);border-color:var(--gold)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .kpi .v{font-size:26px;font-weight:700;margin:2px 0}
@@ -39,6 +41,7 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
 </style>
 </head>
 <body>
+<a class="back" href="../index.html">← Team Hub</a>
 <header>
   <div>
     <h1>GateCity Buckhead — <span>Metrics Dashboard</span></h1>
