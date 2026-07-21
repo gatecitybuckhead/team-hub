@@ -102,8 +102,11 @@ function kpis(rows){
   const prev4=rows.slice(-5,-1), att=w=>val(w,'total_attendance');
   const avg=(l,f)=>{const v=l.map(f).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b)/v.length:null};
   const a4=avg(prev4,att);
+  // official YTD from the sheet's own running total (includes recurring/other income)
   const yr=W.filter(w=>w.date.slice(0,4)===last.date.slice(0,4));
-  const ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(val(w,'special_gifts')||0),0);
+  let ytdGive=null;
+  for(let i=yr.length-1;i>=0;i--){const v=val(yr[i],'ytd_total');if(v!=null){ytdGive=v;break}}
+  if(ytdGive==null)ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(val(w,'special_gifts')||0),0);
   const items=[
     {l:'Last Sunday attendance',v:att(last)??'—',d:a4?((att(last)-a4)/a4*100).toFixed(0)+'% vs 4-wk avg':''},
     {l:'Members',v:val(last,'total_members_core_congregation')??'—',d:''},
