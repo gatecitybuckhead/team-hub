@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GCB Production</title>
+<style>
+:root{--bg:#0f1117;--card:#181b24;--ink:#e8eaf2;--dim:#8a90a5;--gold:#e0b34c;
+--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--line:#272c3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px;max-width:900px;margin:0 auto}
+h1{font-size:22px} h1 span{color:var(--gold)}
+header{margin-bottom:18px}
+.sub{color:var(--dim);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card.tall{grid-column:1/-1}
+.card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px}
+.card h3 b{color:var(--gold)}
+.svc{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.svc .day{font-size:26px;font-weight:800}
+.svc .time{font-size:20px;font-weight:700;color:var(--gold)}
+.tl{list-style:none;margin-top:6px}
+.tl li{display:flex;gap:12px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+.tl li:first-child{border-top:none}
+.tl .t{width:120px;color:var(--gold);font-variant-numeric:tabular-nums;flex:none}
+.roster{list-style:none}
+.roster li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.roster li:first-child{border-top:none}
+.roster .pos{width:210px;color:var(--dim);font-size:13px;text-transform:uppercase;letter-spacing:.5px;flex:none}
+.roster .who{flex:1;min-width:150px;display:flex;flex-wrap:wrap;gap:8px}
+.person{display:inline-flex;align-items:center;gap:6px}
+.person .nm{font-weight:600}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px}
+.b-c{background:rgba(87,201,138,.16);color:var(--green)}
+.b-u{background:rgba(224,179,76,.16);color:var(--gold)}
+.b-d{background:rgba(224,103,103,.16);color:var(--red)}
+.empty{color:var(--dim);font-style:italic;font-size:13.5px}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.d-c{background:var(--green)} .d-u{background:var(--gold)} .d-d{background:var(--red)}
+.chk h4{font-size:13px;color:var(--ink);margin:14px 0 6px;letter-spacing:.3px}
+.chk h4:first-child{margin-top:0}
+.chk ul{list-style:none;margin-left:2px}
+.chk li{padding:4px 0 4px 26px;position:relative;font-size:14px}
+.chk li:before{content:"";position:absolute;left:0;top:5px;width:15px;height:15px;border:1.5px solid var(--line);border-radius:4px}
+.chk .crit{border:1px solid rgba(224,179,76,.35);background:rgba(224,179,76,.06);border-radius:10px;padding:10px 14px;margin-top:14px}
+.chk .crit h4{color:var(--gold)}
+.chk .crit li:before{border-color:var(--gold)}
+.note{color:var(--dim);font-size:12.5px;margin-top:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:2px}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim)}
+footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
+a.back{display:inline-block;color:var(--gold);font-weight:700;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 12px;margin-bottom:10px}
+a.back:hover{background:#1e2230;border-color:var(--gold)}
+a.live{color:var(--gold);font-weight:600;text-decoration:none}
+.qr{text-align:center}
+.qrbox{background:#fff;border-radius:10px;padding:10px;display:inline-block;margin:2px 0 8px}
+.qrbox svg{display:block;width:180px;height:180px}
+.qr .u{color:var(--dim);font-size:11.5px;word-break:break-all}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Team Hub</a>
+<header>
+  <h1>GateCity Buckhead — <span>Production</span></h1>
+  <div class="sub">This Sunday at a glance — roster, timeline, and pre-service checklist · updated <span id="built">—</span></div>
+</header>
+
+<div class="grid">
+  <div class="card qr">
+    <h3><b>Open on your phone</b></h3>
+    <div class="qrbox"><!--__QR__--></div>
+    <div class="u" id="pgUrl"></div>
+    <div class="sub">Point your phone camera here to open this page.</div>
+  </div>
+
+  <div class="card">
+    <h3><b>This Service</b></h3>
+    <div class="svc"><span class="day" id="svcDay">—</span><span class="sub" id="svcDate"></span><span class="time" id="svcTime"></span></div>
+    <ul class="tl" id="timeline"></ul>
+  </div>
+
+  <div class="card">
+    <h3><b>Production Team</b> — who's serving</h3>
+    <ul class="roster" id="roster"></ul>
+    <div class="legend">
+      <span><i class="dot d-c"></i>Confirmed</span>
+      <span><i class="dot d-u"></i>Pending reply</span>
+      <span><i class="dot d-d"></i>Declined</span>
+    </div>
+  </div>
+
+  <div class="card tall chk">
+    <h3><b>Pre-Service Checklist</b> — <span id="chkTitle" style="text-transform:none"></span></h3>
+    <div id="checklist"></div>
+    <div class="note" id="liveNote"></div>
+  </div>
+</div>
+
+<footer>GCB Team Hub · Production · built __BUILT__ · refreshes weekly from Planning Center</footer>
+
+<script>
+const DATA = /*__DATA__*/null;
+const STAT = {C:['b-c','Confirmed'],U:['b-u','Pending'],D:['b-d','Declined']};
+
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+(function(){
+  document.getElementById('built').textContent = DATA.built || '__BUILT__';
+  const pg=document.getElementById('pgUrl'); if(pg) pg.textContent = DATA.page_url || '';
+  const s = DATA.service || {};
+  document.getElementById('svcDay').textContent = s.weekday || 'Sunday';
+  document.getElementById('svcDate').textContent = s.date || '';
+  document.getElementById('svcTime').textContent = s.start ? '· ' + s.start : '';
+  const tl = document.getElementById('timeline');
+  (s.timeline||[]).forEach(r=>{
+    const li=document.createElement('li');
+    li.innerHTML='<span class="t">'+esc(r.time)+'</span><span>'+esc(r.what)+'</span>';
+    tl.appendChild(li);
+  });
+
+  const rt = document.getElementById('roster');
+  (DATA.positions||[]).forEach(p=>{
+    const li=document.createElement('li');
+    let who;
+    if(!p.people||!p.people.length){
+      who='<span class="empty">Not scheduled</span>';
+    }else{
+      who=p.people.map(pe=>{
+        const st=STAT[pe.status]||STAT.U;
+        return '<span class="person"><span class="nm">'+esc(pe.name)+'</span>'+
+               '<span class="badge '+st[0]+'">'+st[1]+'</span></span>';
+      }).join('');
+    }
+    li.innerHTML='<span class="pos">'+esc(p.position)+'</span><span class="who">'+who+'</span>';
+    rt.appendChild(li);
+  });
+
+  const ck=DATA.checklist||{sections:[]};
+  document.getElementById('chkTitle').textContent = ck.title||'';
+  const cc=document.getElementById('checklist');
+  (ck.sections||[]).forEach(sec=>{
+    const wrap=document.createElement('div');
+    if(sec.critical) wrap.className='crit';
+    const h=document.createElement('h4'); h.textContent=sec.name; wrap.appendChild(h);
+    const ul=document.createElement('ul');
+    (sec.items||[]).forEach(it=>{const li=document.createElement('li');li.textContent=it;ul.appendChild(li);});
+    wrap.appendChild(ul); cc.appendChild(wrap);
+  });
+
+  const ln=document.getElementById('liveNote');
+  if(DATA.live_checklist_url){
+    ln.innerHTML='Live check-off on-site: <a class="live" href="'+esc(DATA.live_checklist_url)+'">open the booth dashboard →</a>';
+  }else{
+    ln.textContent='This is the reference copy. Live tap-to-check runs on the booth dashboard on-site.';
+  }
+})();
+</script>
+</body>
+</html>
