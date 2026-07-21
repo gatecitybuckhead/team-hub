@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GCB Sunday Debrief</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--card:#181b24;--ink:#e8eaf2;--dim:#8a90a5;--gold:#e0b34c;
+--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px}
+h1{font-size:22px} h1 span{color:var(--gold)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.sub{color:var(--dim);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.card h3 b{color:var(--gold)} .tall{grid-column:1/-1}
+canvas{max-height:250px}
+.score{font-size:44px;font-weight:800;color:var(--gold)}
+.bars .row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+.bars .lbl{width:110px;color:var(--dim);text-align:right}
+.bars .track{flex:1;background:#232838;border-radius:5px;height:12px;overflow:hidden}
+.bars .fill{height:100%;border-radius:5px;background:var(--blue)}
+.bars .val{width:36px;font-size:12px;color:var(--dim)}
+.comment{border-left:3px solid var(--line);padding:6px 12px;margin:8px 0;font-size:14px}
+.comment b{color:var(--gold);font-size:12.5px} .comment .tag{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+select,input[type=range]{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px}
+.cloud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:baseline;justify-content:center;padding:16px 4px;min-height:170px}
+.cloud span{line-height:1;cursor:default;transition:transform .15s}.cloud span:hover{transform:scale(1.12)}
+.movers{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-top:8px}
+.movers h4{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.movers .up{color:var(--green)} .movers .down{color:var(--red)}
+.tabs{display:flex;gap:6px;margin:24px 0 12px}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:6px 14px;border-radius:8px;cursor:pointer}
+.tabs button.on{color:var(--ink);border-color:var(--gold)}
+.sum{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:13px 16px;margin-bottom:10px}
+.sum .p{font-weight:700;color:var(--gold);font-size:13px} .sum .stats,.sum .meta{color:var(--dim);font-size:12px;margin-top:4px}
+.sum details{margin-top:6px;font-size:13.5px} .sum summary{cursor:pointer;color:var(--dim)}
+.wknav{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.wknav button{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:16px}
+footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>GateCity Buckhead — <span>Sunday Debrief</span></h1>
+    <div class="sub">Team debrief form + Tuesday meeting archive · built __BUILT__</div>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h3><b>Sunday scorecard</b></h3>
+    <div class="wknav"><button id="wPrev">‹</button><select id="wSel"></select><button id="wNext">›</button></div>
+    <div style="display:flex;gap:22px;align-items:center;margin-bottom:8px">
+      <div><div class="score" id="wScore">–</div><div class="sub" id="wMeta"></div></div>
+      <div class="bars" id="wMsg" style="flex:1"></div>
+    </div>
+    <div class="bars" id="wBars"></div>
+  </div>
+  <div class="card">
+    <h3><b>Team comments</b> — <span id="cWho" style="text-transform:none"></span></h3>
+    <div id="wComments" style="max-height:430px;overflow:auto"></div>
+  </div>
+  <div class="card tall"><h3><b>Overall rating trend</b> — weekly team average (1–10)</h3><canvas id="cTrend"></canvas></div>
+  <div class="card tall">
+    <h3><b>What we talk about</b> — debrief comments + meeting notes</h3>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <select id="cloudSel"></select><span class="sub">word size = how often it came up</span>
+    </div>
+    <div class="cloud" id="cloud"></div>
+    <div class="movers"><div><h4>Trending up vs prior period</h4><div id="mUp"></div></div>
+    <div><h4>Fading out</h4><div id="mDown"></div></div></div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-k="weekly" class="on">Week by week</button>
+  <button data-k="monthly">Month by month</button>
+  <button data-k="quarterly">Quarter by quarter</button>
+</div>
+<div id="hist"></div>
+<footer>GCB Team Hub · staff only</footer>
+
+<script>
+const DATA = /*__DATA__*/null;
+const WK = DATA.weekly, MT = DATA.meetings, SUM = DATA.summaries, WORDS = DATA.words;
+const fmtD = d => new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const clr = v => v>=90?'#57c98a':v>=75?'#5aa2e0':v>=60?'#e0b34c':'#e06767';
+
+// ---------- scorecard ----------
+let wi = WK.length-1;
+const wSel=document.getElementById('wSel');
+WK.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=fmtD(w.sunday);wSel.appendChild(o)});
+function scorecard(){
+  const w=WK[wi]; wSel.value=wi;
+  document.getElementById('wScore').textContent=w.overall_avg??'–';
+  document.getElementById('wMeta').textContent=w.n+' team responses';
+  document.getElementById('cWho').textContent=fmtD(w.sunday);
+  const msg=Object.entries(w.message||{});
+  document.getElementById('wMsg').innerHTML=msg.length?'<div class="sub" style="margin-bottom:4px">Message (1–10)</div>'+msg.map(([k,v])=>
+    `<div class="row"><div class="lbl">${k.replace(/_/g,' ')}</div><div class="track"><div class="fill" style="width:${v*10}%;background:${clr(v*10)}"></div></div><div class="val">${v}</div></div>`).join(''):'';
+  document.getElementById('wBars').innerHTML=Object.entries(w.elements||{}).map(([k,v])=>
+    `<div class="row"><div class="lbl">${k}</div><div class="track"><div class="fill" style="width:${v}%;background:${clr(v)}"></div></div><div class="val">${Math.round(v)}</div></div>`).join('');
+  document.getElementById('wComments').innerHTML=(w.comments||[]).map(c=>
+    `<div class="comment"><b>${c.by}</b> <span class="tag">${c.tag.replace('_',' ')}</span><br>${c.text}</div>`).join('')||'<div class="sub">No comments this week.</div>';
+}
+document.getElementById('wPrev').onclick=()=>{if(wi>0){wi--;scorecard()}};
+document.getElementById('wNext').onclick=()=>{if(wi<WK.length-1){wi++;scorecard()}};
+wSel.onchange=e=>{wi=+e.target.value;scorecard()};
+
+// ---------- trend ----------
+new Chart(document.getElementById('cTrend'),{
+  data:{labels:WK.map(w=>w.sunday.slice(2).replace(/-/g,'/')),
+    datasets:[{type:'line',label:'Overall avg',data:WK.map(w=>w.overall_avg),borderColor:'#e0b34c',
+      backgroundColor:'#e0b34c33',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,fill:true,yAxisID:'y'},
+    {type:'bar',label:'# responses',data:WK.map(w=>w.n),backgroundColor:'#2c3242',yAxisID:'y2'}]},
+  options:{interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:'#8a90a5',boxWidth:12,font:{size:11}}}},
+    scales:{x:{ticks:{color:'#666c80',maxTicksLimit:16,font:{size:10}},grid:{color:'#20242f'}},
+      y:{min:5,max:10,ticks:{color:'#666c80'},grid:{color:'#20242f'}},
+      y2:{position:'right',beginAtZero:true,max:20,ticks:{display:false},grid:{display:false}}}}});
+
+// ---------- word cloud ----------
+const months=Object.keys(WORDS);
+const cloudSel=document.getElementById('cloudSel');
+const periods=[['all','All time']];
+const qs={}; months.forEach(m=>{const q=m.slice(0,4)+'-Q'+Math.ceil(+m.slice(5)/3);(qs[q]=qs[q]||[]).push(m)});
+Object.keys(qs).forEach(q=>periods.push(['q:'+q,q.replace('-',' ')]));
+months.forEach(m=>periods.push(['m:'+m,new Date(m+'-15').toLocaleDateString('en-US',{month:'long',year:'numeric'})]));
+periods.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;cloudSel.appendChild(o)});
+cloudSel.value='q:'+Object.keys(qs).pop();
+function freq(sel){
+  const out={};
+  const use=sel==='all'?months:sel.startsWith('q:')?qs[sel.slice(2)]:[sel.slice(2)];
+  (use||[]).forEach(m=>{for(const[w,c]of Object.entries(WORDS[m]||{}))out[w]=(out[w]||0)+c});
+  return out;
+}
+function prevSel(sel){
+  if(sel==='all')return null;
+  if(sel.startsWith('q:')){const ks=Object.keys(qs),i=ks.indexOf(sel.slice(2));return i>0?'q:'+ks[i-1]:null}
+  const i=months.indexOf(sel.slice(2));return i>0?'m:'+months[i-1]:null;
+}
+const PAL=['#e0b34c','#5aa2e0','#57c98a','#a98ae0','#e8eaf2','#e06767'];
+function cloud(){
+  const sel=cloudSel.value,f=freq(sel);
+  const top=Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,45);
+  const max=top.length?top[0][1]:1;
+  document.getElementById('cloud').innerHTML=top.map(([w,c],i)=>
+    `<span style="font-size:${(13+34*Math.sqrt(c/max)).toFixed(0)}px;color:${PAL[i%PAL.length]};opacity:${.55+.45*c/max}" title="${w}: ${c}×">${w}</span>`).join(' ');
+  const ps=prevSel(sel);let up=[],down=[];
+  if(ps){const pf=freq(ps);const all=new Set([...Object.keys(f),...Object.keys(pf)]);
+    const delta=[...all].map(w=>[w,(f[w]||0)-(pf[w]||0)]).sort((a,b)=>b[1]-a[1]);
+    up=delta.filter(d=>d[1]>1).slice(0,6);down=delta.filter(d=>d[1]<-1).slice(-6).reverse();}
+  document.getElementById('mUp').innerHTML=up.map(d=>`<div class="up">▲ ${d[0]} (+${d[1]})</div>`).join('')||'<span class="sub">–</span>';
+  document.getElementById('mDown').innerHTML=down.map(d=>`<div class="down">▼ ${d[0]} (${d[1]})</div>`).join('')||'<span class="sub">–</span>';
+}
+cloudSel.onchange=cloud;
+
+// ---------- history ----------
+let kind='weekly';
+function hist(){
+  const el=document.getElementById('hist');
+  if(kind!=='weekly'){
+    el.innerHTML=[...SUM[kind]].reverse().map(s=>{const st=s.stats||{};
+      return `<div class="sum"><div class="p">${s.label}</div><div>${s.text}</div>
+      <div class="stats">avg attendance ${st.avg_attendance??'—'} · team rating ${st.avg_overall_rating??'—'}/10 · giving $${(st.giving_total??0).toLocaleString()}</div></div>`}).join('');
+    return;
+  }
+  const mtByWeek={};
+  MT.forEach(m=>{const d=new Date(m.date+'T12:00');const sun=new Date(d);sun.setDate(d.getDate()-((d.getDay()+7)%7||7));
+    const k=sun.toISOString().slice(0,10);(mtByWeek[k]=mtByWeek[k]||[]).push(m)});
+  el.innerHTML=[...WK].reverse().map(w=>{
+    const ms=mtByWeek[w.sunday]||[];
+    const meet=ms.map(m=>m.summary).join(' ');
+    const dec=ms.flatMap(m=>m.decisions||[]);
+    return `<div class="sum"><div class="p">Sunday ${fmtD(w.sunday)}</div>
+      <div class="meta">team rating ${w.overall_avg??'—'}/10 · ${w.n} responses</div>
+      ${meet?`<div style="margin-top:5px">${meet}</div>`:''}
+      ${dec.length?`<details><summary>${dec.length} decision(s)</summary><ul style="margin:6px 0 0 18px">${dec.map(d=>`<li>${d}</li>`).join('')}</ul></details>`:''}
+      </div>`}).join('');
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+  if(e.target.dataset.k){kind=e.target.dataset.k;
+    [...document.querySelectorAll('#tabs button')].forEach(b=>b.classList.toggle('on',b===e.target));hist()}});
+
+scorecard();cloud();hist();
+</script>
+</body>
+</html>
