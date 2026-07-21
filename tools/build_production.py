@@ -38,7 +38,9 @@ OUT  = ROOT / 'docs' / 'production.html'
 payload = json.load(open(DATA, encoding='utf-8'))
 built = payload.get('built') or datetime.date.today().isoformat()
 
-# ---- checklist from its single source of truth (transform {id,text} -> text) ----
+# ---- checklist from its single source of truth ----
+# Keep {id,text} per item so the page's tap-to-check state is stable across
+# text edits, and carry the `teardown` flag so teardown renders as its own list.
 src = (ROOT / payload['checklist_source']).resolve()
 raw = json.load(open(src, encoding='utf-8'))
 payload['checklist'] = {
@@ -46,7 +48,8 @@ payload['checklist'] = {
     'sections': [
         {'name': s['name'],
          'critical': bool(s.get('critical')),
-         'items': [it['text'] for it in s.get('items', [])]}
+         'teardown': bool(s.get('teardown')),
+         'items': [{'id': it['id'], 'text': it['text']} for it in s.get('items', [])]}
         for s in raw.get('sections', [])
     ],
 }

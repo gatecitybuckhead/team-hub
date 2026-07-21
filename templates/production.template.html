@@ -41,12 +41,19 @@ header{margin-bottom:18px}
 .d-c{background:var(--green)} .d-u{background:var(--gold)} .d-d{background:var(--red)}
 .chk h4{font-size:13px;color:var(--ink);margin:14px 0 6px;letter-spacing:.3px}
 .chk h4:first-child{margin-top:0}
+.chk h4 .c{color:var(--dim);font-weight:400;font-size:12px;margin-left:6px}
 .chk ul{list-style:none;margin-left:2px}
-.chk li{padding:4px 0 4px 26px;position:relative;font-size:14px}
-.chk li:before{content:"";position:absolute;left:0;top:5px;width:15px;height:15px;border:1.5px solid var(--line);border-radius:4px}
+.chk li{padding:5px 0 5px 28px;position:relative;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.chk li:before{content:"";position:absolute;left:0;top:4px;width:16px;height:16px;border:1.5px solid var(--line);border-radius:4px;transition:.12s}
+.chk li.done:before{background:var(--green);border-color:var(--green)}
+.chk li.done:after{content:"";position:absolute;left:5px;top:7px;width:6px;height:9px;border:solid #10331f;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.chk li.done{color:var(--dim);text-decoration:line-through}
 .chk .crit{border:1px solid rgba(224,179,76,.35);background:rgba(224,179,76,.06);border-radius:10px;padding:10px 14px;margin-top:14px}
 .chk .crit h4{color:var(--gold)}
 .chk .crit li:before{border-color:var(--gold)}
+.chk .crit li.done:before{background:var(--green);border-color:var(--green)}
+.reset{display:inline-block;margin-top:12px;color:var(--dim);font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer}
+.reset:hover{border-color:var(--gold);color:var(--gold)}
 .note{color:var(--dim);font-size:12.5px;margin-top:10px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:2px}
 .legend span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim)}
@@ -95,6 +102,12 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
     <h3><b>Pre-Service Checklist</b> — <span id="chkTitle" style="text-transform:none"></span></h3>
     <div id="checklist"></div>
     <div class="note" id="liveNote"></div>
+    <span class="reset" id="resetChk">Reset checklist</span>
+  </div>
+
+  <div class="card tall chk" id="teardownCard" style="display:none">
+    <h3><b>Teardown</b> — after service</h3>
+    <div id="teardown"></div>
   </div>
 </div>
 
@@ -139,14 +152,55 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
 
   const ck=DATA.checklist||{sections:[]};
   document.getElementById('chkTitle').textContent = ck.title||'';
-  const cc=document.getElementById('checklist');
-  (ck.sections||[]).forEach(sec=>{
-    const wrap=document.createElement('div');
-    if(sec.critical) wrap.className='crit';
-    const h=document.createElement('h4'); h.textContent=sec.name; wrap.appendChild(h);
-    const ul=document.createElement('ul');
-    (sec.items||[]).forEach(it=>{const li=document.createElement('li');li.textContent=it;ul.appendChild(li);});
-    wrap.appendChild(ul); cc.appendChild(wrap);
+  const secs = ck.sections||[];
+  const pre = secs.filter(s=>!s.teardown);
+  const td  = secs.filter(s=>s.teardown);
+
+  // Per-Sunday tap-to-check state, saved on THIS device (static page, no server).
+  // Keyed by the service date so each week starts fresh automatically.
+  const SKEY = 'gcbprod-chk:' + ((DATA.service&&DATA.service.date) || DATA.built || '');
+  let state = {};
+  try{ state = JSON.parse(localStorage.getItem(SKEY)||'{}')||{}; }catch(e){ state={}; }
+  const save = ()=>{ try{ localStorage.setItem(SKEY, JSON.stringify(state)); }catch(e){} };
+
+  function renderSections(host, list){
+    host.innerHTML='';
+    list.forEach(sec=>{
+      const wrap=document.createElement('div');
+      if(sec.critical) wrap.className='crit';
+      const items=sec.items||[];
+      const h=document.createElement('h4');
+      const done=items.filter(it=>state[it.id]).length;
+      h.innerHTML=esc(sec.name)+' <span class="c">'+done+'/'+items.length+'</span>';
+      wrap.appendChild(h);
+      const ul=document.createElement('ul');
+      items.forEach(it=>{
+        const li=document.createElement('li');
+        li.textContent=it.text;
+        if(state[it.id]) li.className='done';
+        li.addEventListener('click',()=>{
+          if(state[it.id]) delete state[it.id]; else state[it.id]=1;
+          save();
+          li.className = state[it.id] ? 'done' : '';
+          const d=items.filter(x=>state[x.id]).length;
+          h.querySelector('.c').textContent=d+'/'+items.length;
+        });
+        ul.appendChild(li);
+      });
+      wrap.appendChild(ul); host.appendChild(wrap);
+    });
+  }
+
+  renderSections(document.getElementById('checklist'), pre);
+  if(td.length){
+    document.getElementById('teardownCard').style.display='';
+    renderSections(document.getElementById('teardown'), td);
+  }
+  const rc=document.getElementById('resetChk');
+  if(rc) rc.addEventListener('click',()=>{
+    state={}; save();
+    renderSections(document.getElementById('checklist'), pre);
+    if(td.length) renderSections(document.getElementById('teardown'), td);
   });
 
   const ln=document.getElementById('liveNote');
