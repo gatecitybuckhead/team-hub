@@ -4,3 +4,4 @@ data/
 __pycache__/
 *.pyc
 Publish to GitHub.command
+Encrypt.command

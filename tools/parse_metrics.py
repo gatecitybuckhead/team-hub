@@ -34,6 +34,13 @@ ALIASES = {
 def canon(key):
     return ALIASES.get(key, key)
 
+# Manual series corrections — the sheet's "Series" row lags behind the actual
+# preaching series. date (ISO) -> (series, special-or-None). Applied after parse.
+# Add a new entry each time the series changes until the sheet catches up.
+SERIES_OVERRIDES = {
+    '2026-07-19': ('Journey Through James', 'Week #1'),
+}
+
 wb = load_workbook(SRC, data_only=True)
 weeks = {}          # date -> {"date":..,"series":..,"special":..,"values":{}}
 catalog = {}        # key -> {"label","section","owner"}
@@ -106,6 +113,11 @@ for tabname, year in TABS:
                 v = clean(ws.cell(r,datacols[c]).value)
             if v is not None:
                 weeks[dt]['values'][key] = v
+
+for dt,(sv,sp) in SERIES_OVERRIDES.items():
+    if dt in weeks:
+        weeks[dt]['series'] = sv
+        if sp is not None: weeks[dt]['special'] = sp
 
 today = datetime.date.today().isoformat()
 kept = {k:v for k,v in weeks.items() if k <= today}   # drop stale template columns dated in the future

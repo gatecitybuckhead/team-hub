@@ -15,6 +15,12 @@ metrics   = json.load(open(DATA/'metrics.json'))
 debrief   = json.load(open(DATA/'debrief.json'))
 meetings  = json.load(open(DATA/'meetings.json'))
 summaries = json.load(open(DATA/'summaries.json'))
+# Per-Sunday written debrief summaries (optional; survives parse_debrief re-runs).
+# The dashboard shows the entry for the LATEST week only, else auto-generates.
+try:
+    narratives = json.load(open(DATA/'debrief_narratives.json')).get('weeks', {})
+except FileNotFoundError:
+    narratives = {}
 
 # ---------- word frequencies per month (comments + meeting text) ----------
 STOP = set('''a an the and or but if then than so of to in on at for with from by as is are was were be been being
@@ -64,4 +70,5 @@ inject('metrics.template.html', 'metrics.html',
        {'metrics': metrics, 'summaries': summaries})
 inject('debrief.template.html', 'debrief.html',
        {'weekly': debrief['weekly'], 'meetings': meet_slim,
-        'summaries': summaries, 'words': word_months})
+        'summaries': summaries, 'words': word_months,
+        'narratives': narratives})
