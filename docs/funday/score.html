@@ -91,6 +91,16 @@
     <h2>Recent at this station</h2>
     <div id="log"></div>
   </div>
+
+  <div class="card" id="adminCard" style="display:none">
+    <h2>🛠 Fix duplicate players (admin)</h2>
+    <p style="font-size:13px;margin-bottom:8px">Moves all of one player's points onto another, then removes the duplicate. Shows on the board instantly.</p>
+    <label style="font-size:13px;font-weight:700">Keep:</label>
+    <select id="mergeKeep" style="width:100%;font-size:16px;padding:8px;margin:4px 0 10px;border-radius:8px"></select>
+    <label style="font-size:13px;font-weight:700">Merge away (duplicate):</label>
+    <select id="mergeFrom" style="width:100%;font-size:16px;padding:8px;margin:4px 0 10px;border-radius:8px"></select>
+    <button id="mergeGo" style="width:100%;font-family:inherit;font-weight:700;font-size:16px;padding:12px;border-radius:10px;border:none;background:var(--red);color:#fff;cursor:pointer">Merge players</button>
+  </div>
 </div>
 
 <div id="flash"><div class="big" id="flashPts"></div><div class="who" id="flashWho"></div><div>🎪 Logged! Keep ’em coming!</div></div>
@@ -179,6 +189,38 @@
     return t;
   }
 
+  // ---------- duplicate-name guards ----------
+  function norm(s){return String(s).toLowerCase().replace(/[^a-z ]/g,'').replace(/\s+/g,' ').trim();}
+  function lev(a,b){ // edit distance, catches typos like Hamila/Halima
+    var m=[],i,j;
+    for(i=0;i<=a.length;i++)m[i]=[i];
+    for(j=0;j<=b.length;j++)m[0][j]=j;
+    for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)
+      m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    return m[a.length][b.length];
+  }
+  // 2 = same name, 1 = suspiciously close, 0 = different
+  function similar(a,b){
+    a=norm(a); b=norm(b);
+    if(!a||!b) return 0;
+    if(a===b) return 2;
+    if(a.indexOf(b+' ')===0||b.indexOf(a+' ')===0||a===b.split(' ')[0]||b===a.split(' ')[0]) return 1; // "Halima" vs "Halima Edge"
+    var fa=a.split(' ')[0], fb=b.split(' ')[0];
+    var thr=Math.min(fa.length,fb.length)>=5?2:1;
+    if(fa===fb) return 1;
+    if(lev(fa,fb)<=thr) return 1; // "Hamila" vs "Halima"
+    return 0;
+  }
+  function findSimilar(name){
+    var exact=null, close=[];
+    Object.keys(players).forEach(function(pid){
+      var s=similar(name, players[pid].name||'');
+      if(s===2 && !exact) exact=pid;
+      else if(s===1) close.push(pid);
+    });
+    return {exact:exact, close:close};
+  }
+
   // ---------- players UI ----------
   var selected=null;
   var searchEl=document.getElementById('search'), listEl=document.getElementById('playerList');
@@ -203,22 +245,35 @@
     var raw=searchEl.value.trim();
     addBtn.style.display = raw.length>=2 ? 'block':'none';
     document.getElementById('addName').textContent=raw;
-    // near-duplicate warning
+    // near-duplicate warning (fuzzy: catches typos + first/full name variants)
     dupWarn.style.display='none';
     if(raw.length>=2){
-      var first=raw.toLowerCase().split(' ')[0];
-      var near=Object.keys(players).filter(function(pid){
-        var n=(players[pid].name||'').toLowerCase();
-        return n!==raw.toLowerCase() && n.split(' ')[0]===first;
-      });
+      var sim=findSimilar(raw);
+      var near=(sim.exact?[sim.exact]:[]).concat(sim.close);
       if(near.length){
         dupWarn.style.display='block';
-        dupWarn.textContent='⚠️ Similar name already playing: '+near.map(function(p){return players[p].name;}).join(', ')+'. Same kid? Tap them above instead.';
+        dupWarn.textContent='⚠️ Already playing: '+near.map(function(p){return players[p].name;}).join(', ')+'. Same person? Tap them above instead of adding again.';
       }
     }
   }
   addBtn.onclick=function(){
     var name=searchEl.value.trim(); if(name.length<2) return;
+    var sim=findSimilar(name);
+    if(sim.exact){ // identical name — never create a twin, just select them
+      selected=sim.exact;
+      document.getElementById('selName').textContent=players[sim.exact].name;
+      searchEl.value=''; renderPlayers();
+      return;
+    }
+    if(sim.close.length){
+      var existing=players[sim.close[0]].name;
+      if(confirm('⚠️ "'+existing+'" is already playing — is "'+name+'" the same person?\n\nOK = use "'+existing+'" (recommended)\nCancel = really add "'+name+'" as a NEW player')){
+        selected=sim.close[0];
+        document.getElementById('selName').textContent=existing;
+        searchEl.value=''; renderPlayers();
+        return;
+      }
+    }
     var pid=newKey();
     saveKV('players/'+pid,{name:name,ts:Date.now()});
     selected=pid; document.getElementById('selName').textContent=name;
@@ -264,6 +319,37 @@
     });
   }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  // ---------- admin: merge duplicate players (?admin=1) ----------
+  if(q.get('admin')){
+    document.getElementById('adminCard').style.display='block';
+    var keepSel=document.getElementById('mergeKeep'), fromSel=document.getElementById('mergeFrom');
+    function fillMerge(){
+      var t=totals();
+      [keepSel,fromSel].forEach(function(sel){
+        sel.innerHTML='';
+        Object.keys(players).sort(function(a,b){return (players[a].name||'').localeCompare(players[b].name||'');})
+          .forEach(function(pid){
+            var o=document.createElement('option'); o.value=pid;
+            o.textContent=(players[pid].name||'?')+' ('+(t[pid]||0)+' pts)';
+            sel.appendChild(o);
+          });
+      });
+    }
+    setInterval(fillMerge,3000); setTimeout(fillMerge,500);
+    document.getElementById('mergeGo').onclick=function(){
+      var keep=keepSel.value, from=fromSel.value;
+      if(!keep||!from||keep===from){ alert('Pick two different players.'); return; }
+      var kn=players[keep].name, fn=players[from].name;
+      if(!confirm('Move ALL of "'+fn+'"’s points onto "'+kn+'" and delete "'+fn+'"?')) return;
+      Object.keys(scores).forEach(function(sid){
+        var s=scores[sid];
+        if(s&&s.p===from) saveKV('scores/'+sid,{p:keep,st:s.st,pts:s.pts,ts:s.ts||Date.now()});
+      });
+      saveKV('players/'+from,null);
+      alert('Merged. "'+kn+'" now has both totals; the board already shows it.');
+    };
+  }
 })();
 </script>
 </body>
