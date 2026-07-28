@@ -97,7 +97,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="funday-config.js"></script>
+<script src="funday-config.js?v=2"></script>
 <script>
 (function(){
   "use strict";
@@ -142,7 +142,13 @@
   if(!DEMO){
     firebase.initializeApp(CFG.firebaseConfig);
     var db=firebase.database();
-    base=db.ref(CFG.eventPath||'events/funday');
+    var evOverride=q.get('ev');
+    if(evOverride){
+      var tag=document.getElementById('demoTag');
+      tag.textContent='TEST EVENT: '+evOverride+' — not the real leaderboard';
+      tag.style.display='block';
+    }
+    base=db.ref(evOverride?('events/'+evOverride):(CFG.eventPath||'events/funday'));
     base.child('players').on('value',function(sn){players=sn.val()||{};renderPlayers();});
     base.child('scores').on('value',function(sn){scores=sn.val()||{};renderPlayers();renderLog();});
     db.ref('.info/connected').on('value',function(sn){ setConn(!!sn.val(), sn.val()?'live & saving':'offline — will sync'); });
