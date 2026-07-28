@@ -280,11 +280,15 @@
     "🎟️ Step right up — every game counts!",
     "🎪 Ladies and gentlemen, the midway is HOT today!",
     "🍿 Grab a treat, then grab some POINTS!",
-    "🎈 It ain't over till the last ring flies!",
     "🥁 Anyone can take the crown — keep playing!",
-    "⭐ Winners never quit at the Duck Pond!",
     "🎡 Round and round the leaderboard goes!"
   ];
+  // station-specific hype, built from the configured games so it always matches
+  (CFG.stations||[]).forEach(function(s){
+    var e=s.emoji||'⭐', n=s.name;
+    genericBarks.push(e+" Points are waiting at "+n+" — go get 'em!");
+    genericBarks.push(e+" Feeling lucky? "+n+" says prove it!");
+  });
   var contextBarks=[];
   function updateBarkerContext(arr){
     contextBarks=[];
