@@ -5,16 +5,24 @@ writes plain HTML to build/ (NOT committed). Run encrypt.py afterwards
 to produce the published site/staff/*.html.
 Usage: python3 build.py
 """
-import json, re, collections, datetime, pathlib
+import json, re, collections, datetime, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA, TPL, OUT = ROOT/'data', ROOT/'templates', ROOT/'build'
 OUT.mkdir(exist_ok=True)
+sys.path.insert(0, str(ROOT/'tools'))
+import participation
 
 metrics   = json.load(open(DATA/'metrics.json'))
 debrief   = json.load(open(DATA/'debrief.json'))
 meetings  = json.load(open(DATA/'meetings.json'))
 summaries = json.load(open(DATA/'summaries.json'))
+# Per-meeting digest parsed from the Tuesday debrief Google Doc: overall_tone,
+# big_wins, growth_areas, pros/grows topic headings, respondent counts.
+try:
+    notes_raw = json.load(open(DATA/'meeting_notes.json'))['meetings']
+except FileNotFoundError:
+    notes_raw = []
 # Per-Sunday written debrief summaries (optional; survives parse_debrief re-runs).
 # The dashboard shows the entry for the LATEST week only, else auto-generates.
 try:
@@ -57,6 +65,23 @@ meet_slim = [{'date': m['date'], 'title': m.get('title',''), 'summary': m.get('s
               'decisions': m.get('decisions') or [], 'actions': m.get('action_items') or []}
              for m in sorted(meetings, key=lambda x: x['date'])]
 
+# ---------- meeting-notes digest keyed by the Sunday being debriefed ----------
+# The doc is keyed by meeting date (Mon/Tue); the dashboard is keyed by Sunday.
+notes_by_sunday = {}
+for n in sorted(notes_raw, key=lambda x: x['meeting_date']):
+    notes_by_sunday[n['sunday']] = {
+        'meeting_date': n['meeting_date'], 'era': n.get('era'),
+        'respondents': n.get('respondents'), 'special': n.get('special'),
+        'overall_tone': n.get('overall_tone'),
+        'big_wins': n.get('big_wins') or [], 'growth_areas': n.get('growth_areas') or [],
+        'pros_topics': n.get('pros_topics') or [], 'grows_topics': n.get('grows_topics') or [],
+        'attendance': n.get('attendance'), 'visitors': n.get('visitors'),
+        'giving': n.get('giving'), 'has_report': n.get('has_report', False),
+    }
+
+# ---------- debrief-form participation / accountability ----------
+part = participation.build(debrief)
+
 built = datetime.date.today().isoformat()
 
 def inject(tpl_name, out_name, payload):
@@ -71,4 +96,5 @@ inject('metrics.template.html', 'metrics.html',
 inject('debrief.template.html', 'debrief.html',
        {'weekly': debrief['weekly'], 'meetings': meet_slim,
         'summaries': summaries, 'words': word_months,
-        'narratives': narratives})
+        'narratives': narratives, 'notes': notes_by_sunday,
+        'participation': part})

@@ -9,8 +9,12 @@ the parent `gatecity-buckhead-ai-ops` repo.
 - `docs/index.html` — public hub landing page (no data).
 - `docs/staff/metrics.html` — Metrics dashboard (5 Behaviors charts + monthly/
   quarterly rollups). **Encrypted** with the shared team password.
-- `docs/staff/debrief.html` — Sunday Debrief dashboard (scorecard, rating trend,
-  what-we-talk-about word visualization, week/month/quarter history). Encrypted.
+- `docs/staff/debrief.html` — Sunday Debrief dashboard. Encrypted. **Its layout
+  deliberately mirrors the live Tuesday meeting agenda** (see "Agenda mirroring"
+  below): Prior to Mtg → ① Sunday's DEBRIEF (30 min) → ② Review DASHBOARD (15 min)
+  → Debrief-form accountability → History. A sticky agenda bar jumps between them.
+  Picking a Sunday in 1.1 re-renders every section for that week, so the whole
+  page is one week at a time; clicking a point on the trend chart also jumps there.
 - `docs/production.html` — Production dashboard. **Encrypted with its OWN password
   (`W0rthy247`, in `gcb-production-password.txt` at AI Ops root — NOT the staff pw)**,
   and shows a **scannable QR** of its own URL so the team can open it at the booth
@@ -51,6 +55,17 @@ the parent `gatecity-buckhead-ai-ops` repo.
    that returns only a compact digest.
 3. `data/summaries.json` — month/quarter narratives (LLM-written, appended each
    period). `data/meetings.json` — meeting archive digest.
+   `data/meeting_notes.json` — per-meeting digest parsed from the **Tuesday
+   debrief Google Doc** (`1kCibagLgUsn1RbJFhZ8v3EHiOTZQX-oNRnfMa1-XFFM`): keyed by
+   `meeting_date` + the `sunday` it debriefs, carrying `overall_tone`, `big_wins`,
+   `growth_areas`, `pros_topics`, `grows_topics`, `respondents`, `special`,
+   `attendance`/`visitors`/`giving`, `era`, `has_report`. Built 2026-07-28 covering
+   all 76 meetings Jan 2025 → Jul 2026. **Append new weeks by hand** — there's no
+   parser to re-run, and the doc's heading formats are too inconsistent to trust one.
+   The doc is ~288K chars: reading it blows the connector's token cap, so **read it
+   in a subagent** and have it return only the new week's fields.
+   `data/debrief_narratives.json` still wins over meeting_notes for pros/grows text
+   when an entry exists for that Sunday.
 4. `tools/build.py` → `build/*.html` (plaintext, NEVER commit).
 5. `tools/encrypt.py <team password>` → `docs/staff/*.html` (AES-256-GCM,
    PBKDF2 200k; safe for a public repo).
@@ -71,3 +86,60 @@ the parent `gatecity-buckhead-ai-ops` repo.
   Q1 2025 tab uses bare `1/5` headers, later tabs use `Sunday 7/5` + `Data Set` pairs.
 - Debrief form quirks: 4-point text scale (old) + 1-10 numeric (new) merged to
   0-100 in parse_debrief.py; respondent name variants normalized there too.
+  **Column 19 is NOT the kids-incident field on the current form** — it's the
+  catch-all "anything else?" box. Verified 2026-07-28: only 8 of 90 entries mention
+  kids, the rest are production/ops notes. It's tagged `other`; the dashboard routes
+  it into the Pastoral kids block only when the text matches a kids keyword regex.
+  `canon()` keys off the FIRST token, so a surname-first answer ("Faletti") slips
+  through — `tools/participation.py` has an ALIASES fallback for the survivors.
+
+## Agenda mirroring (why the debrief page looks the way it does)
+Structure comes from a read of all 76 meetings in the Tuesday debrief Doc. The
+meeting has run in three eras; the page mirrors **Era 3** (Feb 10 2026 →), the
+current one:
+
+    (Prior to Mtg)  All Team COMPLETE DEBRIEF FORM
+    (30 min) Sunday's DEBRIEF
+       Review FORM Results  ← respondent count belongs on this line
+       Discuss PROS:  /  Discuss GROWS:      (PROS always first, grouped by topic)
+       Pastoral Same Page on People (Decisions/Guests/New Members)
+       Capture Action Items  (What adjustments are we making?)
+    (15 min) Review DASHBOARD
+       Discuss - What are the metrics telling us?
+       Capture Action/Parking Lot Items
+
+Conventions the page reproduces, all taken from the notes:
+- Summary format standardized around June 2026: `✅ PROS (What's Working Well)` /
+  `🧠 GROWS (Where We Can Improve)` / `📊 Overall Summary` → **Big Wins**,
+  **Primary Growth Areas**, then a bolded **Overall Tone:** verdict sentence.
+  `renderPG()` follows that order and falls back gracefully: written narrative →
+  parsed meeting notes → auto-split from the raw ratings. It never renders blank
+  and the tone line is always present (auto-generated + labelled as such if the
+  notes have no written verdict — only 26 of 76 weeks do).
+- Respondent count is displayed on the "Review FORM Results" line, matching
+  "Review FORM Results - **4 Respondents**".
+- Parking lot is a **separate bucket** from action items and belongs to the
+  dashboard half. Items are routed there by regex on hand-off language
+  ("add to tactical", "Thursday tactical", "10:10", "parking lot", "revisit"…).
+- Empty sections are normal, not a bug — many weeks were templated and left blank.
+- Special Sundays (Baptism, Family Fun Day, PentecostATL, Move Weekend, …) break
+  the template; `special` surfaces as a chip in the week picker and history.
+- Attendance is NEVER recorded in the doc, so the page never claims to show it.
+
+## Debrief-form accountability
+`tools/participation.py` builds the who-filled-it-out tracker; `build.py` imports it.
+- ROSTER is the **fixed current core team** given by Andrew 2026-07-28: Hazen,
+  Hannah, Son, Halima, Sarah, Andrew, Crystal, Angel, Karissa, Gretchen, Kennah.
+  Update ROSTER when the team changes — nothing else needs touching.
+- Backfilled free from `debrief.json` (`responses[]` already carry `name` + `sunday`):
+  75 Sundays, 2025-01-12 → 2026-07-26, no re-parsing needed.
+- **Weeks before a person's first recorded response are "n/a", not "missed."** A
+  fixed roster over a year of history would otherwise mark people absent for weeks
+  they weren't on the team. Rates are computed over graded weeks only.
+- Someone with zero responses ever is flagged explicitly (`no_record`) rather than
+  silently scored 0% — currently Gretchen. Alice Yoon (17) and Ben Melancon (11)
+  are off-roster and listed separately so they don't distort the grid.
+- `python3 tools/participation.py` prints a text report; handy for a sanity check.
+- Cross-check when changing it: recompute from `responses[]` (the tracker builds
+  from `weekly[]`) and assert the two agree — that caught nothing on 2026-07-28,
+  which is the point.

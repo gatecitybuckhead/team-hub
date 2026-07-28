@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>GCB Sunday Debrief</title>
+<title>GCB Sunday Debrief &amp; Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--bg:#0f1117;--card:#181b24;--ink:#e8eaf2;--dim:#8a90a5;--gold:#e0b34c;
---green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a}
+--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a;--sunk:#141822}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px;max-width:1320px;margin:0 auto}
 h1{font-size:22px} h1 span{color:var(--gold)}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:8px}
 .sub{color:var(--dim);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
@@ -33,157 +33,497 @@ select,input[type=range]{background:var(--card);color:var(--ink);border:1px soli
 .movers{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-top:8px}
 .movers h4{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .movers .up{color:var(--green)} .movers .down{color:var(--red)}
-.tabs{display:flex;gap:6px;margin:24px 0 12px}
-.tabs button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:6px 14px;border-radius:8px;cursor:pointer}
+.tabs{display:flex;gap:6px;margin:14px 0 12px;flex-wrap:wrap}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
 .tabs button.on{color:var(--ink);border-color:var(--gold)}
 .sum{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:13px 16px;margin-bottom:10px}
 .sum .p{font-weight:700;color:var(--gold);font-size:13px} .sum .stats,.sum .meta{color:var(--dim);font-size:12px;margin-top:4px}
 .sum details{margin-top:6px;font-size:13.5px} .sum summary{cursor:pointer;color:var(--dim)}
-.wknav{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.sum .tone{margin-top:6px;font-size:14px;line-height:1.55}
+.sum .pillrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.wknav{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 .wknav button{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:16px}
 footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
 .back{display:inline-block;color:var(--gold);font-weight:700;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 12px;margin-bottom:10px}
 .back:hover{background:#1e2230;border-color:var(--gold)}
-.hero{background:linear-gradient(180deg,#1c2130,#181b24);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:18px 20px;margin-bottom:18px}
-.hero .eyebrow{color:var(--gold);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
-.hero h2{font-size:20px;margin:2px 0 12px}
-.hero .top{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-bottom:12px}
-.hero .big{font-size:40px;font-weight:800;color:var(--gold);line-height:1}
-.hero .big small{font-size:15px;color:var(--dim);font-weight:600}
-.hero .meta{color:var(--dim);font-size:13px}
-.hero .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
-.hero .chip{font-size:11.5px;color:var(--ink);background:#232838;border:1px solid var(--line);border-radius:20px;padding:2px 9px}
-.hero .chip.hi{border-color:#2f5d43;color:var(--green)}.hero .chip.lo{border-color:#5d3232;color:var(--red)}
-.hero .pg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
-@media(max-width:640px){.hero .pg{grid-template-columns:1fr}}
-.hero .sect{background:#141822;border:1px solid var(--line);border-radius:10px;padding:13px 15px}
-.hero .sect.pros{border-left:3px solid var(--green)}
-.hero .sect.grows{border-left:3px solid var(--gold)}
-.hero .sect h4{font-size:12px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px}
-.hero .sect.pros h4{color:var(--green)} .hero .sect.grows h4{color:var(--gold)}
-.hero .sect .body{font-size:14.5px;line-height:1.6}
-.hero .fresh{color:var(--dim);font-size:11.5px;margin-top:10px}
+
+/* ---- agenda scaffolding: the page IS the 45-minute meeting ---- */
+.agendabar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:8px 10px;margin:14px 0 26px;position:sticky;top:0;z-index:20}
+.agendabar a{color:var(--dim);text-decoration:none;font-size:12.5px;border:1px solid transparent;border-radius:7px;padding:4px 10px;white-space:nowrap}
+.agendabar a:hover{color:var(--ink);border-color:var(--line);background:var(--sunk)}
+.agendabar .who{margin-left:auto;color:var(--dim);font-size:12px;padding-right:4px}
+.block{margin:0 0 34px}
+.blockhead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:16px}
+.blockhead .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);color:#14161d;font-weight:800;font-size:14px;flex:none}
+.blockhead h2{font-size:18px;letter-spacing:.2px}
+.blockhead .mins{color:var(--gold);font-size:12px;font-weight:700;border:1px solid #4a3d1d;background:#221d10;border-radius:20px;padding:2px 10px}
+.blockhead .note{color:var(--dim);font-size:12.5px;margin-left:auto}
+.step{margin-bottom:16px}
+.step > .lab{display:flex;flex-wrap:wrap;gap:9px;align-items:baseline;color:var(--ink);font-size:14.5px;font-weight:700;margin-bottom:9px}
+.step > .lab .n{color:var(--dim);font-weight:700;font-size:12px;font-variant-numeric:tabular-nums}
+.step > .lab .q{color:var(--dim);font-weight:400;font-style:italic;font-size:13px}
+.step > .lab .count{color:var(--gold);font-weight:800;font-size:13px;border:1px solid #4a3d1d;background:#221d10;border-radius:6px;padding:1px 8px}
+
+/* prework / form-completion strip */
+.prework{background:linear-gradient(180deg,#1c2130,#181b24);border:1px solid var(--line);border-left:4px solid var(--blue);
+  border-radius:12px;padding:15px 17px;display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.prework .lead{font-size:13.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--blue)}
+.prework .btn{display:inline-block;background:#1d2a3a;border:1px solid #2f4a66;color:#9dc9f2;text-decoration:none;
+  border-radius:8px;padding:6px 13px;font-size:13px;font-weight:700}
+.prework .btn:hover{background:#243447;border-color:var(--blue)}
+.prework .tally{font-size:13px;color:var(--dim)}
+.prework .tally b{color:var(--ink);font-size:17px}
+.pill{font-size:11.5px;border-radius:20px;padding:2px 10px;border:1px solid var(--line);background:#232838;color:var(--ink);white-space:nowrap}
+.pill.in{border-color:#2f5d43;color:var(--green);background:#16261d}
+.pill.out{border-color:#5d3232;color:var(--red);background:#261818}
+.pill.na{color:var(--dim)}
+.pillrow{display:flex;flex-wrap:wrap;gap:6px}
+
+/* pros / grows / summary */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.pg{grid-template-columns:1fr}}
+.sect{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.sect.pros{border-left:3px solid var(--green)}
+.sect.grows{border-left:3px solid var(--gold)}
+.sect h4{font-size:12px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px}
+.sect.pros h4{color:var(--green)} .sect.grows h4{color:var(--gold)}
+.sect .body{font-size:14.5px;line-height:1.6}
+.sect ul{margin:0 0 0 17px} .sect li{margin:4px 0}
+.topics{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.topics .t{font-size:11px;color:var(--dim);background:#20242f;border-radius:5px;padding:2px 8px}
+.overall{background:var(--sunk);border:1px solid var(--line);border-left:3px solid var(--purple);border-radius:10px;padding:14px 16px;margin-top:14px}
+.overall h4{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--purple);margin-bottom:9px}
+.overall .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.overall .cols{grid-template-columns:1fr}}
+.overall h5{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin-bottom:5px}
+.overall ul{margin:0 0 0 17px;font-size:13.5px} .overall li{margin:3px 0}
+.overall .tone{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);font-size:14.5px;line-height:1.6}
+.overall .tone b{color:var(--purple)}
+.srcnote{color:var(--dim);font-size:11.5px;margin-top:11px}
+
+/* accountability heatmap */
+.hm{overflow-x:auto;padding-bottom:6px}
+table.hm-t{border-collapse:separate;border-spacing:2px;font-size:12px}
+table.hm-t th{font-weight:600;color:var(--dim);font-size:11px;text-align:right;padding-right:8px;white-space:nowrap;position:sticky;left:0;background:var(--card);z-index:2}
+table.hm-t thead th{text-align:center;padding:0 0 4px;font-size:9.5px;letter-spacing:-.2px;position:static}
+table.hm-t thead th.rot{writing-mode:vertical-rl;transform:rotate(180deg);height:52px;color:#5f6579}
+table.hm-t thead th.mo{color:var(--gold);font-size:10px}
+table.hm-t td{width:18px;height:18px;padding:0;border-radius:4px;background:#1e222d;
+  text-align:center;font-size:11px;line-height:18px;font-weight:800;cursor:default}
+td.y{background:#16261d;color:var(--green);box-shadow:inset 0 0 0 1px #2f5d43}
+td.n{background:#261818;color:var(--red);box-shadow:inset 0 0 0 1px #5d3232}
+td.x{background:#171a22;color:#333a49;font-weight:400}
+td.tot{background:none;width:auto;padding-left:9px;white-space:nowrap;color:var(--dim);text-align:left;font-weight:400;font-size:12px}
+.hmlegend{display:flex;flex-wrap:wrap;gap:14px;color:var(--dim);font-size:11.5px;margin-top:11px;align-items:center}
+.hmlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.hmlegend i.lg{width:18px;height:18px;border-radius:4px;text-align:center;line-height:18px;
+  font-size:11px;font-weight:800;font-style:normal;vertical-align:-4px;margin-right:5px}
+.hmlegend i.lg.y{background:#16261d;color:var(--green);box-shadow:inset 0 0 0 1px #2f5d43}
+.hmlegend i.lg.n{background:#261818;color:var(--red);box-shadow:inset 0 0 0 1px #5d3232}
+.hmlegend i.lg.x{background:#171a22;color:#333a49;font-weight:400}
+.rank{display:grid;gap:7px;font-size:13px}
+.rank .r{display:grid;grid-template-columns:78px 1fr 92px;gap:9px;align-items:center}
+.rank .nm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .tr{background:#232838;border-radius:5px;height:14px;overflow:hidden}
+.rank .fl{height:100%;border-radius:5px}
+.rank .mt{color:var(--dim);font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
+.flag{background:#261818;border:1px solid #5d3232;border-radius:9px;padding:10px 13px;font-size:13px;margin-top:12px;color:#f0b9b9}
+.flag b{color:var(--red)}
+.kpis{display:flex;flex-wrap:wrap;gap:22px;margin-bottom:12px}
+.kpi .v{font-size:26px;font-weight:800;color:var(--gold);line-height:1.1}
+.kpi .k{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+.people{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}
+.people .pcol h5{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.empty{color:var(--dim);font-size:13px;font-style:italic}
 </style>
 </head>
 <body>
 <a class="back" href="../index.html">← Team Hub</a>
 <header>
   <div>
-    <h1>GateCity Buckhead — <span>Sunday Debrief</span></h1>
-    <div class="sub">Team debrief form + Tuesday meeting archive · built __BUILT__</div>
+    <h1>GateCity Buckhead — <span>Sunday Debrief &amp; Dashboard</span></h1>
+    <div class="sub">Tuesday 9:00–9:45 am · mirrors the live meeting agenda · built __BUILT__</div>
   </div>
 </header>
 
-<div class="hero" id="hero"></div>
+<nav class="agendabar">
+  <a href="#prework">Prior to Mtg</a>
+  <a href="#debrief">① Sunday's DEBRIEF <span style="color:var(--gold)">30</span></a>
+  <a href="#dashboard">② Review DASHBOARD <span style="color:var(--gold)">15</span></a>
+  <a href="#accountability">Form accountability</a>
+  <a href="#history">History</a>
+  <span class="who" id="barWho"></span>
+</nav>
 
-<div class="grid">
-  <div class="card">
-    <h3><b>Sunday scorecard</b></h3>
-    <div class="wknav"><button id="wPrev">‹</button><select id="wSel"></select><button id="wNext">›</button></div>
-    <div style="display:flex;gap:22px;align-items:center;margin-bottom:8px">
-      <div><div class="score" id="wScore">–</div><div class="sub" id="wMeta"></div></div>
-      <div class="bars" id="wMsg" style="flex:1"></div>
-    </div>
-    <div class="bars" id="wBars"></div>
-  </div>
-  <div class="card">
-    <h3><b>Team comments</b> — <span id="cWho" style="text-transform:none"></span></h3>
-    <div id="wComments" style="max-height:430px;overflow:auto"></div>
-  </div>
-  <div class="card tall"><h3><b>Overall rating trend</b> — weekly team average (1–10)</h3><canvas id="cTrend"></canvas></div>
-  <div class="card tall">
-    <h3><b>What we talk about</b> — debrief comments + meeting notes</h3>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <select id="cloudSel"></select><span class="sub">word size = how often it came up</span>
-    </div>
-    <div class="cloud" id="cloud"></div>
-    <div class="movers"><div><h4>Trending up vs prior period</h4><div id="mUp"></div></div>
-    <div><h4>Fading out</h4><div id="mDown"></div></div></div>
-  </div>
-</div>
+<!-- ══════════ PRIOR TO MEETING ══════════ -->
+<section class="block" id="prework">
+  <div class="prework" id="preworkBody"></div>
+</section>
 
-<div class="tabs" id="tabs">
-  <button data-k="weekly" class="on">Week by week</button>
-  <button data-k="monthly">Month by month</button>
-  <button data-k="quarterly">Quarter by quarter</button>
-</div>
-<div id="hist"></div>
-<footer>GCB Team Hub · staff only</footer>
+<!-- ══════════ ① SUNDAY'S DEBRIEF (30 min) ══════════ -->
+<section class="block" id="debrief">
+  <div class="blockhead">
+    <span class="num">1</span>
+    <h2>Sunday's DEBRIEF</h2>
+    <span class="mins">30 min</span>
+    <span class="note" id="dbNote"></span>
+  </div>
+
+  <!-- Review FORM Results -->
+  <div class="step">
+    <div class="lab"><span class="n">1.1</span> Review FORM Results
+      <span class="count" id="respCount">—</span>
+      <span class="q">what did the team say?</span></div>
+    <div class="wknav">
+      <button id="wPrev" title="previous Sunday">‹</button>
+      <select id="wSel"></select>
+      <button id="wNext" title="next Sunday">›</button>
+      <button id="wLatest" style="font-size:12px;padding:5px 11px">Latest</button>
+      <span class="sub" id="wSpecial"></span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3><b>Sunday scorecard</b> — <span id="scDate" style="text-transform:none"></span></h3>
+        <div style="display:flex;gap:22px;align-items:flex-start;margin-bottom:8px">
+          <div><div class="score" id="wScore">–</div><div class="sub" id="wMeta"></div></div>
+          <div class="bars" id="wMsg" style="flex:1"></div>
+        </div>
+        <div class="bars" id="wBars"></div>
+      </div>
+      <div class="card">
+        <h3><b>Team comments</b> — <span id="cWho" style="text-transform:none"></span></h3>
+        <div id="wComments" style="max-height:430px;overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discuss PROS / GROWS -->
+  <div class="step">
+    <div class="lab"><span class="n">1.2</span> Discuss PROS &amp; GROWS
+      <span class="q">what's working, where we can improve</span></div>
+    <div class="pg">
+      <div class="sect pros"><h4>✅ PROS — what's working well</h4><div class="body" id="pros">—</div>
+        <div class="topics" id="prosTopics"></div></div>
+      <div class="sect grows"><h4>🧠 GROWS — where we can improve</h4><div class="body" id="grows">—</div>
+        <div class="topics" id="growsTopics"></div></div>
+    </div>
+    <div class="overall" id="overallBox"></div>
+  </div>
+
+  <!-- Pastoral Same Page -->
+  <div class="step">
+    <div class="lab"><span class="n">1.3</span> Pastoral Same Page on People
+      <span class="q">decisions · guests · new members</span></div>
+    <div class="grid"><div class="card tall" id="pastoral"></div></div>
+  </div>
+
+  <!-- Action items -->
+  <div class="step">
+    <div class="lab"><span class="n">1.4</span> Capture Action Items
+      <span class="q">what adjustments are we making?</span></div>
+    <div class="grid"><div class="card tall" id="actions"></div></div>
+  </div>
+</section>
+
+<!-- ══════════ ② REVIEW DASHBOARD (15 min) ══════════ -->
+<section class="block" id="dashboard">
+  <div class="blockhead">
+    <span class="num">2</span>
+    <h2>Review DASHBOARD</h2>
+    <span class="mins">15 min</span>
+    <span class="note">5 Behaviors metrics live on the <a href="metrics.html" style="color:var(--gold)">Metrics dashboard</a></span>
+  </div>
+
+  <div class="step">
+    <div class="lab"><span class="n">2.1</span> What are the metrics telling us?</div>
+    <div class="grid">
+      <div class="card tall"><h3><b>Overall rating trend</b> — weekly team average (1–10) &amp; response count</h3><canvas id="cTrend"></canvas></div>
+      <div class="card tall">
+        <h3><b>What we talk about</b> — debrief comments + meeting notes</h3>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select id="cloudSel"></select><span class="sub">word size = how often it came up</span>
+        </div>
+        <div class="cloud" id="cloud"></div>
+        <div class="movers"><div><h4>Trending up vs prior period</h4><div id="mUp"></div></div>
+        <div><h4>Fading out</h4><div id="mDown"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="lab"><span class="n">2.2</span> Capture Action / Parking Lot Items</div>
+    <div class="grid"><div class="card tall" id="parking"></div></div>
+  </div>
+</section>
+
+<!-- ══════════ FORM ACCOUNTABILITY ══════════ -->
+<section class="block" id="accountability">
+  <div class="blockhead">
+    <span class="num" style="background:var(--blue);color:#0f1117">✓</span>
+    <h2>Debrief form accountability</h2>
+    <span class="note" id="acctNote"></span>
+  </div>
+  <div class="kpis" id="acctKpis"></div>
+  <div class="grid">
+    <div class="card tall">
+      <h3><b>Who filled out the form</b> — week by week</h3>
+      <div class="tabs" id="hmTabs">
+        <button data-w="12" class="on">Last 12 weeks</button>
+        <button data-w="26">Last 26</button>
+        <button data-w="52">Last 52</button>
+        <button data-w="0">All time</button>
+      </div>
+      <div class="hm" id="hmWrap"></div>
+      <div class="hmlegend">
+        <span><i class="lg y">✓</i>filled out the form</span>
+        <span><i class="lg n">✕</i>did not fill it out</span>
+        <span><i class="lg x">·</i>not yet on the team / no form history</span>
+        <span class="sub">hover any box for the date · rows sorted by recent completion rate</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3><b>Completion rate</b> — last 12 weeks</h3>
+      <div class="rank" id="rank12"></div>
+      <div id="acctFlags"></div>
+    </div>
+    <div class="card">
+      <h3><b>All-time rate &amp; streaks</b></h3>
+      <div class="rank" id="rankAll"></div>
+      <div class="srcnote" id="nonCore"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ HISTORY ══════════ -->
+<section class="block" id="history">
+  <div class="blockhead">
+    <span class="num" style="background:#2c3242;color:var(--ink)">≡</span>
+    <h2>History</h2>
+    <span class="note">every debrief since Jan 2025</span>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-k="weekly" class="on">Week by week</button>
+    <button data-k="monthly">Month by month</button>
+    <button data-k="quarterly">Quarter by quarter</button>
+  </div>
+  <div id="hist"></div>
+</section>
+
+<footer>GCB Team Hub · staff only · agenda flow mirrors the Tuesday SERVICE DEBRIEF/DASHBOARD meeting</footer>
 
 <script>
 const DATA = /*__DATA__*/null;
 const WK = DATA.weekly, MT = DATA.meetings, SUM = DATA.summaries, WORDS = DATA.words;
 const NAR = DATA.narratives || {};
+const NOTES = DATA.notes || {};
+const PART = DATA.participation || {people:[],weeks:[]};
 const fmtD = d => new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const fmtS = d => new Date(d+'T12:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric'});
 const clr = v => v>=90?'#57c98a':v>=75?'#5aa2e0':v>=60?'#e0b34c':'#e06767';
+const esc = s => String(s??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const shortOf = {}; PART.people.forEach(p=>shortOf[p.name]=p.short);
+const sh = n => shortOf[n] || n.split(' ')[0];
 
-// ---------- "This Sunday's Debrief" hero — LATEST week only, never stale ----------
-// Fallback when no written narrative exists yet: split this week's data into Pros/Grows.
-function autoSummary(w){
-  const els=Object.entries(w.elements||{}).sort((a,b)=>b[1]-a[1]);
-  const hi=els.slice(0,2).map(([k,v])=>`${k} (${Math.round(v)})`);
-  const lo=els.length>2?els.slice(-2).map(([k,v])=>`${k} (${Math.round(v)})`):[];
-  const overall=(w.comments||[]).find(c=>c.tag==='overall');
-  let pros=`${w.n} team member${w.n===1?'':'s'} debriefed this service`;
-  pros+= w.overall_avg!=null?`, averaging ${w.overall_avg}/10. `:`. `;
-  if(hi.length) pros+=`Strongest marks: ${hi.join(' and ')}. `;
-  if(overall) pros+=`${overall.by}: “${overall.text}”`;
-  let grows='';
-  if(lo.length) grows+=`Lowest-rated this week: ${lo.join(' and ')}. `;
-  const svc=(w.comments||[]).find(c=>c.tag==='service'||c.tag==='kids_incident');
-  if(svc) grows+=`Worth a look — ${svc.by}: “${svc.text}”`;
-  if(!grows) grows='No specific grows flagged in this week’s responses.';
-  return {pros, grows};
-}
-function renderHero(){
-  const w=WK[WK.length-1];                          // always the most recent Sunday
-  const nar=NAR[w.sunday];                           // written narrative for THIS week, if any
-  const hasNar = nar && (nar.pros || nar.grows);
-  const s = hasNar ? nar : autoSummary(w);           // {pros, grows}
-  const els=Object.entries(w.elements||{}).sort((a,b)=>b[1]-a[1]);
-  const hi=els[0], lo=els.length>2?els[els.length-1]:null;
-  const chips=[]; if(hi)chips.push(`<span class="chip hi">▲ ${hi[0]} ${Math.round(hi[1])}</span>`);
-  if(lo)chips.push(`<span class="chip lo">▼ ${lo[0]} ${Math.round(lo[1])}</span>`);
-  document.getElementById('hero').innerHTML=`
-    <div class="eyebrow">This Sunday's Debrief</div>
-    <h2>${fmtD(w.sunday)}</h2>
-    <div class="top">
-      <div><div class="big">${w.overall_avg??'–'}<small> /10</small></div>
-        <div class="meta">${w.n} team response${w.n===1?'':'s'}</div></div>
-      <div style="flex:1;min-width:200px">
-        <div class="meta">${(w.names||[]).join(' · ')}</div>
-        <div class="chips">${chips.join('')}</div>
-      </div>
+let wi = WK.length-1;                      // selected week index
+const wk = () => WK[wi];
+const noteFor = s => NOTES[s] || null;
+const partFor = s => (PART.weeks||[]).find(w=>w.sunday===s) || null;
+
+/* ══════════ PRIOR TO MEETING — form completion for the selected week ══════════ */
+function renderPrework(){
+  const w=wk(), p=partFor(w.sunday);
+  const inN=(p?p.submitted:w.names||[]).map(n=>`<span class="pill in">✓ ${esc(sh(n))}</span>`).join('');
+  const outN=(p?p.missed:[]).map(n=>`<span class="pill out">✕ ${esc(sh(n))}</span>`).join('');
+  const oth=(p?p.other:[]).map(n=>`<span class="pill na">${esc(sh(n))}</span>`).join('');
+  // Core members with no form history at all still get a chip, so they don't
+  // quietly disappear from the weekly view.
+  const noRec=PART.people.filter(x=>x.no_record)
+    .map(x=>`<span class="pill na" title="no debrief-form responses on record">${esc(x.short)} —</span>`).join('');
+  const got=p?p.submitted.length:(w.n||0), exp=p?p.expected:null;
+  document.getElementById('preworkBody').innerHTML=`
+    <div>
+      <div class="lead">Prior to Mtg</div>
+      <div style="font-size:15px;font-weight:700;margin-top:2px">All Team — complete the Debrief Form</div>
+      <a class="btn" style="margin-top:8px" href="${PART.form_url||'#'}" target="_blank" rel="noopener">Open the form ↗</a>
     </div>
-    <div class="pg">
-      <div class="sect pros"><h4>✅ Pros — celebrate the wins</h4><div class="body">${s.pros||'—'}</div></div>
-      <div class="sect grows"><h4>🌱 Grows — where we can improve</h4><div class="body">${s.grows||'—'}</div></div>
-    </div>
-    <div class="fresh">${hasNar?'Summary of this week’s debrief responses.':'Auto-split from this week’s responses.'} Scroll for the full scorecard, comments &amp; history.</div>`;
+    <div style="flex:1;min-width:280px">
+      <div class="tally">For Sunday ${fmtD(w.sunday)} — <b>${got}${exp!=null?' of '+exp:''}</b> core team submitted${
+        exp!=null&&got<exp?` · <span style="color:var(--red)">${exp-got} missing</span>`:exp!=null&&got>=exp?' · <span style="color:var(--green)">full participation</span>':''}</div>
+      <div class="pillrow" style="margin-top:7px">${inN||'<span class="pill na">no responses</span>'}${outN}${noRec}</div>
+      ${oth?`<div class="tally" style="margin-top:7px">also responded: <span class="pillrow" style="display:inline-flex">${oth}</span></div>`:''}
+    </div>`;
+  document.getElementById('barWho').textContent=`Sunday ${fmtD(w.sunday)} · ${got} responses`;
 }
 
-// ---------- scorecard ----------
-let wi = WK.length-1;
-const wSel=document.getElementById('wSel');
-WK.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=fmtD(w.sunday);wSel.appendChild(o)});
-function scorecard(){
-  const w=WK[wi]; wSel.value=wi;
+/* ══════════ 1.1 REVIEW FORM RESULTS ══════════ */
+function renderScorecard(){
+  const w=wk(), n=noteFor(w.sunday); wSel.value=wi;
+  const stated = n && n.respondents;
+  document.getElementById('respCount').textContent =
+    `${stated||w.n} Respondent${(stated||w.n)===1?'':'s'}`;
+  document.getElementById('wSpecial').innerHTML = n&&n.special
+    ? `<span class="pill" style="border-color:#4a3d1d;color:var(--gold)">${esc(n.special)}</span>` : '';
+  document.getElementById('dbNote').textContent = n&&n.meeting_date
+    ? `debriefed ${fmtD(n.meeting_date)}` : '';
   document.getElementById('wScore').textContent=w.overall_avg??'–';
-  document.getElementById('wMeta').textContent=w.n+' team responses';
+  document.getElementById('wMeta').textContent=(w.n||0)+' team responses';
+  document.getElementById('scDate').textContent=fmtD(w.sunday);
   document.getElementById('cWho').textContent=fmtD(w.sunday);
   const msg=Object.entries(w.message||{});
   document.getElementById('wMsg').innerHTML=msg.length?'<div class="sub" style="margin-bottom:4px">Message (1–10)</div>'+msg.map(([k,v])=>
-    `<div class="row"><div class="lbl">${k.replace(/_/g,' ')}</div><div class="track"><div class="fill" style="width:${v*10}%;background:${clr(v*10)}"></div></div><div class="val">${v}</div></div>`).join(''):'';
+    `<div class="row"><div class="lbl">${esc(k.replace(/_/g,' '))}</div><div class="track"><div class="fill" style="width:${v*10}%;background:${clr(v*10)}"></div></div><div class="val">${v}</div></div>`).join(''):'';
   document.getElementById('wBars').innerHTML=Object.entries(w.elements||{}).map(([k,v])=>
-    `<div class="row"><div class="lbl">${k}</div><div class="track"><div class="fill" style="width:${v}%;background:${clr(v)}"></div></div><div class="val">${Math.round(v)}</div></div>`).join('');
+    `<div class="row"><div class="lbl">${esc(k)}</div><div class="track"><div class="fill" style="width:${v}%;background:${clr(v)}"></div></div><div class="val">${Math.round(v)}</div></div>`).join('')
+    ||'<div class="empty">No element ratings for this Sunday.</div>';
   document.getElementById('wComments').innerHTML=(w.comments||[]).map(c=>
-    `<div class="comment"><b>${c.by}</b> <span class="tag">${c.tag.replace('_',' ')}</span><br>${c.text}</div>`).join('')||'<div class="sub">No comments this week.</div>';
+    `<div class="comment"><b>${esc(c.by)}</b> <span class="tag">${esc(c.tag.replace(/_/g,' '))}</span><br>${esc(c.text)}</div>`).join('')
+    ||'<div class="empty">No comments this week.</div>';
 }
-document.getElementById('wPrev').onclick=()=>{if(wi>0){wi--;scorecard()}};
-document.getElementById('wNext').onclick=()=>{if(wi<WK.length-1){wi++;scorecard()}};
-wSel.onchange=e=>{wi=+e.target.value;scorecard()};
 
-// ---------- trend ----------
+/* ══════════ 1.2 PROS / GROWS / OVERALL SUMMARY ══════════
+   Priority: hand-written narrative → parsed meeting-notes report → auto-split
+   from the raw form responses. Never blank, never stale.                     */
+const TAGLABEL={overall:'Overall',service:'Service flow',lobby:'Lobby',kids:'Kids',
+  other:'Other notes',worship:'Worship',word:'Word',message:'Message'};
+// The 'other' catch-all field is mostly production/ops notes; route it to the
+// pastoral kids block only when it actually reads as kids-related.
+const KIDRE=/\bkid|child|nursery|check-?in|classroom|parent|toddler|bab(y|ies)|preschool|elementary/i;
+const isKids=c=>c.tag==='kids'||(c.tag==='other'&&KIDRE.test(c.text));
+
+function autoPG(w){
+  const els=Object.entries(w.elements||{}).sort((a,b)=>b[1]-a[1]);
+  const hi=els.slice(0,3), lo=els.length>3?els.slice(-3).reverse():[];
+  const cm=w.comments||[];
+  const pros=[];
+  if(hi.length) pros.push(`<li><b>Strongest marks:</b> ${hi.map(([k,v])=>`${esc(k)} (${Math.round(v)})`).join(', ')}</li>`);
+  cm.filter(c=>c.tag==='overall').slice(0,3).forEach(c=>
+    pros.push(`<li><b>${esc(sh(c.by))}:</b> “${esc(c.text)}”</li>`));
+  const grows=[];
+  if(lo.length) grows.push(`<li><b>Lowest-rated:</b> ${lo.map(([k,v])=>`${esc(k)} (${Math.round(v)})`).join(', ')}</li>`);
+  cm.filter(c=>c.tag!=='overall').slice(0,4).forEach(c=>
+    grows.push(`<li><b>${esc(TAGLABEL[c.tag]||c.tag)} — ${esc(sh(c.by))}:</b> “${esc(c.text)}”</li>`));
+  return {
+    pros: pros.length?`<ul>${pros.join('')}</ul>`:'<span class="empty">No pros captured for this Sunday.</span>',
+    grows: grows.length?`<ul>${grows.join('')}</ul>`:'<span class="empty">No grows flagged for this Sunday.</span>',
+    src:'Auto-split from this week’s form responses.'
+  };
+}
+function renderPG(){
+  const w=wk(), n=noteFor(w.sunday), nar=NAR[w.sunday];
+  let pros,grows,src;
+  if(nar&&(nar.pros||nar.grows)){
+    pros=nar.pros||''; grows=nar.grows||''; src='Written summary of this week’s debrief.';
+  }else{
+    const a=autoPG(w); pros=a.pros; grows=a.grows; src=a.src;
+  }
+  document.getElementById('pros').innerHTML=pros||'—';
+  document.getElementById('grows').innerHTML=grows||'—';
+  const tp=(n&&n.pros_topics)||[], tg=(n&&n.grows_topics)||[];
+  document.getElementById('prosTopics').innerHTML=tp.length
+    ? '<span class="t" style="background:none;padding-left:0">topics discussed:</span>'+tp.map(t=>`<span class="t">${esc(t)}</span>`).join('') : '';
+  document.getElementById('growsTopics').innerHTML=tg.length
+    ? '<span class="t" style="background:none;padding-left:0">topics discussed:</span>'+tg.map(t=>`<span class="t">${esc(t)}</span>`).join('') : '';
+
+  // 📊 Overall Summary — Big Wins / Primary Growth Areas / Overall Tone
+  const wins=(n&&n.big_wins)||[], gas=(n&&n.growth_areas)||[], tone=n&&n.overall_tone;
+  const els=Object.entries(w.elements||{}).sort((a,b)=>b[1]-a[1]);
+  const autoWins=wins.length?null:els.slice(0,3).map(([k,v])=>`${k} rated ${Math.round(v)}/100`);
+  const autoGas=gas.length?null:(els.length>3?els.slice(-2).reverse().map(([k,v])=>`${k} — lowest-rated element this week (${Math.round(v)}/100)`):[]);
+  const W=wins.length?wins:(autoWins||[]), G=gas.length?gas:(autoGas||[]);
+  let autoTone='';
+  if(!tone){
+    const a=w.overall_avg;
+    autoTone = a==null ? 'No overall rating recorded for this Sunday.'
+      : a>=9 ? `Strong Sunday — the team averaged ${a}/10 across ${w.n} response${w.n===1?'':'s'}, with no element flagged as a serious concern.`
+      : a>=8 ? `A solid Sunday, averaging ${a}/10 across ${w.n} response${w.n===1?'':'s'}. The growth edge is execution and flow rather than content.`
+      : a>=7 ? `A mixed Sunday at ${a}/10 across ${w.n} response${w.n===1?'':'s'} — worth spending the full 30 minutes on the grows below.`
+      : `Below the usual bar at ${a}/10 across ${w.n} response${w.n===1?'':'s'}. Treat the grows below as this week’s priority.`;
+  }
+  document.getElementById('overallBox').innerHTML=`
+    <h4>📊 Overall Summary</h4>
+    <div class="cols">
+      <div><h5>Big Wins</h5>${W.length?`<ul>${W.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<span class="empty">—</span>'}</div>
+      <div><h5>Primary Growth Areas</h5>${G.length?`<ul>${G.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<span class="empty">—</span>'}</div>
+    </div>
+    <div class="tone"><b>Overall Tone:</b> ${esc(tone||autoTone)}</div>
+    <div class="srcnote">${src}${(wins.length||gas.length)?' Wins and growth areas quoted from the Tuesday meeting notes.':''}${
+      tone?'':' Tone auto-generated from the ratings — no written verdict in the notes for this week.'}</div>`;
+}
+
+/* ══════════ 1.3 PASTORAL SAME PAGE ══════════ */
+function renderPastoral(){
+  const w=wk(), n=noteFor(w.sunday);
+  const bits=[];
+  if(n){
+    if(n.attendance!=null) bits.push(['Attendance',n.attendance]);
+    if(n.visitors!=null)   bits.push(['Guests / visitors',n.visitors]);
+    if(n.giving!=null)     bits.push(['Giving','$'+n.giving.toLocaleString()]);
+  }
+  const kidsFlag=(w.comments||[]).filter(isKids);
+  const lobby=(w.comments||[]).filter(c=>c.tag==='lobby');
+  const blk=(title,list)=>list.length?`<div style="margin-top:10px"><div class="sub" style="margin-bottom:4px">${title}</div>${
+    list.map(c=>`<div class="comment"><b>${esc(sh(c.by))}</b><br>${esc(c.text)}</div>`).join('')}</div>`:'';
+  document.getElementById('pastoral').innerHTML=`
+    <h3><b>Decisions · Guests · New Members</b></h3>
+    ${bits.length?`<div class="kpis">${bits.map(([k,v])=>`<div class="kpi"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`).join('')}</div>`:''}
+    ${blk('Kids ministry notes',kidsFlag)}
+    ${blk('Lobby &amp; hospitality — first impressions for guests',lobby)}
+    ${!bits.length&&!kidsFlag.length&&!lobby.length?'<div class="empty">Nothing captured in the form this week — discuss live: decisions, first-time guests, new members, follow-ups (names/numbers).</div>':'<div class="srcnote">Decisions, guest names and new members are discussed live — the form only captures kids and lobby notes.</div>'}`;
+}
+
+/* ══════════ 1.4 / 2.2 ACTION ITEMS & PARKING LOT ══════════ */
+// Meeting notes are keyed by meeting date; map to the Sunday they debrief.
+const mtBySunday={};
+MT.forEach(m=>{const d=new Date(m.date+'T12:00');const sun=new Date(d);
+  sun.setDate(d.getDate()-((d.getDay()+7)%7||7));
+  const k=sun.toISOString().slice(0,10);(mtBySunday[k]=mtBySunday[k]||[]).push(m)});
+
+// Owner names we recognise, so "Halima: contact Cindy…" renders with an owner chip.
+const OWNERS=(PART.roster||[]).map(n=>({full:n,short:shortOf[n]||n.split(' ')[0]}));
+function splitOwner(t){
+  for(const o of OWNERS){
+    const re=new RegExp('(?:^|\\b)'+o.short+'\\b\\s*[:\\-–]\\s*','i');
+    if(re.test(t)) return {owner:o.short,text:t.replace(re,'').trim()};
+    const re2=new RegExp('\\s*[-–]\\s*'+o.short+'\\s*\\.?$','i');
+    if(re2.test(t)) return {owner:o.short,text:t.replace(re2,'').trim()};
+  }
+  return {owner:null,text:t};
+}
+function actionList(items){
+  if(!items.length) return '<div class="empty">No action items captured for this week.</div>';
+  return items.map(t=>{const {owner,text}=splitOwner(t);
+    return `<div class="comment">${owner?`<b>${esc(owner)}</b> `:''}${esc(text)}</div>`}).join('');
+}
+function renderActions(){
+  const w=wk(), ms=mtBySunday[w.sunday]||[];
+  const acts=ms.flatMap(m=>m.actions||[]);
+  const decs=ms.flatMap(m=>m.decisions||[]);
+  // Split: anything reading like a later-meeting hand-off goes to the parking lot.
+  const isPark=t=>/parking lot|add to tactical|next tactical|thursday tactical|10:10|revisit|later|down the road|someday|explore/i.test(t);
+  const now=acts.filter(t=>!isPark(t)), park=acts.filter(isPark);
+  document.getElementById('actions').innerHTML=`
+    <h3><b>What adjustments are we making?</b> — ${esc(fmtD(w.sunday))}</h3>
+    ${actionList(now)}
+    ${decs.length?`<h3 style="margin-top:14px"><b>Decisions logged</b></h3>${decs.map(d=>`<div class="comment" style="border-left-color:var(--green)">${esc(d)}</div>`).join('')}`:''}`;
+  document.getElementById('parking').innerHTML=`
+    <h3><b>Parking lot &amp; hand-offs</b> — routed to the Thursday tactical / 10:10 Area Lead mtg</h3>
+    ${park.length?actionList(park):'<div class="empty">Nothing parked from this week.</div>'}`;
+}
+
+/* ══════════ week navigation ══════════ */
+const wSel=document.getElementById('wSel');
+WK.forEach((w,i)=>{const o=document.createElement('option');o.value=i;
+  const n=NOTES[w.sunday]; o.textContent=fmtD(w.sunday)+(n&&n.special?' — '+n.special:'');
+  wSel.appendChild(o)});
+function renderWeek(){renderPrework();renderScorecard();renderPG();renderPastoral();renderActions()}
+document.getElementById('wPrev').onclick=()=>{if(wi>0){wi--;renderWeek()}};
+document.getElementById('wNext').onclick=()=>{if(wi<WK.length-1){wi++;renderWeek()}};
+document.getElementById('wLatest').onclick=()=>{wi=WK.length-1;renderWeek()};
+wSel.onchange=e=>{wi=+e.target.value;renderWeek()};
+
+/* ══════════ 2.1 trend ══════════ */
 new Chart(document.getElementById('cTrend'),{
   data:{labels:WK.map(w=>w.sunday.slice(2).replace(/-/g,'/')),
     datasets:[{type:'line',label:'Overall avg',data:WK.map(w=>w.overall_avg),borderColor:'#e0b34c',
@@ -191,11 +531,13 @@ new Chart(document.getElementById('cTrend'),{
     {type:'bar',label:'# responses',data:WK.map(w=>w.n),backgroundColor:'#2c3242',yAxisID:'y2'}]},
   options:{interaction:{mode:'index',intersect:false},
     plugins:{legend:{labels:{color:'#8a90a5',boxWidth:12,font:{size:11}}}},
+    onClick:(e,el)=>{if(el.length){wi=el[0].index;renderWeek();
+      document.getElementById('debrief').scrollIntoView({behavior:'smooth'})}},
     scales:{x:{ticks:{color:'#666c80',maxTicksLimit:16,font:{size:10}},grid:{color:'#20242f'}},
       y:{min:5,max:10,ticks:{color:'#666c80'},grid:{color:'#20242f'}},
       y2:{position:'right',beginAtZero:true,max:20,ticks:{display:false},grid:{display:false}}}}});
 
-// ---------- word cloud ----------
+/* ══════════ 2.1 word cloud ══════════ */
 const months=Object.keys(WORDS);
 const cloudSel=document.getElementById('cloudSel');
 const periods=[['all','All time']];
@@ -221,44 +563,123 @@ function cloud(){
   const top=Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,45);
   const max=top.length?top[0][1]:1;
   document.getElementById('cloud').innerHTML=top.map(([w,c],i)=>
-    `<span style="font-size:${(13+34*Math.sqrt(c/max)).toFixed(0)}px;color:${PAL[i%PAL.length]};opacity:${.55+.45*c/max}" title="${w}: ${c}×">${w}</span>`).join(' ');
+    `<span style="font-size:${(13+34*Math.sqrt(c/max)).toFixed(0)}px;color:${PAL[i%PAL.length]};opacity:${.55+.45*c/max}" title="${esc(w)}: ${c}×">${esc(w)}</span>`).join(' ');
   const ps=prevSel(sel);let up=[],down=[];
   if(ps){const pf=freq(ps);const all=new Set([...Object.keys(f),...Object.keys(pf)]);
     const delta=[...all].map(w=>[w,(f[w]||0)-(pf[w]||0)]).sort((a,b)=>b[1]-a[1]);
     up=delta.filter(d=>d[1]>1).slice(0,6);down=delta.filter(d=>d[1]<-1).slice(-6).reverse();}
-  document.getElementById('mUp').innerHTML=up.map(d=>`<div class="up">▲ ${d[0]} (+${d[1]})</div>`).join('')||'<span class="sub">–</span>';
-  document.getElementById('mDown').innerHTML=down.map(d=>`<div class="down">▼ ${d[0]} (${d[1]})</div>`).join('')||'<span class="sub">–</span>';
+  document.getElementById('mUp').innerHTML=up.map(d=>`<div class="up">▲ ${esc(d[0])} (+${d[1]})</div>`).join('')||'<span class="sub">–</span>';
+  document.getElementById('mDown').innerHTML=down.map(d=>`<div class="down">▼ ${esc(d[0])} (${d[1]})</div>`).join('')||'<span class="sub">–</span>';
 }
 cloudSel.onchange=cloud;
 
-// ---------- history ----------
+/* ══════════ ACCOUNTABILITY ══════════ */
+const PW=PART.weeks||[], PP=PART.people||[];
+function rateColor(r){return r==null?'#2c3242':r>=80?'#57c98a':r>=60?'#5aa2e0':r>=40?'#e0b34c':'#e06767'}
+function heatmap(nWeeks){
+  const weeks = nWeeks?PW.slice(-nWeeks):PW;
+  const head = weeks.map((w,i)=>{
+    const mo=new Date(w.sunday+'T12:00').getMonth();
+    const prev=i?new Date(weeks[i-1].sunday+'T12:00').getMonth():-1;
+    return `<th class="${mo!==prev?'mo':'rot'}" title="${fmtD(w.sunday)}">${mo!==prev?fmtS(w.sunday):fmtS(w.sunday)}</th>`;
+  }).join('');
+  const rows = PP.map(p=>{
+    const cells=weeks.map(w=>{
+      if(p.no_record||!p.first||w.sunday<p.first)
+        return `<td class="x" title="${esc(p.short)} — not on the form yet (${fmtD(w.sunday)})">·</td>`;
+      const got=w.submitted.includes(p.name);
+      return `<td class="${got?'y':'n'}" title="${esc(p.short)} — ${got?'submitted':'DID NOT submit'} for ${fmtD(w.sunday)}">${got?'✓':'✕'}</td>`;
+    }).join('');
+    const inWin=weeks.filter(w=>p.first&&w.sunday>=p.first);
+    const hit=inWin.filter(w=>w.submitted.includes(p.name)).length;
+    const pct=inWin.length?Math.round(100*hit/inWin.length):null;
+    return `<tr><th title="${esc(p.name)}">${esc(p.short)}</th>${cells}
+      <td class="tot">${pct==null
+        ? `<span style="color:var(--red);font-weight:700">never</span> <span style="opacity:.7">0 on record</span>`
+        : `<span style="color:${rateColor(pct)};font-weight:700">${pct}%</span> <span style="opacity:.7">${hit}/${inWin.length}</span>`}</td></tr>`;
+  }).join('');
+  const totals=weeks.map(w=>`<th class="rot" style="color:#8a90a5" title="${w.submitted.length} of ${w.expected} submitted">${w.submitted.length}</th>`).join('');
+  document.getElementById('hmWrap').innerHTML=
+    `<table class="hm-t"><thead><tr><th></th>${head}<th class="tot" style="font-size:10px">rate</th></tr></thead>
+     <tbody>${rows}<tr><th style="color:var(--gold)">submitted</th>${totals}<td class="tot"></td></tr></tbody></table>`;
+}
+document.getElementById('hmTabs').addEventListener('click',e=>{
+  if(e.target.dataset.w!==undefined){
+    [...document.querySelectorAll('#hmTabs button')].forEach(b=>b.classList.toggle('on',b===e.target));
+    heatmap(+e.target.dataset.w)}});
+
+function ranks(){
+  const row=(p,val,meta)=>`<div class="r"><div class="nm">${esc(p.short)}</div>
+    <div class="tr"><div class="fl" style="width:${val||0}%;background:${rateColor(val)}"></div></div>
+    <div class="mt">${meta}</div></div>`;
+  document.getElementById('rank12').innerHTML=PP.map(p=>p.no_record
+    ? row(p,0,'no history')
+    : row(p,p.rate12,`${p.rate12}% · ${p.streak}wk streak`)).join('');
+  document.getElementById('rankAll').innerHTML=PP.map(p=>p.no_record
+    ? row(p,0,'never submitted')
+    : row(p,p.rate,`${p.submitted}/${p.graded} · best ${p.best_streak}`)).join('');
+
+  const flags=[];
+  PP.filter(p=>p.no_record).forEach(p=>flags.push(`<b>${esc(p.short)}</b> has no debrief-form responses on record at all.`));
+  PP.filter(p=>!p.no_record&&p.rate12!=null&&p.rate12<50).forEach(p=>
+    flags.push(`<b>${esc(p.short)}</b> — ${p.rate12}% over the last 12 weeks${p.last?`, last submitted ${fmtD(p.last)}`:''}.`));
+  PP.filter(p=>!p.no_record&&p.longest_gap>=8).forEach(p=>
+    flags.push(`<b>${esc(p.short)}</b> once went ${p.longest_gap} weeks without submitting.`));
+  document.getElementById('acctFlags').innerHTML=flags.length
+    ? `<div class="flag"><div style="font-weight:700;margin-bottom:5px;color:var(--red)">Worth a conversation</div>
+       ${flags.map(f=>`<div style="margin:3px 0">• ${f}</div>`).join('')}</div>` : '';
+
+  const last12=PW.slice(-12);
+  const avg=last12.length?(last12.reduce((a,w)=>a+w.submitted.length,0)/last12.length):0;
+  const full=last12.filter(w=>w.expected&&w.submitted.length>=w.expected).length;
+  const onRec=PP.filter(p=>!p.no_record).length;
+  document.getElementById('acctKpis').innerHTML=`
+    <div class="kpi"><div class="v">${avg.toFixed(1)}</div><div class="k">avg responses / wk (last 12)</div></div>
+    <div class="kpi"><div class="v">${PART.roster?PART.roster.length:0}</div><div class="k">core team</div></div>
+    <div class="kpi"><div class="v">${onRec}</div><div class="k">with form history</div></div>
+    <div class="kpi"><div class="v">${full}</div><div class="k">weeks at full participation (last 12)</div></div>
+    <div class="kpi"><div class="v">${PW.length}</div><div class="k">Sundays tracked</div></div>`;
+  document.getElementById('acctNote').textContent =
+    PART.first_sunday?`backfilled from ${fmtD(PART.first_sunday)}`:'';
+  const nc=PART.non_core||[];
+  document.getElementById('nonCore').innerHTML = nc.length
+    ? `Not on the current core team but appear in the form history (${esc(PART.non_core_note||'')}): `
+      + nc.map(x=>`${esc(x.name)} (${x.count})`).join(', ')+'.'
+    : '';
+}
+
+/* ══════════ HISTORY ══════════ */
 let kind='weekly';
 function hist(){
   const el=document.getElementById('hist');
   if(kind!=='weekly'){
     el.innerHTML=[...SUM[kind]].reverse().map(s=>{const st=s.stats||{};
-      return `<div class="sum"><div class="p">${s.label}</div><div>${s.text}</div>
+      return `<div class="sum"><div class="p">${esc(s.label)}</div><div>${esc(s.text)}</div>
       <div class="stats">avg attendance ${st.avg_attendance??'—'} · team rating ${st.avg_overall_rating??'—'}/10 · giving $${(st.giving_total??0).toLocaleString()}</div></div>`}).join('');
     return;
   }
-  const mtByWeek={};
-  MT.forEach(m=>{const d=new Date(m.date+'T12:00');const sun=new Date(d);sun.setDate(d.getDate()-((d.getDay()+7)%7||7));
-    const k=sun.toISOString().slice(0,10);(mtByWeek[k]=mtByWeek[k]||[]).push(m)});
-  el.innerHTML=[...WK].reverse().map(w=>{
-    const ms=mtByWeek[w.sunday]||[];
-    const meet=ms.map(m=>m.summary).join(' ');
+  el.innerHTML=[...WK].reverse().map((w,ri)=>{
+    const idx=WK.length-1-ri;
+    const n=noteFor(w.sunday), p=partFor(w.sunday);
+    const ms=mtBySunday[w.sunday]||[];
     const dec=ms.flatMap(m=>m.decisions||[]);
-    return `<div class="sum"><div class="p">Sunday ${fmtD(w.sunday)}</div>
-      <div class="meta">team rating ${w.overall_avg??'—'}/10 · ${w.n} responses</div>
-      ${meet?`<div style="margin-top:5px">${meet}</div>`:''}
-      ${dec.length?`<details><summary>${dec.length} decision(s)</summary><ul style="margin:6px 0 0 18px">${dec.map(d=>`<li>${d}</li>`).join('')}</ul></details>`:''}
+    const tone=n&&n.overall_tone;
+    const pills=p?[...p.submitted.map(x=>`<span class="pill in">✓ ${esc(sh(x))}</span>`),
+                   ...p.missed.map(x=>`<span class="pill out">✕ ${esc(sh(x))}</span>`)].join(''):'';
+    return `<div class="sum"><div class="p">Sunday ${fmtD(w.sunday)}${n&&n.special?` · ${esc(n.special)}`:''}
+        <a href="#debrief" data-jump="${idx}" style="float:right;font-weight:400;font-size:11.5px;color:var(--dim)">open ↑</a></div>
+      <div class="meta">team rating ${w.overall_avg??'—'}/10 · ${w.n} response${w.n===1?'':'s'}${n&&n.attendance!=null?` · attendance ${n.attendance}`:''}</div>
+      ${tone?`<div class="tone"><b style="color:var(--purple)">Overall Tone:</b> ${esc(tone)}</div>`:''}
+      ${pills?`<div class="pillrow">${pills}</div>`:''}
+      ${dec.length?`<details><summary>${dec.length} decision(s)</summary><ul style="margin:6px 0 0 18px">${dec.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></details>`:''}
       </div>`}).join('');
+  el.querySelectorAll('[data-jump]').forEach(a=>a.onclick=()=>{wi=+a.dataset.jump;renderWeek()});
 }
 document.getElementById('tabs').addEventListener('click',e=>{
   if(e.target.dataset.k){kind=e.target.dataset.k;
     [...document.querySelectorAll('#tabs button')].forEach(b=>b.classList.toggle('on',b===e.target));hist()}});
 
-renderHero();scorecard();cloud();hist();
+renderWeek();cloud();heatmap(12);ranks();hist();
 </script>
 </body>
 </html>

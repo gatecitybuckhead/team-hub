@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Parse GCB 'Sunday DEBRIEF Form (Responses)' into tidy JSON."""
-import json, re, datetime
+import json, re, sys, datetime, pathlib
 from openpyxl import load_workbook
 
-SRC = '/sessions/dazzling-jolly-babbage/mnt/uploads/Sunday DEBRIEF Form (Responses).xlsx'
-OUT = '/sessions/dazzling-jolly-babbage/mnt/outputs/debrief.json'
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+# Usage: python3 parse_debrief.py <Sunday DEBRIEF Form (Responses).xlsx> [out.json]
+SRC = sys.argv[1] if len(sys.argv) > 1 else str(ROOT/'Sunday DEBRIEF Form (Responses).xlsx')
+OUT = sys.argv[2] if len(sys.argv) > 2 else str(ROOT/'data'/'debrief.json')
 
 NAMES = {'andrew':'Andrew Faletti','karissa':'Karissa','hannah':'Hannah Stevens',
          'halima':'Halima Edge','sarah':'Sarah Shivers','angel':'Angel Colon',
@@ -21,7 +23,11 @@ ELEMENTS = {
     'Kids Setup':     (15, None),'Kids Check-in': (16, 26),
     'Kids Class':     (17, 27),
 }
-COMMENT_COLS = {4:'overall',7:'lobby',14:'service',18:'kids',19:'kids_incident',32:'message'}
+# Col 19 was the kids-incident question on the ORIGINAL form; on the current form
+# it's the catch-all "anything else?" field. Verified 2026-07-28: only 8 of 90
+# entries mention kids at all, the rest are production/ops notes. So it's tagged
+# 'other' and the dashboard routes it to kids only when the text is kids-related.
+COMMENT_COLS = {4:'overall',7:'lobby',14:'service',18:'kids',19:'other',32:'message'}
 MSG = {'engagement':28,'content':29,'time_mgt':30}   # call_to_action = 31 or 33
 
 def rating(v):
