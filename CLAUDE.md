@@ -9,6 +9,26 @@ the parent `gatecity-buckhead-ai-ops` repo.
 - `docs/index.html` — public hub landing page (no data).
 - `docs/staff/metrics.html` — Metrics dashboard (5 Behaviors charts + monthly/
   quarterly rollups). **Encrypted** with the shared team password.
+  - **Sanctuary count is the headline number.** `attendance_in_sanctuary` gets a
+    double-width hero KPI at the top (with ▲/▼ vs the 4-week average) and is the
+    bold blue, always-pointed, top-drawn series in the Attendance chart. Total and
+    Kids stay on the chart for context but their value labels are suppressed
+    (`noLabel:true`) so the sanctuary numbers don't get crowded out.
+  - **Value labels**: hand-rolled `valueLabels` Chart.js plugin in the template —
+    NOT chartjs-plugin-datalabels, deliberately, since only `chart.umd` is loaded
+    from CDN and the encrypted page must not gain a second dependency. It prints
+    each week's number on a dark plate, auto-thins to every Nth point when the
+    range is too dense (always keeping the newest), flips a label below the point
+    if it would clip the top, and skips any label that would collide.
+    `opts.fmt` customizes formatting (`fmt$k` for dollars, `v=>v+'%'` for rates).
+  - `of_members_giving` ("% of Members Giving") has its own chart. It is recorded
+    **periodically, not weekly** — it holds flat for stretches then jumps — so it's
+    drawn `stepped:true, span:false` to leave real gaps visible instead of
+    interpolating readings that don't exist. `giveStaleness()` computes the
+    "last figure / N Sundays not yet entered" note from the data. As of 2026-07-28
+    it was 10 Sundays behind (last entry 2026-05-17 at 56%).
+  - Percentages come out of the sheet as fractions (0.56), but a few old rows were
+    typed as whole numbers — `pct()`/`pctNum()` treat anything >1.5 as already-%.
 - `docs/staff/debrief.html` — Sunday Debrief dashboard. Encrypted. **Its layout
   deliberately mirrors the live Tuesday meeting agenda** (see "Agenda mirroring"
   below): Prior to Mtg → ① Sunday's DEBRIEF (30 min) → ② Review DASHBOARD (15 min)
@@ -28,6 +48,17 @@ the parent `gatecity-buckhead-ai-ops` repo.
     `tools/qr.py`), injects template, encrypts, writes `docs/production.html`. Gate uses
     sessionStorage key `gcbprod` (distinct from staff `gcbpw`).
   - `data/production.json.live_checklist_url` is null until the church-LAN booth IP is known.
+- `docs/funday/` — Family Fun Day live leaderboard (Aug 2 2026). **Public, not
+  encrypted** (first names + points only). `board.html` = projector view,
+  `score.html?st=<slug>` = volunteer logging (one QR per station),
+  `funday-config.js` = single config file (Firebase web config, stations,
+  point buttons — the STATIONS block is strict JSON parsed by
+  `tools/build_funday_qr.py`, which prints QR sheets to gitignored `build/`).
+  Backend: **Firebase Realtime DB** (`events/<eventPath>`: `players/`, append-only
+  `scores/`; board sums client-side; rules in FUNDAY-SETUP.md). With
+  `firebaseConfig: null` both pages run a demo mode. This Firebase project is
+  the intended phase-2 backend for moving the production checklist off the
+  Mac mini (same DB, different eventPath).
 - Planned area: `/volunteers` (QR-friendly).
 
 ## Pipeline (weekly, Tuesdays after the debrief meeting)
@@ -84,6 +115,12 @@ the parent `gatecity-buckhead-ai-ops` repo.
 - Metrics sheet quirks: labels drift across years (aliases in parse_metrics.py);
   future-dated columns contain stale template values (parser drops date > today);
   Q1 2025 tab uses bare `1/5` headers, later tabs use `Sunday 7/5` + `Data Set` pairs.
+  The catalog keeps the FIRST label seen for a key and the earliest tab is Q1 2025,
+  from the garage era — so aliased keys inherited stale display names
+  (`attendance_in_sanctuary` read "# Attendance (in garage)"). `LABEL_OVERRIDES` in
+  `metrics_common.py` wins over first-seen; add to it when the sheet gets renamed.
+  Special Sundays spike the attendance series hard and legitimately (PentecostATL
+  2026-05-24 = 180 in a room that normally holds ~50) — not an outlier to filter.
 - Debrief form quirks: 4-point text scale (old) + 1-10 numeric (new) merged to
   0-100 in parse_debrief.py; respondent name variants normalized there too.
   **Column 19 is NOT the kids-incident field on the current form** — it's the

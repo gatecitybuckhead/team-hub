@@ -3,7 +3,7 @@
 import json, os, re, sys, datetime
 from openpyxl import load_workbook
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from metrics_common import clean, slug, ALIASES, canon
+from metrics_common import clean, slug, ALIASES, canon, label_for
 
 # Full-history rebuild only. Needs an xlsx export of the sheet, because the Drive
 # connector truncates it (~146K chars). Pass paths on the command line:
@@ -92,7 +92,7 @@ for tabname, year in TABS:
         if not section: continue
         key = canon(slug(label))
         if key not in catalog:
-            catalog[key] = {'label':label,'section':section,'owner':owner}
+            catalog[key] = {'label':label_for(key,label),'section':section,'owner':owner}
         elif owner and not catalog[key]['owner']:
             catalog[key]['owner']=owner
         for c,dt in suncols.items():
