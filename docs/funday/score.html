@@ -112,6 +112,9 @@
     return (slug||'').replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
   }
 
+  // state — MUST be initialized before setStation() can run (it renders the log)
+  var players={}, scores={}, base=null;
+
   // station from URL (?st= or ?station=)
   var q=new URLSearchParams(location.search);
   var station=q.get('st')||q.get('station')||'';
@@ -134,8 +137,7 @@
     });
   }
 
-  // ---------- data layer ----------
-  var players={}, scores={}, base=null;
+  // ---------- data layer ---------- (players/scores/base declared above)
   var connEl=document.getElementById('conn'), connTxt=document.getElementById('connTxt');
   function setConn(on,msg){ connEl.className=on?'on':'off'; connTxt.textContent=msg; }
 
