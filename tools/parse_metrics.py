@@ -1,38 +1,26 @@
 #!/usr/bin/env python3
 """Parse GCB 'DASHBOARD METRICS - 5 Behaviors' quarterly tabs into tidy JSON."""
-import json, re, datetime
+import json, os, re, sys, datetime
 from openpyxl import load_workbook
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from metrics_common import clean, slug, ALIASES, canon
 
-SRC = '/sessions/dazzling-jolly-babbage/mnt/uploads/DASHBOARD METRICS - 5 Behaviors.xlsx'
-OUT = '/sessions/dazzling-jolly-babbage/mnt/outputs/metrics.json'
+# Full-history rebuild only. Needs an xlsx export of the sheet, because the Drive
+# connector truncates it (~146K chars). Pass paths on the command line:
+#   python3 tools/parse_metrics.py "<in.xlsx>" [out.json]
+# For a normal weekly increment use tools/add_metrics_week.py instead.
+_HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.expanduser('~'), 'Downloads', 'DASHBOARD METRICS - 5 Behaviors.xlsx')
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(_HERE, 'data', 'metrics.json')
 
 TABS = [('Q1 2025',2025),('Q2 2025',2025),('Q3 2025',2025),('Q4 2025',2025),
         ('Q1 2026',2026),('Q2 2026',2026),('Q3 2026',2026)]
 
 SECTIONS = {'SCORE','BOARD','PRAY','SERVE','GIVE','FORM','REACH','DIGITAL','GENERAL','Quarterly'}
 
-def clean(v):
-    if v is None: return None
-    if isinstance(v,(int,float)): return round(float(v),2)
-    s = str(v).strip()
-    if s in ('','-','x','n/a','N/A','#DIV/0!','#REF!','#VALUE!','TBD','?'): return None
-    s2 = s.replace('$','').replace(',','').replace('%%','%')
-    m = re.fullmatch(r'(-?\d+(?:\.\d+)?)%', s2)
-    if m: return round(float(m.group(1))/100,4)
-    try: return round(float(s2),2)
-    except ValueError: return None
-
-def slug(s):
-    return re.sub(r'[^a-z0-9]+','_',s.lower()).strip('_')
-
-# label drift across years -> canonical keys
-ALIASES = {
-    'total_members': 'total_members_core_congregation',
-    'attendance_in_garage': 'attendance_in_sanctuary',
-    'vols_in_teams_sun_service': 'total_people_in_sunday_teams',
-}
-def canon(key):
-    return ALIASES.get(key, key)
+# clean() / slug() / ALIASES / canon() now live in tools/metrics_common.py so the
+# weekly-increment path (add_metrics_week.py) can't drift from this full rebuild.
 
 # Manual series corrections — the sheet's "Series" row lags behind the actual
 # preaching series. date (ISO) -> (series, special-or-None). Applied after parse.

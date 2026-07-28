@@ -30,17 +30,36 @@ the parent `gatecity-buckhead-ai-ops` repo.
 1. Sources: `DASHBOARD METRICS - 5 Behaviors` (Google Sheet, quarterly tabs,
    transposed layout), `Sunday DEBRIEF Form (Responses)` (Google Sheet), and the
    Meeting Archive folder in Drive (Zoom summaries).
-2. `tools/parse_metrics.py` + `tools/parse_debrief.py` read the two xlsx files
-   from a downloads location → `data/metrics.json`, `data/debrief.json`.
-   NOTE: the Drive MCP connector TRUNCATES both sheets (~146K chars); for full
-   history use xlsx downloads. For weekly increments the connector's
-   `read_file_content` is fine for the debrief sheet (newest rows first).
+2. FULL REBUILD: `tools/parse_metrics.py <in.xlsx> [out.json]` +
+   `tools/parse_debrief.py` read xlsx exports → `data/metrics.json`,
+   `data/debrief.json`. Needed because the Drive MCP connector TRUNCATES both
+   sheets (~146K chars) — and it truncates *before* the newest quarterly metrics
+   tab, which is why the metrics step kept getting skipped.
+   WEEKLY INCREMENT: `tools/add_metrics_week.py <sunday-date> --series .. --special ..`
+   reads pipe-delimited `label | dataset cell | sunday cell` lines on stdin (sheet
+   row order) and appends one week. Shared cleaning/slug logic lives in
+   `tools/metrics_common.py` so the two paths can't drift. The agent only produces
+   ~55 short lines; the 96KB JSON never enters context.
+   Getting the current quarter out of the sheet: the connector can't reach it —
+   use the gviz endpoint in a Chrome session
+   (`docs.google.com/spreadsheets/d/<id>/gviz/tq?tqx=out:html&sheet=Q3%202026`),
+   which returns the tab complete. The debrief sheet is fine via the connector
+   (newest rows first).
+   **Do this work in a subagent.** The 2026-07-28 weekly run died with
+   "Response stalled mid-stream" from pulling both sheets plus the data files into
+   one context; metrics and meetings never ran. Sheet reads belong in a subagent
+   that returns only a compact digest.
 3. `data/summaries.json` — month/quarter narratives (LLM-written, appended each
    period). `data/meetings.json` — meeting archive digest.
 4. `tools/build.py` → `build/*.html` (plaintext, NEVER commit).
 5. `tools/encrypt.py <team password>` → `docs/staff/*.html` (AES-256-GCM,
    PBKDF2 200k; safe for a public repo).
-6. Commit + push → GitHub Pages redeploys.
+6. Commit + push → GitHub Pages redeploys. **Steps 5-6 must run on the Mac**
+   (double-click `Encrypt.command`, then `Publish to GitHub.command`). A `git push`
+   from the cowork sandbox looks like it worked but leaves the commit unpushed —
+   the mount can't delete `.git/index.lock`. Verified again 2026-07-28: commit
+   `950db3b` sat local-only while `origin/main` stayed on 7/23. Always check
+   `git status -sb` / `git log origin/main -1` before claiming the site is live.
 
 ## Rules
 - `data/` and `build/` are gitignored: raw giving numbers, kids-incident notes
