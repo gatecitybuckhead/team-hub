@@ -15,7 +15,7 @@ Pipeline:
 Usage:  python3 tools/build_production.py "<production password>"
 The password is NOT stored here; pass it in. See root SECRETS-INVENTORY.md.
 """
-import sys, os, json, base64, hashlib, datetime, pathlib
+import sys, os, re, json, base64, hashlib, datetime, pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import qr  # vendored, dependency-free QR generator
@@ -54,12 +54,31 @@ payload['checklist'] = {
     ],
 }
 
+# ---- Firebase web config: single source is docs/funday/funday-config.js ----
+# Regexed out at build time (same trick build_funday_qr.py uses for stations)
+# so the config is never duplicated. If it's null/missing, the page falls back
+# to device-only checklist mode.
+FBCFG_SRC = ROOT / 'docs' / 'funday' / 'funday-config.js'
+fb_config = None
+try:
+    m = re.search(r'firebaseConfig:\s*\{(.*?)\}', FBCFG_SRC.read_text(encoding='utf-8'), re.S)
+    if m:
+        fields = dict(re.findall(r'(\w+)\s*:\s*"([^"]*)"', m.group(1)))
+        if fields.get('apiKey') and fields.get('databaseURL'):
+            fb_config = fields
+except FileNotFoundError:
+    pass
+if fb_config is None:
+    print('WARNING: no Firebase config found in', FBCFG_SRC.name, '— building device-only checklist')
+
 # ---- QR of the public page URL ----
 qr_svg = qr.qr_svg(payload.get('page_url', ''), box=6, border=3) if payload.get('page_url') else ''
 
 # ---- build plaintext dashboard ----
 html = open(TPL, encoding='utf-8').read()
 html = html.replace('/*__DATA__*/null', json.dumps(payload, separators=(',', ':')))
+html = html.replace('/*__FBCONFIG__*/null',
+                    json.dumps(fb_config, separators=(',', ':')) if fb_config else 'null')
 html = html.replace('<!--__QR__-->', qr_svg)
 html = html.replace('__BUILT__', built)
 

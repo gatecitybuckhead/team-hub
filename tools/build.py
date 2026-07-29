@@ -23,6 +23,12 @@ try:
     notes_raw = json.load(open(DATA/'meeting_notes.json'))['meetings']
 except FileNotFoundError:
     notes_raw = []
+# "% of members giving" pulled from the Planning Center lists (rolling 90 days).
+# Append-only; see tools/add_giving_reading.py for why it can't be backfilled.
+try:
+    giving_part = json.load(open(DATA/'giving_participation.json'))
+except FileNotFoundError:
+    giving_part = {'readings': []}
 # Per-Sunday written debrief summaries (optional; survives parse_debrief re-runs).
 # The dashboard shows the entry for the LATEST week only, else auto-generates.
 try:
@@ -92,7 +98,7 @@ def inject(tpl_name, out_name, payload):
     print('built', out_name, f'{(OUT/out_name).stat().st_size//1024}KB')
 
 inject('metrics.template.html', 'metrics.html',
-       {'metrics': metrics, 'summaries': summaries})
+       {'metrics': metrics, 'summaries': summaries, 'giving_participation': giving_part})
 inject('debrief.template.html', 'debrief.html',
        {'weekly': debrief['weekly'], 'meetings': meet_slim,
         'summaries': summaries, 'words': word_months,

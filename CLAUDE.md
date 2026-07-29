@@ -21,12 +21,32 @@ the parent `gatecity-buckhead-ai-ops` repo.
     range is too dense (always keeping the newest), flips a label below the point
     if it would clip the top, and skips any label that would collide.
     `opts.fmt` customizes formatting (`fmt$k` for dollars, `v=>v+'%'` for rates).
-  - `of_members_giving` ("% of Members Giving") has its own chart. It is recorded
-    **periodically, not weekly** — it holds flat for stretches then jumps — so it's
-    drawn `stepped:true, span:false` to leave real gaps visible instead of
-    interpolating readings that don't exist. `giveStaleness()` computes the
-    "last figure / N Sundays not yet entered" note from the data. As of 2026-07-28
-    it was 10 Sundays behind (last entry 2026-05-17 at 56%).
+  - **"% of members giving" now comes from Planning Center**, with the sheet kept
+    as history. Two series on one chart, deliberately distinct:
+    - `data/giving_participation.json` (blue, live) — PCO People lists
+      **"Members Giving (Last 90 Days)"** (id 5145818) ÷ **"Members (All)"**
+      (id 4019918). 54/91 = 59.3% on 2026-07-28. `Members (All)` is the right
+      denominator because it matches the sheet's `# Total Members` (91) exactly,
+      keeping the new number comparable to the old series.
+    - `of_members_giving` from the sheet (green) — recorded **periodically, not
+      weekly**: holds flat for stretches then jumps, so it's drawn
+      `stepped:true, span:false` to leave real gaps visible rather than
+      interpolating readings nobody took. 10 Sundays behind as of 2026-07-28
+      (last entry 2026-05-17 at 56%).
+    `giveStaleness()` writes the provenance note under the chart from the data —
+    both the live figure with its list names and the sheet's staleness count.
+    The "Members giving" KPI prefers PCO, falls back to the most recent non-null
+    sheet value (labelled with its date), then to "—".
+  - **The PCO figure is a ROLLING 90-DAY WINDOW and carries no history** — the
+    lists answer "as of right now" and cannot be asked what March looked like.
+    So `tools/add_giving_reading.py` is **append-only**: one reading per weekly
+    run, building a real series going forward. Never backfill it; a reading taken
+    today is not evidence about an earlier Sunday. Re-running for the same Sunday
+    replaces that reading instead of duplicating.
+    PCO is only reachable through the MCP connector (no PCO credentials in this
+    repo), so the agent pulls the two counts and pipes them in — same split as
+    `add_metrics_week.py`:
+    `python3 tools/add_giving_reading.py --giving 54 --members 91 --sunday 2026-07-26 --refreshed <ts>`
   - Percentages come out of the sheet as fractions (0.56), but a few old rows were
     typed as whole numbers — `pct()`/`pctNum()` treat anything >1.5 as already-%.
 - `docs/staff/debrief.html` — Sunday Debrief dashboard. Encrypted. **Its layout
@@ -43,11 +63,22 @@ the parent `gatecity-buckhead-ai-ops` repo.
   - Roster source: `data/production.json` (Planning Center "Sunday Services", next plan,
     team_id 6342415). Checklist source: single source of truth is
     `Production Tech Agent/Sunday Checklist Dashboard/checklist.json` (build reads it live
-    via `checklist_source`, so the LAN check-off dashboard and this page never drift).
+    via `checklist_source` — that file still defines the ITEMS; only check-off STATE
+    lives in Firebase).
   - Build: `python3 tools/build_production.py "W0rthy247"` → generates QR (vendored
-    `tools/qr.py`), injects template, encrypts, writes `docs/production.html`. Gate uses
-    sessionStorage key `gcbprod` (distinct from staff `gcbpw`).
-  - `data/production.json.live_checklist_url` is null until the church-LAN booth IP is known.
+    `tools/qr.py`), injects template + Firebase config, encrypts, writes
+    `docs/production.html`. Gate uses sessionStorage key `gcbprod` (distinct from staff
+    `gcbpw`).
+  - **Checklist is live-synced via Firebase RTDB** (Phase 2, 2026-07-28): path
+    `production/<sunday>/checks/<itemId>` = `{done, ts}`, keyed by next Sunday
+    (America/New_York, computed client-side) so each week starts fresh with no reset job.
+    Firebase config is regexed out of `docs/funday/funday-config.js` at build time —
+    never duplicated. SDK loads after first render with a 12s watchdog; if gstatic is
+    blocked (AIS wifi) the page falls back to per-device localStorage exactly like the
+    old behavior. `?ev=<slug>` overrides the date path for dry runs (mirrors funday).
+    DB rules for the WHOLE database live in `firebase-rules.json` at repo root (funday +
+    production branches merged) — publish via Firebase console → Realtime Database →
+    Rules. The old Mac-mini LAN dashboard + `live_checklist_url` are retired.
 - `docs/funday/` — Family Fun Day live leaderboard (Aug 2 2026). **Public, not
   encrypted** (first names + points only). `board.html` = projector view,
   `score.html?st=<slug>` = volunteer logging (one QR per station),
@@ -97,6 +128,12 @@ the parent `gatecity-buckhead-ai-ops` repo.
    in a subagent** and have it return only the new week's fields.
    `data/debrief_narratives.json` still wins over meeting_notes for pros/grows text
    when an entry exists for that Sunday.
+3b. **Pull the giving-participation reading from Planning Center.** Call
+   `pco_list_lists`, read `people_count` off "Members Giving (Last 90 Days)"
+   (5145818) and "Members (All)" (4019918) — the list metadata already carries the
+   counts, so do NOT call `pco_get_list_people` (hundreds of names, no benefit).
+   Then `python3 tools/add_giving_reading.py --giving <n> --members <n> --sunday
+   <date> --refreshed <refreshed_at>`. Append-only; see the metrics notes above.
 4. `tools/build.py` → `build/*.html` (plaintext, NEVER commit).
 5. `tools/encrypt.py <team password>` → `docs/staff/*.html` (AES-256-GCM,
    PBKDF2 200k; safe for a public repo).

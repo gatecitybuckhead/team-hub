@@ -83,6 +83,11 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
 <script>
 const DATA = /*__DATA__*/null;
 const W = DATA.metrics.weeks;
+// Planning Center readings for "% of members giving", keyed by Sunday.
+// Rolling 90-day window, appended one reading per weekly run — never backfilled.
+const GP = (DATA.giving_participation||{});
+const GPR = {}; (GP.readings||[]).forEach(r=>GPR[r.sunday]=r);
+const gpLatest = (GP.readings||[]).slice(-1)[0]||null;
 const fmt$ = n => '$'+Math.round(n).toLocaleString();
 const fmt$k = n => n>=1000 ? '$'+(n/1000).toFixed(n>=10000?0:1)+'k' : '$'+Math.round(n);
 // The sheet stores percentages as fractions (0.56 = 56%), but a few older rows
@@ -185,16 +190,26 @@ function kpis(rows){
   let ytdGive=null;
   for(let i=yr.length-1;i>=0;i--){const v=val(yr[i],'ytd_total');if(v!=null){ytdGive=v;break}}
   if(ytdGive==null)ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(val(w,'special_gifts')||0),0);
-  const pg=val(last,'of_members_giving');
+  // Prefer the live Planning Center reading. Failing that, fall back to the most
+  // recent non-null sheet figure (not `last`, which is usually blank) and say
+  // how old it is, so the card never reads "not recorded" when a number exists.
+  const pcoNow=gpLatest;
+  const sheetFilled=W.filter(w=>val(w,'of_members_giving')!=null);
+  const lastSheet=sheetFilled[sheetFilled.length-1];
+  const giveKpi = pcoNow
+    ? {v:pcoNow.pct+'%', d:`${pcoNow.giving} of ${pcoNow.members} members · last 90 days · Planning Center`}
+    : lastSheet
+      ? {v:pct(val(lastSheet,'of_members_giving')), d:`metrics sheet · as of ${fmtDate(lastSheet.date)}`}
+      : {v:'—', d:'not recorded'};
   const items=[
     {hero:true,l:'In the Sanctuary — '+fmtDate(last.date),
      v:(sanc(last)??'—')+'<small> in the room</small>',d:delta(sanc(last),s4)},
     {l:'Total attendance',v:att(last)??'—',d:delta(att(last),a4)},
     {l:'Kids',v:val(last,'of_kids')??'—',d:(val(last,'vols_in_kids')??'?')+' volunteers'},
     {l:'Members',v:val(last,'total_members_core_congregation')??'—',d:''},
-    {l:'Giving last week',v:giving(last)!=null?fmt$(giving(last)):'—',
-     d:pg!=null?pct(pg)+' of members gave':''},
+    {l:'Giving last week',v:giving(last)!=null?fmt$(giving(last)):'—',d:''},
     {l:'Giving YTD',v:fmt$(ytdGive),d:last.date.slice(0,4)},
+    {l:'Members giving',v:giveKpi.v,d:giveKpi.d},
     {l:'In Sunday teams',v:val(last,'total_people_in_sunday_teams')??'—',d:(val(last,'unstaffed_positions')??'?')+' unstaffed'},
     {l:'Series',v:last.series||'—',d:last.special||''}];
   document.getElementById('kpis').innerHTML=items.map(k=>{
@@ -208,14 +223,26 @@ function kpis(rows){
    collapsed". Computed from the data, so it can't go stale on its own. */
 function giveStaleness(){
   const el=document.getElementById('giveNote'); if(!el) return;
+  const parts=[];
+  if(gpLatest){
+    const num=(GP.lists&&GP.lists.numerator&&GP.lists.numerator.name)||'Members Giving (Last 90 Days)';
+    const den=(GP.lists&&GP.lists.denominator&&GP.lists.denominator.name)||'Members (All)';
+    parts.push(`<b style="color:var(--blue)">Planning Center:</b> `
+      +`<b style="color:var(--ink)">${gpLatest.pct}%</b> — ${gpLatest.giving} of ${gpLatest.members} members `
+      +`gave in the last 90 days, as of ${fmtDate(gpLatest.sunday)}. `
+      +`Lists: “${num}” ÷ “${den}”. Rolling 90-day window, so each week is a fresh snapshot, not that week's giving.`);
+  }else{
+    parts.push(`No Planning Center readings yet — run <code>tools/add_giving_reading.py</code> in the weekly pipeline.`);
+  }
   const filled=W.filter(w=>val(w,'of_members_giving')!=null);
-  if(!filled.length){el.innerHTML='No “% of Members Giving” figures in the sheet yet.';return}
-  const lastF=filled[filled.length-1], behind=W.filter(w=>w.date>lastF.date).length;
-  el.innerHTML=`Last figure in the sheet: <b style="color:var(--ink)">${pct(val(lastF,'of_members_giving'))}</b> `
-    +`for ${fmtDate(lastF.date)}`+(behind
-      ? ` — <span style="color:var(--red)">${behind} Sunday${behind===1?'':'s'} not yet entered</span>. `
-      : '. ')
-    +`Recorded periodically rather than every week, so the line is stepped and gaps are left blank.`;
+  if(filled.length){
+    const lastF=filled[filled.length-1], behind=W.filter(w=>w.date>lastF.date).length;
+    parts.push(`<b style="color:var(--green)">Metrics sheet:</b> last figure `
+      +`<b style="color:var(--ink)">${pct(val(lastF,'of_members_giving'))}</b> for ${fmtDate(lastF.date)}`
+      +(behind?` — <span style="color:var(--red)">${behind} Sunday${behind===1?'':'s'} not yet entered</span>`:'')
+      +`. Recorded periodically, so it's stepped and gaps are left blank.`);
+  }
+  el.innerHTML=parts.map(p=>`<div style="margin-top:5px">${p}</div>`).join('');
 }
 
 function draw(){
@@ -233,13 +260,17 @@ function draw(){
     {l:'Special gifts',f:w=>val(w,'special_gifts'),c:'#e0b34c',type:'bar',fill:true}],
     {type:'bar',fmt:fmt$k,slot:40,scales:{x:{stacked:true},y:{stacked:true},
       y:{stacked:true,ticks:{color:'#666c80',font:{size:10},callback:fmt$k},grid:{color:'#20242f'},beginAtZero:true}}});
-  // % of Members Giving — the actual 5-Behaviors GIVE metric.
-  // The sheet records this as a periodic figure that holds flat for weeks at a
-  // time, so it's drawn STEPPED with real gaps (span:false) rather than a smooth
-  // line that would imply weekly readings we don't have.
+  // % of Members Giving — two sources, deliberately kept as separate series so
+  // it's obvious which number came from where:
+  //   · sheet history — a PERIODIC figure that holds flat for weeks then jumps,
+  //     so it's drawn stepped with real gaps (span:false) rather than a smooth
+  //     line that would imply weekly readings nobody took.
+  //   · Planning Center — a live rolling-90-day reading appended each week.
   line('cGivePct',rows,[
-    {l:'% of members giving',f:w=>pctNum(val(w,'of_members_giving')),c:'#57c98a',
-     fill:true,bw:3,pr:3,stepped:true,span:false}],
+    {l:'Planning Center (live, 90-day)',f:w=>GPR[w.date]?GPR[w.date].pct:null,
+     c:'#5aa2e0',bw:3,pr:4,span:false},
+    {l:'Metrics sheet (periodic)',f:w=>pctNum(val(w,'of_members_giving')),c:'#57c98a',
+     fill:true,bw:2,pr:2,stepped:true,span:false}],
     {fmt:v=>Math.round(v)+'%',slot:38,
      scales:{y:{beginAtZero:true,max:100,ticks:{color:'#666c80',font:{size:10},callback:v=>v+'%'},grid:{color:'#20242f'}}}});
   giveStaleness();

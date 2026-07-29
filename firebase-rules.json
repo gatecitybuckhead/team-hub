@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "events": {
+      "$event": {
+        ".read": true,
+        "players": { "$p": { ".write": true,
+          ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length < 40" } },
+        "scores": { "$s": { ".write": true,
+          ".validate": "newData.hasChildren(['p','st','pts']) && newData.child('pts').isNumber() && newData.child('pts').val() > -1000 && newData.child('pts').val() < 1000" } }
+      }
+    },
+    "production": {
+      "$sunday": {
+        ".read": true,
+        "checks": {
+          "$item": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['done','ts']) && newData.child('done').isBoolean() && newData.child('ts').isNumber()"
+          }
+        }
+      }
+    }
+  }
+}

@@ -156,12 +156,45 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
   const pre = secs.filter(s=>!s.teardown);
   const td  = secs.filter(s=>s.teardown);
 
-  // Per-Sunday tap-to-check state, saved on THIS device (static page, no server).
-  // Keyed by the service date so each week starts fresh automatically.
-  const SKEY = 'gcbprod-chk:' + ((DATA.service&&DATA.service.date) || DATA.built || '');
+  // ---- Live-synced checklist (Firebase RTDB), same backend as Fun Day ----
+  // Path: production/<sunday>/checks/<itemId> = {done, ts}. Keyed by the NEXT
+  // service date (America/New_York), so every Sunday starts a fresh, unchecked
+  // list automatically — no reset job, no rebuild.
+  // localStorage keeps a per-device copy as the offline fallback: if the school
+  // wifi blocks Firebase entirely, the page keeps working like it used to.
+  // ?ev=<anything> overrides the date path for dry runs (mirrors funday's ?ev=).
+  const FB = /*__FBCONFIG__*/null;   // injected at build time from funday-config.js
+  const qp = new URLSearchParams(location.search);
+
+  function nextSundayNY(){
+    const fmt = new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',
+      year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
+    for(let i=0;i<7;i++){
+      const parts = fmt.formatToParts(new Date(Date.now()+i*864e5));
+      const g = t => (parts.find(p=>p.type===t)||{}).value;
+      if(g('weekday')==='Sun') return g('year')+'-'+g('month')+'-'+g('day');
+    }
+    return new Date().toISOString().slice(0,10); // unreachable, but never crash
+  }
+  const SUNDAY = qp.get('ev') || nextSundayNY();
+
+  const SKEY = 'gcbprod-chk:' + SUNDAY;
   let state = {};
   try{ state = JSON.parse(localStorage.getItem(SKEY)||'{}')||{}; }catch(e){ state={}; }
-  const save = ()=>{ try{ localStorage.setItem(SKEY, JSON.stringify(state)); }catch(e){} };
+  const saveLocal = ()=>{ try{ localStorage.setItem(SKEY, JSON.stringify(state)); }catch(e){} };
+
+  let checksRef = null; // set once the Firebase SDK is up; null = device-only mode
+  const ln = document.getElementById('liveNote');
+  const note = msg => { if(ln) ln.textContent = msg; };
+
+  function setCheck(id, on){
+    if(on) state[id]=1; else delete state[id];
+    saveLocal();
+    if(checksRef){
+      if(on) checksRef.child(id).set({done:true, ts:Date.now()});
+      else   checksRef.child(id).set(null);
+    }
+  }
 
   function renderSections(host, list){
     host.innerHTML='';
@@ -179,11 +212,8 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
         li.textContent=it.text;
         if(state[it.id]) li.className='done';
         li.addEventListener('click',()=>{
-          if(state[it.id]) delete state[it.id]; else state[it.id]=1;
-          save();
-          li.className = state[it.id] ? 'done' : '';
-          const d=items.filter(x=>state[x.id]).length;
-          h.querySelector('.c').textContent=d+'/'+items.length;
+          setCheck(it.id, !state[it.id]);
+          renderAll(); // optimistic; a Firebase snapshot re-render reconciles
         });
         ul.appendChild(li);
       });
@@ -191,23 +221,70 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
     });
   }
 
-  renderSections(document.getElementById('checklist'), pre);
-  if(td.length){
-    document.getElementById('teardownCard').style.display='';
-    renderSections(document.getElementById('teardown'), td);
+  function renderAll(){
+    renderSections(document.getElementById('checklist'), pre);
+    if(td.length){
+      document.getElementById('teardownCard').style.display='';
+      renderSections(document.getElementById('teardown'), td);
+    }
   }
+  renderAll();
+
   const rc=document.getElementById('resetChk');
   if(rc) rc.addEventListener('click',()=>{
-    state={}; save();
-    renderSections(document.getElementById('checklist'), pre);
-    if(td.length) renderSections(document.getElementById('teardown'), td);
+    if(checksRef && !confirm('Reset the checklist for EVERYONE viewing this page?')) return;
+    const ids=[]; secs.forEach(s=>(s.items||[]).forEach(it=>ids.push(it.id)));
+    state={}; saveLocal();
+    if(checksRef) ids.forEach(id=>checksRef.child(id).set(null));
+    renderAll();
   });
 
-  const ln=document.getElementById('liveNote');
-  if(DATA.live_checklist_url){
-    ln.innerHTML='Live check-off on-site: <a class="live" href="'+esc(DATA.live_checklist_url)+'">open the booth dashboard →</a>';
+  // Load the SDK AFTER first render so the page never blocks on gstatic.
+  // (AIS wifi occasionally blocks websockets — the SDK falls back to
+  // long-polling on its own; if the scripts don't load at all, onerror/the
+  // timeout drops us back to device-only mode.)
+  if(FB){
+    note('Connecting live sync…');
+    let dead=false;
+    const fail=()=>{ if(dead) return; dead=true;
+      note('Live sync unavailable here — checks are saving on this device only.'); };
+    const watchdog=setTimeout(fail, 12000);
+    const js=(src,cb)=>{ const s=document.createElement('script');
+      s.src=src; s.onload=cb; s.onerror=fail; document.head.appendChild(s); };
+    js('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',()=>{
+      js('https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js',()=>{
+        clearTimeout(watchdog);
+        try{
+          firebase.initializeApp(FB);
+          const db=firebase.database();
+          checksRef=db.ref('production/'+SUNDAY+'/checks');
+          let first=true;
+          checksRef.on('value',sn=>{
+            const v=sn.val()||{};
+            const merged={};
+            Object.keys(v).forEach(id=>{ if(v[id]&&v[id].done) merged[id]=1; });
+            if(first){ // one-time: push checks made on this device before sync came up
+              first=false;
+              Object.keys(state).forEach(id=>{
+                if(!merged[id]){ merged[id]=1; checksRef.child(id).set({done:true, ts:Date.now()}); }
+              });
+            }
+            state=merged; saveLocal(); renderAll();
+          });
+          db.ref('.info/connected').on('value',sn=>{
+            if(sn.val()){
+              note(qp.get('ev')
+                ? 'Live sync ON — TEST path "'+SUNDAY+'", not the real Sunday state.'
+                : 'Live sync ON — Sunday '+SUNDAY+' · a check here shows up on every phone.');
+            }else if(checksRef){
+              note('Offline — checks save here and sync when the connection returns.');
+            }
+          });
+        }catch(e){ fail(); }
+      });
+    });
   }else{
-    ln.textContent='This is the reference copy. Live tap-to-check runs on the booth dashboard on-site.';
+    note('Checks save on this device only (live sync not configured in this build).');
   }
 })();
 </script>
