@@ -230,10 +230,21 @@ function giveStaleness(){
     parts.push(`<b style="color:var(--blue)">Planning Center:</b> `
       +`<b style="color:var(--ink)">${gpLatest.pct}%</b> — ${gpLatest.giving} of ${gpLatest.members} members `
       +`gave in the last 90 days, as of ${fmtDate(gpLatest.sunday)}. `
-      +`Lists: “${num}” ÷ “${den}”. Rolling 90-day window, so each week is a fresh snapshot, not that week's giving.`);
+      +`Lists: “${num}” ÷ “${den}”. Rolling 90-day window, so each week is a fresh snapshot, not that week's giving.`
+      +(GP.readings.length<4
+        ? ` <span style="color:var(--dim)">Building history — ${GP.readings.length} weekly reading${GP.readings.length===1?'':'s'} so far; the blue line fills in as the pipeline runs.</span>`
+        : ` <span style="color:var(--dim)">${GP.readings.length} weekly readings on file.</span>`));
   }else{
     parts.push(`No Planning Center readings yet — run <code>tools/add_giving_reading.py</code> in the weekly pipeline.`);
   }
+  // A PCO reading is plotted against the Sundays present in metrics.json. If the
+  // metrics step gets skipped for a week (it has), the reading exists but has no
+  // column to sit in — say so loudly rather than losing a data point silently.
+  const known=new Set(W.map(w=>w.date));
+  const orphans=(GP.readings||[]).filter(r=>!known.has(r.sunday));
+  if(orphans.length) parts.push(`<span style="color:var(--red)">⚠ ${orphans.length} Planning Center `
+    +`reading${orphans.length===1?'':'s'} (${orphans.map(r=>fmtDate(r.sunday)).join(', ')}) `
+    +`can't be charted — those Sundays are missing from the metrics sheet. Run the metrics step for them.</span>`);
   const filled=W.filter(w=>val(w,'of_members_giving')!=null);
   if(filled.length){
     const lastF=filled[filled.length-1], behind=W.filter(w=>w.date>lastF.date).length;

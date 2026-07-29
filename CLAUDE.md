@@ -47,6 +47,17 @@ the parent `gatecity-buckhead-ai-ops` repo.
     repo), so the agent pulls the two counts and pipes them in — same split as
     `add_metrics_week.py`:
     `python3 tools/add_giving_reading.py --giving 54 --members 91 --sunday 2026-07-26 --refreshed <ts>`
+  - **A scheduled task captures this every Sunday 9pm** —
+    `gcb-giving-participation-reading` (`~/Claude/Scheduled/`). It exists because a
+    missed week is unrecoverable, so capture is decoupled from the Tuesday pipeline
+    and from publishing. It only appends the reading + runs `build.py`; it never
+    encrypts or pushes. Sanity checks it reports on: list `refreshed_at` older than
+    ~3 days, a swing >10 points (usually a changed list definition, not real), and
+    `giving > members` (swapped/re-pointed list IDs).
+  - The chart plots PCO readings against the Sundays present in `metrics.json`. If
+    the metrics step is skipped for a week, that reading has no column to sit in —
+    `giveStaleness()` prints a red "N readings can't be charted" warning listing the
+    orphaned dates, so a lost point can't fail silently.
   - Percentages come out of the sheet as fractions (0.56), but a few old rows were
     typed as whole numbers — `pct()`/`pctNum()` treat anything >1.5 as already-%.
 - `docs/staff/debrief.html` — Sunday Debrief dashboard. Encrypted. **Its layout
@@ -79,6 +90,13 @@ the parent `gatecity-buckhead-ai-ops` repo.
     DB rules for the WHOLE database live in `firebase-rules.json` at repo root (funday +
     production branches merged) — publish via Firebase console → Realtime Database →
     Rules. The old Mac-mini LAN dashboard + `live_checklist_url` are retired.
+  - **A scheduled task refreshes the roster every Friday 8am** —
+    `gcb-production-page-friday-refresh` (`~/Claude/Scheduled/`), 30 min after the
+    ProPresenter sync check (the two form the Friday Sunday-prep block). It pulls the
+    coming Sunday's plan from PCO (team_id 6342415 only), rewrites `data/production.json`
+    against the FIXED position list, rebuilds, and tells Andrew to run Publish to
+    GitHub.command. It never pushes, and never overwrites production.json when PCO is
+    unreachable or the plan is missing.
 - `docs/funday/` — Family Fun Day live leaderboard (Aug 2 2026). **Public, not
   encrypted** (first names + points only). `board.html` = projector view,
   `score.html?st=<slug>` = volunteer logging (one QR per station),
