@@ -200,7 +200,9 @@
     });
     var arr = Object.keys(players).map(function(pid){
       return { pid:pid, name:(players[pid]&&players[pid].name)||'Player', total:totals[pid]||0 };
-    }).filter(function(e){ return e.total>0 || Object.keys(totals).length===0; });
+    // total>0 only: the roster is PRELOADED (119 names), so zero-point players
+    // must stay off the public board until they actually score.
+    }).filter(function(e){ return e.total>0; });
     arr.sort(function(a,b){ return b.total-a.total || a.name.localeCompare(b.name); });
     return arr;
   }

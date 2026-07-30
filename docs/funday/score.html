@@ -50,9 +50,10 @@
   .undo{font-family:inherit;font-weight:700;font-size:13px;color:var(--red);background:none;border:2px solid var(--red);
     border-radius:8px;padding:4px 10px;cursor:pointer}
   #demoTag{display:none;text-align:center;background:#222;color:#ffc93c;font-weight:700;border-radius:10px;padding:8px;font-size:14px}
-  #stationPick{display:none}
-  .stbtn{width:100%;margin-bottom:8px;font-family:inherit;font-size:20px;font-weight:600;padding:14px;border-radius:12px;
-    border:2px solid #e0cd8b;background:var(--cream-lt);color:var(--ink);cursor:pointer;text-align:left}
+  #stButtons{display:flex;flex-wrap:wrap;gap:8px}
+  .stchip{font-family:inherit;font-size:16px;font-weight:600;padding:10px 14px;border-radius:999px;
+    border:2px solid #e0cd8b;background:var(--cream-lt);color:var(--ink);cursor:pointer}
+  .stchip.sel{border-color:var(--red);background:#ffe9ec;box-shadow:0 0 0 2px var(--red) inset;color:var(--red)}
 </style>
 </head>
 <body>
@@ -66,7 +67,7 @@
   </div>
 
   <div class="card" id="stationPick">
-    <h2>Which station are you running?</h2>
+    <h2>Station — tap to switch anytime</h2>
     <div id="stButtons"></div>
   </div>
 
@@ -125,27 +126,26 @@
   // state — MUST be initialized before setStation() can run (it renders the log)
   var players={}, scores={}, base=null;
 
-  // station from URL (?st= or ?station=)
+  // ONE-SCORER MODE: every station is an always-visible chip — tap to switch,
+  // no navigation. ?st=<slug> (or ?station=) still preselects a chip.
   var q=new URLSearchParams(location.search);
-  var station=q.get('st')||q.get('station')||'';
+  var station='';
+  var chipOf={}, wrap=document.getElementById('stButtons');
+  stations.forEach(function(s){
+    var b=document.createElement('button'); b.className='stchip';
+    b.textContent=(s.emoji?s.emoji+' ':'')+s.name;
+    b.onclick=function(){setStation(s.slug);};
+    chipOf[s.slug]=b; wrap.appendChild(b);
+  });
   function setStation(sl){
     station=sl;
+    Object.keys(chipOf).forEach(function(k){chipOf[k].className='stchip'+(k===sl?' sel':'');});
     document.getElementById('stName').textContent=pretty(sl);
-    document.getElementById('stationPick').style.display='none';
     ['playerCard','ptsCard','logCard'].forEach(function(id){document.getElementById(id).style.display='block';});
     renderLog();
   }
-  if(station){ setStation(station); }
-  else{
-    document.getElementById('stationPick').style.display='block';
-    var wrap=document.getElementById('stButtons');
-    stations.forEach(function(s){
-      var b=document.createElement('button'); b.className='stbtn';
-      b.textContent=(s.emoji?s.emoji+' ':'')+s.name;
-      b.onclick=function(){setStation(s.slug);};
-      wrap.appendChild(b);
-    });
-  }
+  var fromUrl=q.get('st')||q.get('station')||'';
+  if(fromUrl){ setStation(fromUrl); }
 
   // ---------- data layer ---------- (players/scores/base declared above)
   var connEl=document.getElementById('conn'), connTxt=document.getElementById('connTxt');

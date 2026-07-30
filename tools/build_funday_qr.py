@@ -40,12 +40,12 @@ def sheet(title, emoji, url, note):
   <p class="url">{url}</p>
 </section>'''
 
-pages = []
-for s in stations:
-    url = f"{BASE}/score.html?st={s['slug']}"
-    pages.append(sheet(s['name'], s.get('emoji',''), url,
-        'VOLUNTEERS: scan with your phone camera → pick the player → tap their points. '
-        'Mis-tap? Use Undo in “Recent at this station.”'))
+# ONE-SCORER MODEL: a single staff QR opens score.html with ALL stations as
+# tap-chips (incl. half-court). No per-station QRs.
+station_names = ' · '.join(f"{s.get('emoji','')} {s['name']}".strip() for s in stations)
+pages = [sheet('Score Keeper', '🎪', f'{BASE}/score.html',
+    'STAFF ONLY — scan once and keep the page open. Tap the station, pick the player, '
+    f'tap their points. Covers every game: {station_names}.')]
 
 pages.append(sheet('Live Leaderboard', '🏆', f'{BASE}/board.html',
     'Open this on the projector computer (or your phone) to watch the standings live.'))
@@ -70,5 +70,6 @@ html = f'''<!DOCTYPE html><html><head><meta charset="utf-8"><title>Fun Day QR Sh
 
 OUT.parent.mkdir(exist_ok=True)
 OUT.write_text(html, encoding='utf-8')
-print(f'Wrote {OUT.relative_to(ROOT)}  ({len(stations)} stations + leaderboard page)')
-print('Open it and print (Cmd+P) — one page per station.')
+print(f'Wrote {OUT.relative_to(ROOT)}  (1 Score Keeper QR covering '
+      f'{len(stations)} stations + leaderboard page)')
+print('Open it and print (Cmd+P).')

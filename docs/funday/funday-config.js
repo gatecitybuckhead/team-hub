@@ -28,13 +28,19 @@ window.FUNDAY = {
   //    Adjust once Halima finalizes scoring. Custom amounts always allowed.
   pointButtons: [5, 10, 25, 50],
 
-  // 4) Stations. Keep slugs short (QR capacity) and lowercase-with-dashes.
+  // 4) Stations. Keep slugs short and lowercase-with-dashes.
   //    Edit names/emoji freely, then re-run: python3 tools/build_funday_qr.py
   //    KEEP THIS BLOCK VALID JSON between the markers — the QR script parses it.
+  //    ONE-SCORER MODEL (Hannah): stations do NOT get individual QRs anymore.
+  //    score.html shows ALL of these as always-visible tap-chips — tap a
+  //    station, log players, tap another to switch. build_funday_qr.py prints
+  //    one "Score Keeper" QR (staff only) plus the leaderboard QR.
+  //    score.html?st=<slug> still works as a deep link that preselects a chip.
   stations: /*STATIONS_START*/[
-    { "slug": "cornhole",      "name": "Cornhole",      "emoji": "🌽" },
-    { "slug": "ring-toss",     "name": "Ring Toss",     "emoji": "🎯" },
-    { "slug": "balloon-darts", "name": "Balloon Darts", "emoji": "🎈" },
-    { "slug": "skeeball",      "name": "Skeeball",      "emoji": "🎳" }
+    { "slug": "cornhole",      "name": "Cornhole",        "emoji": "🌽" },
+    { "slug": "ring-toss",     "name": "Ring Toss",       "emoji": "🎯" },
+    { "slug": "balloon-darts", "name": "Balloon Darts",   "emoji": "🎈" },
+    { "slug": "skeeball",      "name": "Skeeball",        "emoji": "🎳" },
+    { "slug": "half-court",    "name": "Half-Court Shot", "emoji": "🏀" }
   ]/*STATIONS_END*/
 };

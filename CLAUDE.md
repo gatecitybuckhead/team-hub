@@ -98,11 +98,21 @@ the parent `gatecity-buckhead-ai-ops` repo.
     GitHub.command. It never pushes, and never overwrites production.json when PCO is
     unreachable or the plan is missing.
 - `docs/funday/` — Family Fun Day live leaderboard (Aug 2 2026). **Public, not
-  encrypted** (first names + points only). `board.html` = projector view,
-  `score.html?st=<slug>` = volunteer logging (one QR per station),
+  encrypted** (first names + points only). `board.html` = projector view.
+  **ONE-SCORER MODEL (2026-07-30):** Hannah logs every game from one page —
+  `score.html` shows ALL stations (incl. Half-Court Shot) as always-visible
+  tap-chips; no per-station QRs. `tools/build_funday_qr.py` prints just two QR
+  sheets (staff Score Keeper + leaderboard). `?st=<slug>` still preselects a chip.
   `funday-config.js` = single config file (Firebase web config, stations,
-  point buttons — the STATIONS block is strict JSON parsed by
-  `tools/build_funday_qr.py`, which prints QR sheets to gitignored `build/`).
+  point buttons — the STATIONS block is strict JSON parsed by the QR script).
+  **Roster preload:** full names live in gitignored `data/funday_roster_names.json`
+  (PCO Members (All) + Member (Kids), pulled 2026-07-30); only "First L." display
+  names (collision-safe) reach Firebase. `tools/build_funday_admin.py` →
+  `build/funday-admin.html` (LOCAL ONLY): one-tap preload (skips names already
+  present, safe to re-run), wipe-scores, wipe-players. `board.html` hides
+  zero-point players so preloads don't flood the board. Point buttons still
+  await Halima's final scoring; registration-form names pending (PCO Forms not
+  reachable via connector — merge into the roster JSON + re-run the admin build).
   Backend: **Firebase Realtime DB** (`events/<eventPath>`: `players/`, append-only
   `scores/`; board sums client-side; rules in FUNDAY-SETUP.md). With
   `firebaseConfig: null` both pages run a demo mode. This Firebase project is
