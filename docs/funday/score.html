@@ -33,9 +33,12 @@
     border:2px dashed var(--blue-line);background:var(--blue);color:#1d4e6b;cursor:pointer}
   #dupWarn{display:none;font-size:13px;font-weight:600;color:#a05a00;background:#ffefcf;border-radius:8px;padding:8px;margin-top:6px}
   #ptGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  #ptGrid.sm{grid-template-columns:repeat(4,1fr);gap:8px}
   .pt{font-family:'Rye',serif;font-size:30px;padding:18px 0;border-radius:14px;border:3px solid var(--red);
     background:#fff;color:var(--red);cursor:pointer}
+  #ptGrid.sm .pt{font-size:22px;padding:12px 0;border-width:2px;border-radius:10px}
   .pt:active{transform:scale(.96)}
+  #ptHint{font-size:13px;font-weight:600;color:#8a6d1a;margin-bottom:8px}
   #custRow{display:flex;gap:8px;margin-top:10px}
   #custPts{flex:1}
   #custGo{font-family:inherit;font-weight:700;font-size:16px;padding:0 18px;border-radius:10px;border:none;
@@ -80,11 +83,12 @@
   </div>
 
   <div class="card" id="ptsCard" style="display:none">
-    <h2>2 · Points for <span id="selName" style="color:var(--red)">—</span></h2>
+    <h2>2 · Game total for <span id="selName" style="color:var(--red)">—</span></h2>
+    <div id="ptHint"></div>
     <div id="ptGrid"></div>
     <div id="custRow">
-      <input type="number" id="custPts" placeholder="Custom" inputmode="numeric">
-      <button id="custGo">Add</button>
+      <input type="number" id="custPts" placeholder="Game total" inputmode="numeric">
+      <button id="custGo">Log</button>
     </div>
   </div>
 
@@ -108,7 +112,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="funday-config.js?v=2"></script>
+<script src="funday-config.js?v=3"></script>
 <script>
 (function(){
   "use strict";
@@ -142,6 +146,7 @@
     Object.keys(chipOf).forEach(function(k){chipOf[k].className='stchip'+(k===sl?' sel':'');});
     document.getElementById('stName').textContent=pretty(sl);
     ['playerCard','ptsCard','logCard'].forEach(function(id){document.getElementById(id).style.display='block';});
+    renderPtButtons();
     renderLog();
   }
   var fromUrl=q.get('st')||q.get('station')||'';
@@ -280,20 +285,36 @@
     searchEl.value=''; setTimeout(renderPlayers,50);
   };
 
-  // ---------- points UI ----------
-  var grid=document.getElementById('ptGrid');
-  (CFG.pointButtons||[5,10,25,50]).forEach(function(v){
-    var b=document.createElement('button'); b.className='pt'; b.textContent='+'+v;
-    b.onclick=function(){logScore(v);}; grid.appendChild(b);
-  });
+  // ---------- game-total UI ----------
+  // SELF-REPORTED TOTALS: players keep their own score and report ONE number
+  // per game. Hannah taps a quick-total button (stations with a fixed point
+  // menu) or types the reported total. Every play ADDS to the leaderboard.
+  function renderPtButtons(){ // self-contained: setStation may call this early (?st= deep link)
+    var grid=document.getElementById('ptGrid'), ptHint=document.getElementById('ptHint');
+    var s=stBySlug[station]||{}, quick=s.quick||[];
+    grid.innerHTML='';
+    grid.className=quick.length>6?'sm':'';
+    grid.style.display=quick.length?'grid':'none';
+    quick.forEach(function(v){
+      var b=document.createElement('button'); b.className='pt'; b.textContent=v;
+      b.onclick=function(){logScore(v);}; grid.appendChild(b);
+    });
+    ptHint.textContent=(quick.length?'Tap the total they report':'Type the total they report')
+      +(s.max?' — max possible is '+s.max:'')+'.';
+  }
   document.getElementById('custGo').onclick=function(){
     var v=parseInt(document.getElementById('custPts').value,10);
-    if(v) { logScore(v); document.getElementById('custPts').value=''; }
+    if(!isNaN(v)&&v>=0){ logScore(v); document.getElementById('custPts').value=''; }
   };
+  document.getElementById('custPts').addEventListener('keydown',function(e){
+    if(e.key==='Enter') document.getElementById('custGo').onclick();
+  });
 
   function logScore(pts){
     if(!selected){ alert('Pick a player first! (Step 1)'); return; }
     if(!station){ alert('Pick your station first.'); return; }
+    var s=stBySlug[station]||{};
+    if(s.max&&pts>s.max&&!confirm('Max possible at '+(s.name||station)+' is '+s.max+' — really log '+pts+'?')) return;
     var sid=newKey();
     saveKV('scores/'+sid,{p:selected,st:station,pts:pts,ts:Date.now()});
     var f=document.getElementById('flash');

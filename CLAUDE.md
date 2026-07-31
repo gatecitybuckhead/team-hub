@@ -103,16 +103,25 @@ the parent `gatecity-buckhead-ai-ops` repo.
   `score.html` shows ALL stations (incl. Half-Court Shot) as always-visible
   tap-chips; no per-station QRs. `tools/build_funday_qr.py` prints just two QR
   sheets (staff Score Keeper + leaderboard). `?st=<slug>` still preselects a chip.
-  `funday-config.js` = single config file (Firebase web config, stations,
-  point buttons — the STATIONS block is strict JSON parsed by the QR script).
+  `funday-config.js` = single config file (Firebase web config, stations —
+  the STATIONS block is strict JSON parsed by the QR script).
+  **SELF-REPORTED TOTALS (2026-07-31, final):** players track their own score
+  and report ONE number per game; Hannah logs that total (every play ADDS —
+  no best-of/replace). Per-station `"quick"` arrays render one-tap total
+  buttons (Balloon Darts 10–50 max 50; Cornhole 1–12 max 12); Kick Dart &
+  Skeeball (machine shows total) are keypad-only. `"max"` triggers a confirm
+  above the game's max. `pointButtons` is GONE from config + score.html.
+  Stations final: Cornhole, Kick Dart (replaced Ring Toss 2026-07-31),
+  Balloon Darts, Skeeball, Half-Court Shot. Config cache-buster now `?v=3`
+  in both pages.
   **Roster preload:** full names live in gitignored `data/funday_roster_names.json`
   (PCO Members (All) + Member (Kids), pulled 2026-07-30); only "First L." display
   names (collision-safe) reach Firebase. `tools/build_funday_admin.py` →
   `build/funday-admin.html` (LOCAL ONLY): one-tap preload (skips names already
   present, safe to re-run), wipe-scores, wipe-players. `board.html` hides
-  zero-point players so preloads don't flood the board. Point buttons still
-  await Halima's final scoring; registration-form names pending (PCO Forms not
-  reachable via connector — merge into the roster JSON + re-run the admin build).
+  zero-point players so preloads don't flood the board. Registration-form
+  names pending (PCO Forms not reachable via connector — merge into the
+  roster JSON + re-run the admin build).
   Backend: **Firebase Realtime DB** (`events/<eventPath>`: `players/`, append-only
   `scores/`; board sums client-side; rules in FUNDAY-SETUP.md). With
   `firebaseConfig: null` both pages run a demo mode. This Firebase project is

@@ -45,7 +45,7 @@ def sheet(title, emoji, url, note):
 station_names = ' · '.join(f"{s.get('emoji','')} {s['name']}".strip() for s in stations)
 pages = [sheet('Score Keeper', '🎪', f'{BASE}/score.html',
     'STAFF ONLY — scan once and keep the page open. Tap the station, pick the player, '
-    f'tap their points. Covers every game: {station_names}.')]
+    f'enter the game total they report. Covers every game: {station_names}.')]
 
 pages.append(sheet('Live Leaderboard', '🏆', f'{BASE}/board.html',
     'Open this on the projector computer (or your phone) to watch the standings live.'))

@@ -56,9 +56,14 @@ can drive the production checklist next week — just a different `eventPath`.
 
 ## Before Sunday
 
-1. Update the `stations` list in `funday-config.js` once Halima finalizes the
-   games (keep slugs short and lowercase-with-dashes).
-2. Set `pointButtons` to match her scoring.
+1. Update the `stations` list in `funday-config.js` if the games change
+   (keep slugs short and lowercase-with-dashes).
+2. SCORING MODEL (final, 2026-07-31): players keep their own score during the
+   game and report ONE total to Hannah, who logs it on score.html. Every play
+   adds to the leaderboard. Per-station `"quick"` arrays give one-tap total
+   buttons (Balloon Darts 10–50, Cornhole 1–12); Kick Dart & Skeeball are
+   keypad entry. `"max"` triggers a "really log X?" check above the game's
+   max possible. There is no `pointButtons` anymore.
 3. `python3 tools/build_funday_qr.py` → open `build/funday-qr-sheets.html` →
    print. Tape each sheet at its station.
 4. Publish (on the Mac, as always): commit, then **Publish to GitHub.command**.
