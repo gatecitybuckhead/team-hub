@@ -108,12 +108,13 @@ the parent `gatecity-buckhead-ai-ops` repo.
   **SELF-REPORTED TOTALS (2026-07-31, final):** players track their own score
   and report ONE number per game; Hannah logs that total (every play ADDS —
   no best-of/replace). Per-station `"quick"` arrays render one-tap total
-  buttons (Balloon Darts 10–50 max 50; Cornhole 1–12 max 12); Kick Dart &
+  buttons (Moving Target 10–50 max 50; Cornhole 1–12 max 12); Kick Dart &
   Skeeball (machine shows total) are keypad-only. `"max"` triggers a confirm
   above the game's max. `pointButtons` is GONE from config + score.html.
   Stations final: Cornhole, Kick Dart (replaced Ring Toss 2026-07-31),
-  Balloon Darts, Skeeball, Half-Court Shot. Config cache-buster now `?v=3`
-  in both pages.
+  Moving Target (renamed from Balloon Darts 2026-08-01 — Halima, setup
+  logistics; name/slug/emoji only, scoring unchanged), Skeeball,
+  Half-Court Shot. Config cache-buster now `?v=3` in both pages.
   **Roster preload:** full names live in gitignored `data/funday_roster_names.json`
   (PCO Members (All) + Member (Kids), pulled 2026-07-30); only "First L." display
   names (collision-safe) reach Firebase. `tools/build_funday_admin.py` →

@@ -37,13 +37,14 @@ window.FUNDAY = {
   //    tell Hannah ONE number per game. Per station:
   //      "quick" = one-tap total buttons (omit for keypad-only stations)
   //      "max"   = highest possible total; score.html asks "sure?" above it
-  //    Balloon Darts: 5 darts × 10/pop → 10..50. Cornhole: 4 bags, hole=3
-  //    board=1 → 1..12. Kick Dart (3 kicks, zone values on target) and
-  //    Skeeball (machine displays total) vary → keypad entry.
+  //    Moving Target (was Balloon Darts — renamed 2026-08-01 by Halima for
+  //    setup logistics; NAME ONLY, scoring unchanged): 10..50 in tens.
+  //    Cornhole: 4 bags, hole=3 board=1 → 1..12. Kick Dart (3 kicks, zone
+  //    values on target) and Skeeball (machine shows total) → keypad entry.
   stations: /*STATIONS_START*/[
     { "slug": "cornhole",      "name": "Cornhole",        "emoji": "🌽", "quick": [1,2,3,4,5,6,7,8,9,10,11,12], "max": 12 },
     { "slug": "kick-dart",     "name": "Kick Dart",       "emoji": "🎯" },
-    { "slug": "balloon-darts", "name": "Balloon Darts",   "emoji": "🎈", "quick": [10,20,30,40,50], "max": 50 },
+    { "slug": "moving-target", "name": "Moving Target",   "emoji": "🏹", "quick": [10,20,30,40,50], "max": 50 },
     { "slug": "skeeball",      "name": "Skeeball",        "emoji": "🎳" },
     { "slug": "half-court",    "name": "Half-Court Shot", "emoji": "🏀" }
   ]/*STATIONS_END*/
