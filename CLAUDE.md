@@ -197,8 +197,12 @@ the parent `gatecity-buckhead-ai-ops` repo.
    Then `python3 tools/add_giving_reading.py --giving <n> --members <n> --sunday
    <date> --refreshed <refreshed_at>`. Append-only; see the metrics notes above.
 4. `tools/build.py` → `build/*.html` (plaintext, NEVER commit).
-5. `tools/encrypt.py <team password>` → `docs/staff/*.html` (AES-256-GCM,
-   PBKDF2 200k; safe for a public repo).
+5. `tools/encrypt.py` (no args) → `docs/staff/*.html` (AES-256-GCM, PBKDF2
+   200k; safe for a public repo). **PER-PAGE passwords since 2026-08-04** —
+   debrief and metrics each have their own, read from
+   `gcb-staff-passwords.json` at the AI Ops root. The script encrypts an
+   explicit ALLOWLIST (debrief + metrics only), never a glob of `build/`,
+   so stray build files can't leak onto the staff site.
 6. Commit + push → GitHub Pages redeploys. **Steps 5-6 must run on the Mac**
    (double-click `Encrypt.command`, then `Publish to GitHub.command`). A `git push`
    from the cowork sandbox looks like it worked but leaves the commit unpushed —

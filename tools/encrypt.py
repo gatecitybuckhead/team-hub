@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-"""Encrypt built dashboards with a shared team password (AES-256-GCM, PBKDF2).
-The published file is safe to host publicly: without the password the payload
-is unreadable. Usage: python3 encrypt.py <password>
-Reads build/*.html -> writes site/staff/*.html
+"""Encrypt built dashboards, each with its OWN password (AES-256-GCM, PBKDF2).
+The published files are safe to host publicly: without the password the payload
+is unreadable.
+
+Passwords live OUTSIDE every repo in gcb-staff-passwords.json at the AI Ops
+root: {"debrief.html": "...", "metrics.html": "..."}
+
+Only the pages listed in PAGES below are ever encrypted and published — this is
+an explicit allowlist, NOT a glob, so stray files in build/ (funday-admin,
+QR sheets, ...) can never leak onto the staff site (lesson of 2026-07-28).
+
+Usage: python3 encrypt.py            (reads the JSON above)
+       python3 encrypt.py <pw>       (legacy: one password for every page)
 """
 import sys, os, json, base64, hashlib, pathlib
 
@@ -15,8 +24,20 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, DST = ROOT/'build', ROOT/'docs'/'staff'
 DST.mkdir(parents=True, exist_ok=True)
 
-if len(sys.argv) < 2: sys.exit('usage: encrypt.py <team password>')
-password = sys.argv[1]
+# page filename -> display title. ONLY these are published.
+PAGES = {'debrief.html': 'Sunday Debrief', 'metrics.html': 'Metrics'}
+
+PW_FILE = ROOT.parent.parent / 'gcb-staff-passwords.json'
+if len(sys.argv) > 1:
+    passwords = {name: sys.argv[1] for name in PAGES}
+elif PW_FILE.exists():
+    passwords = json.loads(PW_FILE.read_text())
+    missing = [n for n in PAGES if not passwords.get(n)]
+    if missing:
+        sys.exit(f'{PW_FILE} is missing a password for: {", ".join(missing)}')
+else:
+    sys.exit(f'no password source: create {PW_FILE} or pass one password as an argument')
+
 ITER = 200_000
 
 SHELL = '''<!DOCTYPE html>
@@ -31,11 +52,11 @@ input{{width:100%;box-sizing:border-box;background:#0f1117;border:1px solid #272
 button{{width:100%;margin-top:12px;background:#e0b34c;border:0;color:#161616;font-weight:700;border-radius:9px;padding:11px;font-size:15px;cursor:pointer}}
 .err{{color:#e06767;font-size:13px;height:18px;margin-top:9px}}</style></head>
 <body><div class="box"><h1>GateCity Buckhead — <b>{title}</b></h1>
-<p>Team access only. Enter the shared team password.</p>
-<input id="pw" type="password" placeholder="Team password" autofocus>
+<p>Team access only. Enter the {title} password.</p>
+<input id="pw" type="password" placeholder="{title} password" autofocus>
 <button id="go">Open dashboard</button><div class="err" id="err"></div></div>
 <script>
-const SALT="{salt}",IV="{iv}",CT="{ct}",ITER={iter};
+const SALT="{salt}",IV="{iv}",CT="{ct}",ITER={iter},SKEY="{skey}";
 const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function unlock(pw){{
   const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
@@ -44,22 +65,26 @@ async function unlock(pw){{
   return new TextDecoder().decode(pt);}}
 async function go(){{
   const pw=document.getElementById('pw').value;
-  try{{const html=await unlock(pw);sessionStorage.setItem('gcbpw',pw);
+  try{{const html=await unlock(pw);sessionStorage.setItem(SKEY,pw);
     document.open();document.write(html);document.close();}}
   catch(e){{document.getElementById('err').textContent='Wrong password — try again.';}}}}
 document.getElementById('go').onclick=go;
 document.getElementById('pw').addEventListener('keydown',e=>{{if(e.key==='Enter')go()}});
-const saved=sessionStorage.getItem('gcbpw');
+const saved=sessionStorage.getItem(SKEY)||sessionStorage.getItem('gcbpw');
 if(saved)unlock(saved).then(h=>{{document.open();document.write(h);document.close()}}).catch(()=>{{}});
 </script></body></html>'''
 
-for f in sorted(SRC.glob('*.html')):
+for name, title in PAGES.items():
+    f = SRC/name
+    if not f.exists():
+        print(f'skip (no build): build/{name}')
+        continue
     plain = f.read_bytes()
     salt, iv = os.urandom(16), os.urandom(12)
-    key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, ITER, 32)
+    key = hashlib.pbkdf2_hmac('sha256', passwords[name].encode(), salt, ITER, 32)
     ct = AESGCM(key).encrypt(iv, plain, None)
-    title = 'Metrics' if 'metrics' in f.name else 'Sunday Debrief'
     out = SHELL.format(title=title, salt=base64.b64encode(salt).decode(),
-                       iv=base64.b64encode(iv).decode(), ct=base64.b64encode(ct).decode(), iter=ITER)
-    (DST/f.name).write_text(out)
-    print('encrypted ->', f'docs/staff/{f.name}', f'{(DST/f.name).stat().st_size//1024}KB')
+                       iv=base64.b64encode(iv).decode(), ct=base64.b64encode(ct).decode(),
+                       iter=ITER, skey='gcbpw:'+name)
+    (DST/name).write_text(out)
+    print('encrypted ->', f'docs/staff/{name}', f'{(DST/name).stat().st_size//1024}KB')
