@@ -36,6 +36,8 @@ def main():
     ap.add_argument('--special', default=None)
     ap.add_argument('--generated', default=None, help='defaults to the given date')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--force', action='store_true',
+                    help='override the stale-column guard (see below)')
     a = ap.parse_args()
 
     m = json.load(open(METRICS))
@@ -66,6 +68,28 @@ def main():
     if not values:
         print('ERROR: no usable values parsed from stdin — refusing to write.', file=sys.stderr)
         return 1
+
+    # ---- stale-column guard -------------------------------------------------
+    # The quarterly tabs are built by COPYING the previous quarter, so every
+    # not-yet-entered column still holds last quarter's numbers. Ingesting one
+    # silently imports the wrong week. The reliable tell is that YTD $ Total
+    # DROPS: it only ever rises within a year. Caught a real near-miss on
+    # 2026-08-04, where the Q3 tab's 8/2 column was a byte-for-byte copy of
+    # Q2's 5/3 column and would have knocked YTD giving back ~$107K.
+    new_ytd = values.get('ytd_total')
+    prior = [w for w in m['weeks'] if w['date'] < a.date
+             and w['values'].get('ytd_total') is not None]
+    if new_ytd is not None and prior:
+        last = prior[-1]
+        if float(new_ytd) < float(last['values']['ytd_total']):
+            print(f'REFUSING: YTD $ Total goes DOWN — {last["date"]} '
+                  f'{last["values"]["ytd_total"]:,.0f} -> {a.date} {float(new_ytd):,.0f}.\n'
+                  '  This column is almost certainly stale prior-quarter template data\n'
+                  '  copied forward, not real numbers for this week. Check the sheet.\n'
+                  '  Use --force only if you have confirmed the drop is genuine.',
+                  file=sys.stderr)
+            if not a.force:
+                return 1
 
     week = {'date': a.date, 'series': a.series, 'special': a.special, 'values': values}
     dates = [w['date'] for w in m['weeks']]
