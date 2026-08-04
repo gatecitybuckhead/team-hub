@@ -139,10 +139,25 @@ the parent `gatecity-buckhead-ai-ops` repo.
    `1H7WbKV5Bn6JBcPkVV3KQSTzF7WLncnBj0PnTz0ttTmA` (readable via the connector,
    small). Event-specific questions (tone/hospitality/games/flow/outreach);
    the regular parse_debrief.py columns don't apply. A `Name` question was
-   added 8/3 AFTER the first response, so it's the LAST column and the first
-   row (8/3 9:14am) is legitimately nameless — not a parse error. Treat 8/2
-   as a `special` week: fold these in as the Fun Day debrief instead of
-   forcing them into the regular schema.
+   added 8/3 AFTER the first response, so it's the LAST column — but by the
+   2026-08-04 run all 5 rows HAD names (the 8/3 9:14am row is Sarah), so the
+   "nameless first row" note is now stale. Treat 8/2 as a `special` week: fold
+   these in as the Fun Day debrief instead of forcing them into the regular
+   schema. **Done 2026-08-04 by `tools/_add_funday_week.py`** — a one-off,
+   idempotent appender (re-running replaces the 8/2 rows, never duplicates).
+   It maps Yes/Somewhat/No → 100/50/0 (matching parse_debrief.py's 0-100
+   normalization), doubles the form's 1-5 overall onto the 0-10 scale, and
+   names 12 event-specific elements (Event Tone, Guest Flow, Volunteer
+   Staffing, On-Time Execution, …). Safe because the template renders
+   `elements` as a per-week sorted bar list, NOT as cross-week series — so
+   one-off element names don't create phantom trend lines. **Careful: running
+   `parse_debrief.py` (full rebuild) WIPES the 8/2 week**, since that Sunday
+   isn't in the regular sheet; re-run `_add_funday_week.py` after any full
+   rebuild. The Fun Day pros/grows live in `debrief_narratives.json`, and
+   `meeting_notes.json` has a `2026-08-04` entry carrying
+   `special: "Family Fun Day"` + `respondents: 5` with `has_report:false` and
+   `overall_tone:null` (no Tuesday-doc write-up existed yet, so the page
+   auto-generates the tone line and labels it as auto).
 2. FULL REBUILD: `tools/parse_metrics.py <in.xlsx> [out.json]` +
    `tools/parse_debrief.py` read xlsx exports → `data/metrics.json`,
    `data/debrief.json`. Needed because the Drive MCP connector TRUNCATES both
