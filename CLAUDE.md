@@ -134,6 +134,15 @@ the parent `gatecity-buckhead-ai-ops` repo.
 1. Sources: `DASHBOARD METRICS - 5 Behaviors` (Google Sheet, quarterly tabs,
    transposed layout), `Sunday DEBRIEF Form (Responses)` (Google Sheet), and the
    Meeting Archive folder in Drive (Zoom summaries).
+   **Sunday 2026-08-02 (Family Fun Day) used a DIFFERENT form** — responses are
+   in `Family Fun Day 2026 Feedback Form (Responses)`, Drive file id
+   `1H7WbKV5Bn6JBcPkVV3KQSTzF7WLncnBj0PnTz0ttTmA` (readable via the connector,
+   small). Event-specific questions (tone/hospitality/games/flow/outreach);
+   the regular parse_debrief.py columns don't apply. A `Name` question was
+   added 8/3 AFTER the first response, so it's the LAST column and the first
+   row (8/3 9:14am) is legitimately nameless — not a parse error. Treat 8/2
+   as a `special` week: fold these in as the Fun Day debrief instead of
+   forcing them into the regular schema.
 2. FULL REBUILD: `tools/parse_metrics.py <in.xlsx> [out.json]` +
    `tools/parse_debrief.py` read xlsx exports → `data/metrics.json`,
    `data/debrief.json`. Needed because the Drive MCP connector TRUNCATES both
