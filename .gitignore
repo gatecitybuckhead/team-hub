@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 Publish to GitHub.command
 Encrypt.command
+docs/staff/funday-admin.html
