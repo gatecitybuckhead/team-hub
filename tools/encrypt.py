@@ -50,11 +50,15 @@ display:flex;align-items:center;justify-content:center;min-height:96vh;margin:0}
 h1{{font-size:19px;margin:0 0 4px}} h1 b{{color:#e0b34c}} p{{color:#8a90a5;font-size:13.5px;margin:6px 0 18px}}
 input{{width:100%;box-sizing:border-box;background:#0f1117;border:1px solid #272c3a;color:#e8eaf2;border-radius:9px;padding:11px 13px;font-size:16px}}
 button{{width:100%;margin-top:12px;background:#e0b34c;border:0;color:#161616;font-weight:700;border-radius:9px;padding:11px;font-size:15px;cursor:pointer}}
-.err{{color:#e06767;font-size:13px;height:18px;margin-top:9px}}</style></head>
+.err{{color:#e06767;font-size:13px;height:18px;margin-top:9px}}
+#user{{margin-bottom:8px;color:#8a90a5}}</style></head>
 <body><div class="box"><h1>GateCity Buckhead — <b>{title}</b></h1>
-<p>Team access only. Enter the {title} password.</p>
-<input id="pw" type="password" placeholder="{title} password" autofocus>
-<button id="go">Open dashboard</button><div class="err" id="err"></div></div>
+<p>Team access only. Sign in as <b>{user}</b> with the {title} password.</p>
+<form id="lf" autocomplete="on">
+<input id="user" name="username" type="text" autocomplete="username" value="{user}">
+<input id="pw" name="password" type="password" placeholder="{title} password" autocomplete="current-password" autofocus>
+<button id="go" type="submit">Open dashboard</button>
+</form><div class="err" id="err"></div></div>
 <script>
 const SALT="{salt}",IV="{iv}",CT="{ct}",ITER={iter},SKEY="{skey}";
 const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -68,8 +72,7 @@ async function go(){{
   try{{const html=await unlock(pw);sessionStorage.setItem(SKEY,pw);
     document.open();document.write(html);document.close();}}
   catch(e){{document.getElementById('err').textContent='Wrong password — try again.';}}}}
-document.getElementById('go').onclick=go;
-document.getElementById('pw').addEventListener('keydown',e=>{{if(e.key==='Enter')go()}});
+document.getElementById('lf').addEventListener('submit',e=>{{e.preventDefault();go();}});
 const saved=sessionStorage.getItem(SKEY)||sessionStorage.getItem('gcbpw');
 if(saved)unlock(saved).then(h=>{{document.open();document.write(h);document.close()}}).catch(()=>{{}});
 </script></body></html>'''
@@ -83,7 +86,8 @@ for name, title in PAGES.items():
     salt, iv = os.urandom(16), os.urandom(12)
     key = hashlib.pbkdf2_hmac('sha256', passwords[name].encode(), salt, ITER, 32)
     ct = AESGCM(key).encrypt(iv, plain, None)
-    out = SHELL.format(title=title, salt=base64.b64encode(salt).decode(),
+    out = SHELL.format(title=title, user=name.removesuffix('.html'),
+                       salt=base64.b64encode(salt).decode(),
                        iv=base64.b64encode(iv).decode(), ct=base64.b64encode(ct).decode(),
                        iter=ITER, skey='gcbpw:'+name)
     (DST/name).write_text(out)
