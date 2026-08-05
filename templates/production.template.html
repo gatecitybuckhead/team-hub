@@ -39,19 +39,46 @@ header{margin-bottom:18px}
 .empty{color:var(--dim);font-style:italic;font-size:13.5px}
 .dot{width:7px;height:7px;border-radius:50%;flex:none}
 .d-c{background:var(--green)} .d-u{background:var(--gold)} .d-d{background:var(--red)}
+
+/* ---- sign-in bar (header) ---- */
+.mebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn{font:inherit;font-size:13px;font-weight:700;background:var(--gold);color:#161616;border:0;
+  border-radius:9px;padding:8px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn:active{opacity:.85}
+.btn.ghost{background:none;color:var(--dim);border:1px solid var(--line);font-weight:600}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+.mehere{font-size:13px}
+.mehere b{color:var(--green)}
+.mehere .at{color:var(--dim)}
+
+/* ---- who's here ---- */
+.crew{list-style:none}
+.crew li{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.crew li:first-child{border-top:none}
+.crew .nm{font-weight:600;flex:1}
+.crew .at{color:var(--dim);font-size:12.5px;font-variant-numeric:tabular-nums;flex:none}
+.crew .self{color:var(--green)}
+
+/* ---- checklist ---- */
 .chk h4{font-size:13px;color:var(--ink);margin:14px 0 6px;letter-spacing:.3px}
 .chk h4:first-child{margin-top:0}
 .chk h4 .c{color:var(--dim);font-weight:400;font-size:12px;margin-left:6px}
 .chk ul{list-style:none;margin-left:2px}
-.chk li{padding:5px 0 5px 28px;position:relative;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
-.chk li:before{content:"";position:absolute;left:0;top:4px;width:16px;height:16px;border:1.5px solid var(--line);border-radius:4px;transition:.12s}
+.chk li{padding:6px 0 6px 28px;position:relative;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
+  display:flex;align-items:baseline;gap:10px}
+.chk li:before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border:1.5px solid var(--line);border-radius:4px;transition:.12s}
 .chk li.done:before{background:var(--green);border-color:var(--green)}
-.chk li.done:after{content:"";position:absolute;left:5px;top:7px;width:6px;height:9px;border:solid #10331f;border-width:0 2px 2px 0;transform:rotate(45deg)}
-.chk li.done{color:var(--dim);text-decoration:line-through}
+.chk li.done:after{content:"";position:absolute;left:5px;top:9px;width:6px;height:9px;border:solid #10331f;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.chk li .lbl{flex:1}
+.chk li.done .lbl{color:var(--dim);text-decoration:line-through}
+.chk li .by{flex:none;font-size:11.5px;color:var(--dim);white-space:nowrap;text-align:right;
+  background:rgba(87,201,138,.10);border:1px solid rgba(87,201,138,.22);border-radius:999px;padding:1px 9px}
+.chk li.locked{opacity:.5}
 .chk .crit{border:1px solid rgba(224,179,76,.35);background:rgba(224,179,76,.06);border-radius:10px;padding:10px 14px;margin-top:14px}
 .chk .crit h4{color:var(--gold)}
 .chk .crit li:before{border-color:var(--gold)}
 .chk .crit li.done:before{background:var(--green);border-color:var(--green)}
+.lockmsg{color:var(--gold);font-size:12.5px;margin:0 0 10px}
 .reset{display:inline-block;margin-top:12px;color:var(--dim);font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer}
 .reset:hover{border-color:var(--gold);color:var(--gold)}
 .note{color:var(--dim);font-size:12.5px;margin-top:10px}
@@ -65,6 +92,25 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
 .qrbox{background:#fff;border-radius:10px;padding:10px;display:inline-block;margin:2px 0 8px}
 .qrbox svg{display:block;width:180px;height:180px}
 .qr .u{color:var(--dim);font-size:11.5px;word-break:break-all}
+
+/* ---- sign-in sheet ---- */
+.modal{position:fixed;inset:0;background:rgba(6,8,13,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal.open{display:flex}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;width:100%;max-width:380px;max-height:88vh;overflow:auto}
+.sheet h2{font-size:18px;margin-bottom:4px}
+.sheet p{color:var(--dim);font-size:13px;margin-bottom:14px}
+.names{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.nbtn{font:inherit;font-size:15px;font-weight:600;text-align:left;background:#0f1117;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.nbtn:hover{border-color:var(--gold)}
+.nbtn:active{background:#1e2230}
+.nbtn .role{display:block;font-size:11.5px;font-weight:500;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.orline{color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;text-align:center;margin:4px 0 10px}
+.sheet input{width:100%;background:#0f1117;border:1px solid var(--line);color:var(--ink);
+  border-radius:9px;padding:11px 13px;font-size:16px;font-family:inherit}
+.sheet .row{display:flex;gap:8px;margin-top:10px}
+.sheet .row .btn{flex:1}
+.sheet .err{color:var(--red);font-size:12.5px;min-height:16px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -72,6 +118,7 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
 <header>
   <h1>GateCity Buckhead — <span>Production</span></h1>
   <div class="sub">This Sunday at a glance — roster, timeline, and pre-service checklist · updated <span id="built">—</span></div>
+  <div class="mebar" id="mebar"></div>
 </header>
 
 <div class="grid">
@@ -98,8 +145,15 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
     </div>
   </div>
 
+  <div class="card">
+    <h3><b>Who's Here</b> — signed in today</h3>
+    <ul class="crew" id="crew"></ul>
+    <div class="note" id="crewNote"></div>
+  </div>
+
   <div class="card tall chk">
     <h3><b>Pre-Service Checklist</b> — <span id="chkTitle" style="text-transform:none"></span></h3>
+    <div class="lockmsg" id="lockMsg" style="display:none">Sign in first — every check records who did it and when.</div>
     <div id="checklist"></div>
     <div class="note" id="liveNote"></div>
     <span class="reset" id="resetChk">Reset checklist</span>
@@ -108,6 +162,21 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
   <div class="card tall chk" id="teardownCard" style="display:none">
     <h3><b>Teardown</b> — after service</h3>
     <div id="teardown"></div>
+  </div>
+</div>
+
+<div class="modal" id="signin">
+  <div class="sheet">
+    <h2>Sign in</h2>
+    <p>Tap your name. We'll log your arrival time and put your name on everything you check off.</p>
+    <div class="names" id="nameBtns"></div>
+    <div class="orline">or</div>
+    <input id="otherName" type="text" placeholder="Type your name" autocomplete="name" maxlength="30">
+    <div class="row">
+      <button class="btn" id="otherGo">Sign in</button>
+      <button class="btn ghost" id="signCancel">Cancel</button>
+    </div>
+    <div class="err" id="signErr"></div>
   </div>
 </div>
 
@@ -156,10 +225,12 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
   const pre = secs.filter(s=>!s.teardown);
   const td  = secs.filter(s=>s.teardown);
 
-  // ---- Live-synced checklist (Firebase RTDB), same backend as Fun Day ----
-  // Path: production/<sunday>/checks/<itemId> = {done, ts}. Keyed by the NEXT
-  // service date (America/New_York), so every Sunday starts a fresh, unchecked
-  // list automatically — no reset job, no rebuild.
+  // ---- Live-synced checklist + crew sign-in (Firebase RTDB) ----
+  // Paths, both keyed by the NEXT service date (America/New_York) so every
+  // Sunday starts fresh with no reset job and no rebuild:
+  //   production/<sunday>/checks/<itemId>  = {done, ts, by}
+  //   production/<sunday>/crew/<personKey> = {name, ts}   // ts = arrival time
+  // `by` is the signed-in name; a check's `ts` is when it was ticked.
   // localStorage keeps a per-device copy as the offline fallback: if the school
   // wifi blocks Firebase entirely, the page keeps working like it used to.
   // ?ev=<anything> overrides the date path for dry runs (mirrors funday's ?ev=).
@@ -178,22 +249,155 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
   }
   const SUNDAY = qp.get('ev') || nextSundayNY();
 
-  const SKEY = 'gcbprod-chk:' + SUNDAY;
+  const TFMT = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',
+    hour:'numeric',minute:'2-digit'});
+  const clock = ts => ts ? TFMT.format(new Date(ts)) : '';
+
+  const SKEY = 'gcbprod-chk:' + SUNDAY;   // {itemId: {by, ts}}
+  const MKEY = 'gcbprod-me:'  + SUNDAY;   // {key, name, ts}
   let state = {};
-  try{ state = JSON.parse(localStorage.getItem(SKEY)||'{}')||{}; }catch(e){ state={}; }
+  try{
+    const raw = JSON.parse(localStorage.getItem(SKEY)||'{}')||{};
+    // tolerate the pre-sign-in format, where a check was stored as just `1`
+    Object.keys(raw).forEach(id=>{ if(raw[id]) state[id] = (typeof raw[id]==='object') ? raw[id] : {}; });
+  }catch(e){ state={}; }
   const saveLocal = ()=>{ try{ localStorage.setItem(SKEY, JSON.stringify(state)); }catch(e){} };
 
-  let checksRef = null; // set once the Firebase SDK is up; null = device-only mode
+  let me = null;
+  try{ me = JSON.parse(localStorage.getItem(MKEY)||'null'); }catch(e){ me=null; }
+  if(me && !me.name) me = null;
+
+  let crew = {};            // {key: {name, ts}} — everyone signed in this Sunday
+  if(me) crew[me.key] = {name:me.name, ts:me.ts};  // show yourself before/without sync
+  let checksRef = null;     // set once the Firebase SDK is up; null = device-only mode
+  let crewRef   = null;
   const ln = document.getElementById('liveNote');
   const note = msg => { if(ln) ln.textContent = msg; };
 
-  function setCheck(id, on){
-    if(on) state[id]=1; else delete state[id];
-    saveLocal();
-    if(checksRef){
-      if(on) checksRef.child(id).set({done:true, ts:Date.now()});
-      else   checksRef.child(id).set(null);
+  const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,32) || 'crew';
+
+  /* ---------------- sign-in ---------------- */
+  const sheet = document.getElementById('signin');
+  const signErr = document.getElementById('signErr');
+
+  function rosterNames(){
+    const seen = {}, out = [];
+    (DATA.positions||[]).forEach(p=>{
+      (p.people||[]).forEach(pe=>{
+        if(!pe.name) return;
+        if(seen[pe.name]){
+          const row = out[seen[pe.name]-1];
+          if(row.role.indexOf(p.position)<0) row.role += ' · ' + p.position;
+          return;
+        }
+        out.push({name:pe.name, role:p.position});
+        seen[pe.name] = out.length;
+      });
+    });
+    return out;
+  }
+
+  function openSignIn(){
+    const host = document.getElementById('nameBtns');
+    host.innerHTML='';
+    rosterNames().forEach(p=>{
+      const b=document.createElement('button');
+      b.className='nbtn';
+      b.innerHTML=esc(p.name)+'<span class="role">'+esc(p.role)+'</span>';
+      b.addEventListener('click',()=>signIn(p.name));
+      host.appendChild(b);
+    });
+    if(!host.children.length){
+      host.innerHTML='<div class="empty">Nobody scheduled yet — type your name below.</div>';
     }
+    signErr.textContent='';
+    document.getElementById('otherName').value='';
+    sheet.classList.add('open');
+  }
+  function closeSignIn(){ sheet.classList.remove('open'); }
+
+  function signIn(name){
+    name = String(name||'').trim().slice(0,30);
+    if(name.length < 2){ signErr.textContent='Please enter your name.'; return; }
+    const key = slug(name);
+    // Keep the EARLIEST arrival: signing in again, or from a second device,
+    // must never overwrite the time you actually showed up.
+    const existing = crew[key];
+    me = {key:key, name:name, ts:(existing && existing.ts) ? existing.ts : Date.now()};
+    try{ localStorage.setItem(MKEY, JSON.stringify(me)); }catch(e){}
+    if(!existing){
+      crew[key] = {name:name, ts:me.ts};
+      if(crewRef) crewRef.child(key).set({name:name, ts:me.ts});
+    }
+    closeSignIn();
+    renderMe(); renderCrew(); renderAll();
+  }
+
+  function switchUser(){
+    me = null;
+    try{ localStorage.removeItem(MKEY); }catch(e){}
+    renderMe(); renderCrew(); renderAll();
+    openSignIn();
+  }
+
+  function renderMe(){
+    const bar = document.getElementById('mebar');
+    bar.innerHTML='';
+    if(me){
+      const span=document.createElement('span');
+      span.className='mehere';
+      span.innerHTML='Signed in as <b>'+esc(me.name)+'</b> <span class="at">· arrived '+esc(clock(me.ts))+'</span>';
+      const sw=document.createElement('button');
+      sw.className='btn ghost'; sw.textContent='Not you?';
+      sw.addEventListener('click', switchUser);
+      bar.appendChild(span); bar.appendChild(sw);
+    }else{
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Sign in';
+      b.addEventListener('click', openSignIn);
+      const hint=document.createElement('span');
+      hint.className='sub';
+      hint.textContent='Sign in to check items off — it logs your arrival time.';
+      bar.appendChild(b); bar.appendChild(hint);
+    }
+    document.getElementById('lockMsg').style.display = me ? 'none' : '';
+  }
+
+  function renderCrew(){
+    const host = document.getElementById('crew');
+    const keys = Object.keys(crew).sort((a,b)=>(crew[a].ts||0)-(crew[b].ts||0));
+    host.innerHTML='';
+    if(!keys.length){
+      host.innerHTML='<li><span class="empty">Nobody signed in yet.</span></li>';
+    }else{
+      keys.forEach(k=>{
+        const li=document.createElement('li');
+        const mine = !!(me && me.key===k);
+        li.innerHTML='<span class="nm'+(mine?' self':'')+'">'+esc(crew[k].name)+(mine?' (you)':'')+
+                     '</span><span class="at">'+esc(clock(crew[k].ts))+'</span>';
+        host.appendChild(li);
+      });
+    }
+    const cn=document.getElementById('crewNote');
+    if(cn) cn.textContent = keys.length ? (keys.length+' signed in · arrival times are Eastern') : '';
+  }
+
+  document.getElementById('otherGo').addEventListener('click',()=>signIn(document.getElementById('otherName').value));
+  document.getElementById('otherName').addEventListener('keydown',e=>{ if(e.key==='Enter') signIn(e.target.value); });
+  document.getElementById('signCancel').addEventListener('click', closeSignIn);
+  sheet.addEventListener('click',e=>{ if(e.target===sheet) closeSignIn(); });
+
+  /* ---------------- checklist ---------------- */
+  function setCheck(id, on){
+    if(on){
+      const rec = {ts: Date.now(), by: (me && me.name) || ''};
+      state[id] = rec;
+      if(checksRef) checksRef.child(id).set({done:true, ts:rec.ts, by:rec.by});
+    }else{
+      delete state[id];
+      if(checksRef) checksRef.child(id).set(null);
+    }
+    saveLocal();
   }
 
   function renderSections(host, list){
@@ -209,9 +413,19 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
       const ul=document.createElement('ul');
       items.forEach(it=>{
         const li=document.createElement('li');
-        li.textContent=it.text;
-        if(state[it.id]) li.className='done';
+        const rec=state[it.id];
+        li.className = (rec?'done':'') + (me?'':' locked');
+        const lbl=document.createElement('span');
+        lbl.className='lbl'; lbl.textContent=it.text;
+        li.appendChild(lbl);
+        if(rec){
+          const by=document.createElement('span');
+          by.className='by';
+          by.textContent = (rec.by || 'Unknown') + (rec.ts ? ' · ' + clock(rec.ts) : '');
+          li.appendChild(by);
+        }
         li.addEventListener('click',()=>{
+          if(!me){ openSignIn(); return; }   // sign-in required before checking
           setCheck(it.id, !state[it.id]);
           renderAll(); // optimistic; a Firebase snapshot re-render reconciles
         });
@@ -228,10 +442,11 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
       renderSections(document.getElementById('teardown'), td);
     }
   }
-  renderAll();
+  renderMe(); renderCrew(); renderAll();
 
   const rc=document.getElementById('resetChk');
   if(rc) rc.addEventListener('click',()=>{
+    if(!me){ openSignIn(); return; }
     if(checksRef && !confirm('Reset the checklist for EVERYONE viewing this page?')) return;
     const ids=[]; secs.forEach(s=>(s.items||[]).forEach(it=>ids.push(it.id)));
     state={}; saveLocal();
@@ -247,7 +462,7 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
     note('Connecting live sync…');
     let dead=false;
     const fail=()=>{ if(dead) return; dead=true;
-      note('Live sync unavailable here — checks are saving on this device only.'); };
+      note('Live sync unavailable here — sign-ins and checks are saving on this device only.'); };
     const watchdog=setTimeout(fail, 12000);
     const js=(src,cb)=>{ const s=document.createElement('script');
       s.src=src; s.onload=cb; s.onerror=fail; document.head.appendChild(s); };
@@ -257,25 +472,52 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
         try{
           firebase.initializeApp(FB);
           const db=firebase.database();
+
+          // ---- crew sign-ins ----
+          crewRef=db.ref('production/'+SUNDAY+'/crew');
+          let crewFirst=true;
+          crewRef.on('value',sn=>{
+            const v=sn.val()||{};
+            crew={};
+            Object.keys(v).forEach(k=>{ if(v[k]&&v[k].name) crew[k]={name:v[k].name, ts:v[k].ts||0}; });
+            if(me && !crew[me.key]){ // signed in on this device before sync came up
+              crew[me.key]={name:me.name, ts:me.ts};
+              if(crewFirst) crewRef.child(me.key).set({name:me.name, ts:me.ts});
+            }
+            crewFirst=false;
+            if(me && crew[me.key] && crew[me.key].ts && crew[me.key].ts!==me.ts){
+              me.ts = crew[me.key].ts;   // the shared arrival time wins
+              try{ localStorage.setItem(MKEY, JSON.stringify(me)); }catch(e){}
+              renderMe();
+            }
+            renderCrew();
+          });
+
+          // ---- checks ----
           checksRef=db.ref('production/'+SUNDAY+'/checks');
           let first=true;
           checksRef.on('value',sn=>{
             const v=sn.val()||{};
             const merged={};
-            Object.keys(v).forEach(id=>{ if(v[id]&&v[id].done) merged[id]=1; });
+            Object.keys(v).forEach(id=>{ if(v[id]&&v[id].done) merged[id]={by:v[id].by||'', ts:v[id].ts||0}; });
             if(first){ // one-time: push checks made on this device before sync came up
               first=false;
               Object.keys(state).forEach(id=>{
-                if(!merged[id]){ merged[id]=1; checksRef.child(id).set({done:true, ts:Date.now()}); }
+                if(!merged[id]){
+                  const rec={by:(state[id]&&state[id].by)||'', ts:(state[id]&&state[id].ts)||Date.now()};
+                  merged[id]=rec;
+                  checksRef.child(id).set({done:true, ts:rec.ts, by:rec.by});
+                }
               });
             }
             state=merged; saveLocal(); renderAll();
           });
+
           db.ref('.info/connected').on('value',sn=>{
             if(sn.val()){
               note(qp.get('ev')
                 ? 'Live sync ON — TEST path "'+SUNDAY+'", not the real Sunday state.'
-                : 'Live sync ON — Sunday '+SUNDAY+' · a check here shows up on every phone.');
+                : 'Live sync ON — Sunday '+SUNDAY+' · sign-ins and checks show up on every phone.');
             }else if(checksRef){
               note('Offline — checks save here and sync when the connection returns.');
             }
@@ -284,7 +526,7 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
       });
     });
   }else{
-    note('Checks save on this device only (live sync not configured in this build).');
+    note('Sign-ins and checks save on this device only (live sync not configured in this build).');
   }
 })();
 </script>

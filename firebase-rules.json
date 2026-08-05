@@ -15,7 +15,13 @@
         "checks": {
           "$item": {
             ".write": true,
-            ".validate": "newData.hasChildren(['done','ts']) && newData.child('done').isBoolean() && newData.child('ts').isNumber()"
+            ".validate": "newData.hasChildren(['done','ts']) && newData.child('done').isBoolean() && newData.child('ts').isNumber() && (!newData.hasChild('by') || (newData.child('by').isString() && newData.child('by').val().length < 40))"
+          }
+        },
+        "crew": {
+          "$person": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['name','ts']) && newData.child('name').isString() && newData.child('name').val().length > 1 && newData.child('name').val().length < 40 && newData.child('ts').isNumber()"
           }
         }
       }

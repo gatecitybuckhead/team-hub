@@ -81,7 +81,7 @@ the parent `gatecity-buckhead-ai-ops` repo.
     `docs/production.html`. Gate uses sessionStorage key `gcbprod` (distinct from staff
     `gcbpw`).
   - **Checklist is live-synced via Firebase RTDB** (Phase 2, 2026-07-28): path
-    `production/<sunday>/checks/<itemId>` = `{done, ts}`, keyed by next Sunday
+    `production/<sunday>/checks/<itemId>` = `{done, ts, by}`, keyed by next Sunday
     (America/New_York, computed client-side) so each week starts fresh with no reset job.
     Firebase config is regexed out of `docs/funday/funday-config.js` at build time —
     never duplicated. SDK loads after first render with a 12s watchdog; if gstatic is
@@ -90,6 +90,22 @@ the parent `gatecity-buckhead-ai-ops` repo.
     DB rules for the WHOLE database live in `firebase-rules.json` at repo root (funday +
     production branches merged) — publish via Firebase console → Realtime Database →
     Rules. The old Mac-mini LAN dashboard + `live_checklist_url` are retired.
+  - **Crew sign-in (2026-08-05)** — carried over from the retired beta dashboard's
+    "Set name," but shared instead of per-device. `production/<sunday>/crew/<slug>` =
+    `{name, ts}` where `ts` is the ARRIVAL time; the slug is derived from the name so a
+    second device doesn't create a duplicate person, and an existing entry is never
+    overwritten (signing in again must not move the time you actually showed up).
+    The sign-in sheet lists this Sunday's PCO roster as tap targets plus a free-text box
+    for anyone not scheduled — fill-ins like Tristan won't be on the roster until PCO has
+    them, so the typed path is load-bearing, not a fallback. **Checking is gated on being
+    signed in**: items render `.locked` and a tap opens the sheet instead of toggling, so
+    every check carries a name. The name rides along as `by` on the check and renders as
+    a "Name · 7:12 AM" pill; a "Who's Here" card lists arrivals in order.
+    Two rules-level notes: extra children are legal under the old `checks` validate rule,
+    so `by` syncs even on unpublished rules — but `crew` writes are DENIED until the new
+    `firebase-rules.json` is published, and the symptom is subtle (each phone shows only
+    itself in Who's Here while checks sync fine). Times are formatted in
+    America/New_York via `Intl`, not the device clock's zone.
   - **A scheduled task refreshes the roster every Friday 8am** —
     `gcb-production-page-friday-refresh` (`~/Claude/Scheduled/`), 30 min after the
     ProPresenter sync check (the two form the Friday Sunday-prep block). It pulls the
