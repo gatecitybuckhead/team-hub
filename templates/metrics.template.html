@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GCB Metrics — 5 Behaviors</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--card:#181b24;--card2:#1e2230;--ink:#e8eaf2;--dim:#8a90a5;
+--gold:#e0b34c;--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px}
+h1{font-size:22px;letter-spacing:.4px} h1 span{color:var(--gold)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.sub{color:var(--dim);font-size:13px}
+.range{display:flex;gap:6px}
+.range button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:13px}
+.range button.on{background:var(--gold);color:#161616;border-color:var(--gold);font-weight:600}
+.back{display:inline-block;color:var(--gold);font-weight:700;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 12px;margin-bottom:10px}
+.back:hover{background:var(--card2);border-color:var(--gold)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700;margin:2px 0}
+.kpi .l{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.kpi .d{font-size:12px}.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--dim)}
+/* the headline number the team tracks every week */
+.kpi.hero{grid-column:span 2;background:linear-gradient(180deg,#232a3a,#1a1f2b);
+  border-color:#3d4a63;border-left:4px solid var(--blue)}
+.kpi.hero .l{color:#9dc9f2;font-weight:700}
+.kpi.hero .v{font-size:52px;line-height:1.05;color:#fff}
+.kpi.hero .v small{font-size:15px;color:var(--dim);font-weight:600}
+.kpi.hero .d{font-size:12.5px;margin-top:3px}
+@media(max-width:560px){.kpi.hero{grid-column:span 1}.kpi.hero .v{font-size:40px}}
+.lblnote{color:var(--dim);font-size:11.5px;margin-top:7px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.card h3 b{color:var(--gold)}
+.tall{grid-column:1/-1}
+canvas{max-height:260px}
+.sums{margin-top:22px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:6px 14px;border-radius:8px;cursor:pointer}
+.tabs button.on{color:var(--ink);border-color:var(--gold)}
+.sum{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:13px 16px;margin-bottom:10px}
+.sum .p{font-weight:700;color:var(--gold);font-size:13px;letter-spacing:.5px}
+.sum .stats{color:var(--dim);font-size:12px;margin-top:4px}
+footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="../index.html">← Team Hub</a>
+<header>
+  <div>
+    <h1>GateCity Buckhead — <span>Metrics Dashboard</span></h1>
+    <div class="sub">Our 5 Behaviors · weekly data from the DASHBOARD METRICS sheet · built __BUILT__</div>
+  </div>
+  <div class="range" id="range"></div>
+</header>
+<div class="kpis" id="kpis"></div>
+<div class="grid">
+  <div class="card tall"><h3><b>Attendance</b> — <span style="color:var(--blue)">in the Sanctuary</span> vs total &amp; kids</h3>
+    <canvas id="cAtt"></canvas>
+    <div class="lblnote">Sanctuary count is the bold blue line — the number we report each week. Total and Kids are shown for context; hover any point for all three.</div></div>
+  <div class="card"><h3><b>Give</b> — weekly tithes &amp; offerings ($)</h3><canvas id="cGive"></canvas></div>
+  <div class="card"><h3><b>Give</b> — % of members giving</h3><canvas id="cGivePct"></canvas>
+    <div class="lblnote" id="giveNote"></div></div>
+  <div class="card"><h3><b>Membership</b> — total members & new decisions</h3><canvas id="cMem"></canvas></div>
+  <div class="card"><h3><b>Pray</b> — commitments led / prayer mtgs</h3><canvas id="cPray"></canvas></div>
+  <div class="card"><h3><b>Serve</b> — people in teams / unstaffed</h3><canvas id="cServe"></canvas></div>
+  <div class="card"><h3><b>Form</b> — groups & participants</h3><canvas id="cForm"></canvas></div>
+  <div class="card"><h3><b>Reach</b> — guests, forms & salvations</h3><canvas id="cReach"></canvas></div>
+</div>
+<div class="sums">
+  <div class="tabs" id="sumTabs">
+    <button data-k="quarterly" class="on">Quarter by quarter</button>
+    <button data-k="monthly">Month by month</button>
+  </div>
+  <div id="sumList"></div>
+</div>
+<footer>GCB Team Hub · staff only · questions → Andrew</footer>
+<script>
+const DATA = /*__DATA__*/null;
+const W = DATA.metrics.weeks;
+// Planning Center readings for "% of members giving", keyed by Sunday.
+// Rolling 90-day window, appended one reading per weekly run — never backfilled.
+const GP = (DATA.giving_participation||{});
+const GPR = {}; (GP.readings||[]).forEach(r=>GPR[r.sunday]=r);
+const gpLatest = (GP.readings||[]).slice(-1)[0]||null;
+const fmt$ = n => '$'+Math.round(n).toLocaleString();
+const fmt$k = n => n>=1000 ? '$'+(n/1000).toFixed(n>=10000?0:1)+'k' : '$'+Math.round(n);
+// The sheet stores percentages as fractions (0.56 = 56%), but a few older rows
+// were typed as whole numbers — treat anything >1.5 as already-a-percent.
+const pct = n => n==null?'—':(n<=1.5?Math.round(n*100):Math.round(n))+'%';
+const pctNum = n => n==null?null:(n<=1.5?n*100:n);
+const fmtDate = d => new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const RANGES = {'13 wks':91,'26 wks':182,'YTD':'ytd','All':'all'};
+let range = 'YTD';
+
+function inRange(w){
+  if(range==='All') return true;
+  const last = W[W.length-1].date;
+  if(range==='YTD') return w.date.slice(0,4)===last.slice(0,4);
+  const days = RANGES[range];
+  return (new Date(last)-new Date(w.date))/864e5 <= days;
+}
+const val=(w,...keys)=>{for(const k of keys){const v=w.values[k];if(v!=null)return v}return null};
+const giving=w=>{const d=val(w,'week_s_tithes_offerings_digital'),c=val(w,'week_s_tithes_offerings_cash'),
+  comb=val(w,'week_s_tithes_offerings');return (d==null&&c==null)?comb:(d||0)+(c||0)};
+
+/* ── value labels ───────────────────────────────────────────────────────────
+   Prints each week's number on the chart so you can read it without hovering.
+   Hand-rolled rather than chartjs-plugin-datalabels: only chart.umd is loaded
+   from the CDN, and the encrypted page must not gain another dependency.
+   When the range is too dense to fit every label, it thins to every Nth point
+   (always keeping the most recent one) instead of overlapping into mush.      */
+const valueLabels={
+  id:'valueLabels',
+  afterDatasetsDraw(chart,args,pluginOpts){
+    const o=pluginOpts||{}; if(o.enabled===false) return;
+    const {ctx}=chart;
+    const drawn=[];                                   // collision boxes
+    ctx.save();
+    ctx.font='700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      if(meta.hidden||ds.hideLabels) return;
+      const pts=meta.data||[];
+      // how many labels can we fit on this axis?
+      const width=chart.chartArea.right-chart.chartArea.left;
+      const step=Math.max(1,Math.ceil(pts.length/Math.max(1,Math.floor(width/(o.slot||34)))));
+      pts.forEach((pt,i)=>{
+        const v=ds.data[i];
+        if(v==null) return;
+        // keep the newest point plus every Nth going backwards
+        if(step>1 && (pts.length-1-i)%step!==0) return;
+        const txt=(o.fmt||(x=>Math.round(x).toLocaleString()))(v,ds);
+        const w=ctx.measureText(txt).width+4;
+        const bar=meta.type==='bar'||ds.type==='bar';
+        let x=pt.x, y=pt.y-(bar?3:6);
+        if(y-11<chart.chartArea.top) y=pt.y+18;       // flip below if it would clip
+        const box={x1:x-w/2,x2:x+w/2,y1:y-11,y2:y+2};
+        if(drawn.some(b=>!(box.x2<b.x1||box.x1>b.x2||box.y2<b.y1||box.y1>b.y2))) return;
+        drawn.push(box);
+        ctx.fillStyle='rgba(15,17,23,.82)';           // plate so it stays legible over lines
+        ctx.fillRect(box.x1,box.y1,w,13);
+        ctx.fillStyle=ds.borderColor||ds.backgroundColor||'#e8eaf2';
+        ctx.fillText(txt,x,y+1);
+      });
+    });
+    ctx.restore();
+  }
+};
+Chart.register(valueLabels);
+
+const charts={};
+function line(id,rows,series,opts={}){
+  const ctx=document.getElementById(id);
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(ctx,{type:opts.type||'line',
+    data:{labels:rows.map(w=>w.date.slice(5).replace('-','/')+(w.date.slice(0,4)!==rows[rows.length-1].date.slice(0,4)?"·"+w.date.slice(2,4):'')),
+      datasets:series.map(s=>({label:s.l,data:rows.map(s.f),borderColor:s.c,backgroundColor:s.c+(s.fill?'55':''),
+        type:s.type,yAxisID:s.y||'y',borderWidth:s.bw||2,
+        pointRadius:s.pr!=null?s.pr:(rows.length>40?0:2),
+        tension:s.stepped?0:.3,stepped:s.stepped||false,
+        spanGaps:s.span===false?false:true,      // false = leave real gaps visible
+        fill:!!s.fill,order:s.order,hideLabels:s.noLabel}))},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},                      // headroom for the labels
+      plugins:{legend:{labels:{color:'#8a90a5',boxWidth:12,font:{size:11}}},
+        valueLabels:{fmt:opts.fmt,slot:opts.slot},
+        tooltip:{callbacks:{title:i=>{const w=rows[i[0].dataIndex];return w.date+(w.series?' · '+w.series:'')+(w.special?' · '+w.special:'')}}}},
+      scales:Object.assign({x:{ticks:{color:'#666c80',maxTicksLimit:14,font:{size:10}},grid:{color:'#20242f'}},
+        y:{ticks:{color:'#666c80',font:{size:10}},grid:{color:'#20242f'},beginAtZero:true}},opts.scales||{})}});
+}
+
+function kpis(rows){
+  const last=rows[rows.length-1]||{values:{}};
+  const prev4=rows.slice(-5,-1);
+  const sanc=w=>val(w,'attendance_in_sanctuary');            // the number we track weekly
+  const att=w=>val(w,'total_attendance');
+  const avg=(l,f)=>{const v=l.map(f).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b)/v.length:null};
+  const s4=avg(prev4,sanc), a4=avg(prev4,att);
+  const delta=(now,base)=>(now==null||base==null)?'':
+    `${now-base>=0?'▲':'▼'} ${Math.abs(Math.round(now-base))} vs 4-wk avg of ${Math.round(base)}`;
+  // official YTD from the sheet's own running total (includes recurring/other income)
+  const yr=W.filter(w=>w.date.slice(0,4)===last.date.slice(0,4));
+  let ytdGive=null;
+  for(let i=yr.length-1;i>=0;i--){const v=val(yr[i],'ytd_total');if(v!=null){ytdGive=v;break}}
+  if(ytdGive==null)ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(val(w,'special_gifts')||0),0);
+  // Prefer the live Planning Center reading. Failing that, fall back to the most
+  // recent non-null sheet figure (not `last`, which is usually blank) and say
+  // how old it is, so the card never reads "not recorded" when a number exists.
+  const pcoNow=gpLatest;
+  const sheetFilled=W.filter(w=>val(w,'of_members_giving')!=null);
+  const lastSheet=sheetFilled[sheetFilled.length-1];
+  const giveKpi = pcoNow
+    ? {v:pcoNow.pct+'%', d:`${pcoNow.giving} of ${pcoNow.members} members · last 90 days · Planning Center`}
+    : lastSheet
+      ? {v:pct(val(lastSheet,'of_members_giving')), d:`metrics sheet · as of ${fmtDate(lastSheet.date)}`}
+      : {v:'—', d:'not recorded'};
+  const items=[
+    {hero:true,l:'In the Sanctuary — '+fmtDate(last.date),
+     v:(sanc(last)??'—')+'<small> in the room</small>',d:delta(sanc(last),s4)},
+    {l:'Total attendance',v:att(last)??'—',d:delta(att(last),a4)},
+    {l:'Kids',v:val(last,'of_kids')??'—',d:(val(last,'vols_in_kids')??'?')+' volunteers'},
+    {l:'Members',v:val(last,'total_members_core_congregation')??'—',d:''},
+    {l:'Giving last week',v:giving(last)!=null?fmt$(giving(last)):'—',d:''},
+    {l:'Giving YTD',v:fmt$(ytdGive),d:last.date.slice(0,4)},
+    {l:'Members giving',v:giveKpi.v,d:giveKpi.d},
+    {l:'In Sunday teams',v:val(last,'total_people_in_sunday_teams')??'—',d:(val(last,'unstaffed_positions')??'?')+' unstaffed'},
+    {l:'Series',v:last.series||'—',d:last.special||''}];
+  document.getElementById('kpis').innerHTML=items.map(k=>{
+    const cls=k.d.startsWith('▲')?'up':k.d.startsWith('▼')?'down':'flat';
+    return `<div class="kpi${k.hero?' hero':''}"><div class="l">${k.l}</div>
+      <div class="v">${k.v}</div><div class="d ${cls}">${k.d}</div></div>`}).join('');
+}
+
+/* Tells the team when a GIVE figure last came out of the sheet, so a flat or
+   empty chart reads as "nobody entered it" rather than "giving participation
+   collapsed". Computed from the data, so it can't go stale on its own. */
+function giveStaleness(){
+  const el=document.getElementById('giveNote'); if(!el) return;
+  const parts=[];
+  if(gpLatest){
+    const num=(GP.lists&&GP.lists.numerator&&GP.lists.numerator.name)||'Members Giving (Last 90 Days)';
+    const den=(GP.lists&&GP.lists.denominator&&GP.lists.denominator.name)||'Members (All)';
+    parts.push(`<b style="color:var(--blue)">Planning Center:</b> `
+      +`<b style="color:var(--ink)">${gpLatest.pct}%</b> — ${gpLatest.giving} of ${gpLatest.members} members `
+      +`gave in the last 90 days, as of ${fmtDate(gpLatest.sunday)}. `
+      +`Lists: “${num}” ÷ “${den}”. Rolling 90-day window, so each week is a fresh snapshot, not that week's giving.`
+      +(GP.readings.length<4
+        ? ` <span style="color:var(--dim)">Building history — ${GP.readings.length} weekly reading${GP.readings.length===1?'':'s'} so far; the blue line fills in as the pipeline runs.</span>`
+        : ` <span style="color:var(--dim)">${GP.readings.length} weekly readings on file.</span>`));
+  }else{
+    parts.push(`No Planning Center readings yet — run <code>tools/add_giving_reading.py</code> in the weekly pipeline.`);
+  }
+  // A PCO reading is plotted against the Sundays present in metrics.json. If the
+  // metrics step gets skipped for a week (it has), the reading exists but has no
+  // column to sit in — say so loudly rather than losing a data point silently.
+  const known=new Set(W.map(w=>w.date));
+  const orphans=(GP.readings||[]).filter(r=>!known.has(r.sunday));
+  if(orphans.length) parts.push(`<span style="color:var(--red)">⚠ ${orphans.length} Planning Center `
+    +`reading${orphans.length===1?'':'s'} (${orphans.map(r=>fmtDate(r.sunday)).join(', ')}) `
+    +`can't be charted — those Sundays are missing from the metrics sheet. Run the metrics step for them.</span>`);
+  const filled=W.filter(w=>val(w,'of_members_giving')!=null);
+  if(filled.length){
+    const lastF=filled[filled.length-1], behind=W.filter(w=>w.date>lastF.date).length;
+    parts.push(`<b style="color:var(--green)">Metrics sheet:</b> last figure `
+      +`<b style="color:var(--ink)">${pct(val(lastF,'of_members_giving'))}</b> for ${fmtDate(lastF.date)}`
+      +(behind?` — <span style="color:var(--red)">${behind} Sunday${behind===1?'':'s'} not yet entered</span>`:'')
+      +`. Recorded periodically, so it's stepped and gaps are left blank.`);
+  }
+  el.innerHTML=parts.map(p=>`<div style="margin-top:5px">${p}</div>`).join('');
+}
+
+function draw(){
+  const rows=W.filter(inRange);
+  kpis(rows);
+  // Sanctuary count is the headline series: thick line, always-on points, drawn
+  // on top. Total and Kids are context, so their labels are suppressed to keep
+  // the sanctuary numbers readable.
+  line('cAtt',rows,[
+    {l:'In the Sanctuary',f:w=>val(w,'attendance_in_sanctuary'),c:'#5aa2e0',bw:3,pr:3,order:0},
+    {l:'Total attendance',f:w=>val(w,'total_attendance'),c:'#e0b34c',bw:1.5,order:2,noLabel:true},
+    {l:'Kids',f:w=>val(w,'of_kids'),c:'#a98ae0',bw:1.5,order:3,noLabel:true}]);
+  line('cGive',rows,[
+    {l:'Tithes/Offerings',f:w=>giving(w),c:'#57c98a',type:'bar',fill:true},
+    {l:'Special gifts',f:w=>val(w,'special_gifts'),c:'#e0b34c',type:'bar',fill:true}],
+    {type:'bar',fmt:fmt$k,slot:40,scales:{x:{stacked:true},y:{stacked:true},
+      y:{stacked:true,ticks:{color:'#666c80',font:{size:10},callback:fmt$k},grid:{color:'#20242f'},beginAtZero:true}}});
+  // % of Members Giving — two sources, deliberately kept as separate series so
+  // it's obvious which number came from where:
+  //   · sheet history — a PERIODIC figure that holds flat for weeks then jumps,
+  //     so it's drawn stepped with real gaps (span:false) rather than a smooth
+  //     line that would imply weekly readings nobody took.
+  //   · Planning Center — a live rolling-90-day reading appended each week.
+  line('cGivePct',rows,[
+    {l:'Planning Center (live, 90-day)',f:w=>GPR[w.date]?GPR[w.date].pct:null,
+     c:'#5aa2e0',bw:3,pr:4,span:false},
+    {l:'Metrics sheet (periodic)',f:w=>pctNum(val(w,'of_members_giving')),c:'#57c98a',
+     fill:true,bw:2,pr:2,stepped:true,span:false}],
+    {fmt:v=>Math.round(v)+'%',slot:38,
+     scales:{y:{beginAtZero:true,max:100,ticks:{color:'#666c80',font:{size:10},callback:v=>v+'%'},grid:{color:'#20242f'}}}});
+  giveStaleness();
+  line('cMem',rows,[
+    {l:'Members',f:w=>val(w,'total_members_core_congregation'),c:'#e0b34c'},
+    {l:'New decisions',f:w=>val(w,'new_member_decisions'),c:'#57c98a',type:'bar',fill:true,y:'y2'}],
+    {scales:{y2:{position:'right',ticks:{color:'#57c98a'},grid:{display:false},beginAtZero:true}}});
+  line('cPray',rows,[
+    {l:'Leading commitments/wk',f:w=>val(w,'people_ldg_commitments_week','people_ldg_commitments'),c:'#5aa2e0'},
+    {l:'Prayer mtgs',f:w=>val(w,'prayer_mtgs'),c:'#a98ae0'}]);
+  line('cServe',rows,[
+    {l:'In Sunday teams',f:w=>val(w,'total_people_in_sunday_teams'),c:'#57c98a'},
+    {l:'Unstaffed positions',f:w=>val(w,'unstaffed_positions'),c:'#e06767'}]);
+  line('cForm',rows,[
+    {l:'Groups',f:w=>val(w,'form_groups'),c:'#e0b34c'},
+    {l:'People',f:w=>val(w,'people'),c:'#5aa2e0'}]);
+  line('cReach',rows,[
+    {l:'New guests',f:w=>val(w,'new_guests_bag','new_visitors_bag'),c:'#e0b34c'},
+    {l:'Salvations',f:w=>val(w,'salvation_decisions'),c:'#57c98a'},
+    {l:'"Learn more" forms',f:w=>val(w,'i_want_to_learn_more_form'),c:'#5aa2e0'}]);
+}
+
+// range buttons
+const rangeEl=document.getElementById('range');
+Object.keys(RANGES).forEach(k=>{
+  const b=document.createElement('button');b.textContent=k;if(k===range)b.classList.add('on');
+  b.onclick=()=>{range=k;[...rangeEl.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');draw()};
+  rangeEl.appendChild(b)});
+
+// summaries
+let sumKind='quarterly';
+function sums(){
+  const list=[...DATA.summaries[sumKind]].reverse();
+  document.getElementById('sumList').innerHTML=list.map(s=>{
+    const st=s.stats||{};
+    return `<div class="sum"><div class="p">${s.label}</div><div>${s.text}</div>
+      <div class="stats">avg attendance ${st.avg_attendance??'—'} · giving ${st.giving_total!=null?fmt$(st.giving_total):'—'} · team rating ${st.avg_overall_rating??'—'}/10</div></div>`}).join('');
+}
+document.getElementById('sumTabs').addEventListener('click',e=>{
+  if(e.target.dataset.k){sumKind=e.target.dataset.k;
+    [...document.querySelectorAll('#sumTabs button')].forEach(b=>b.classList.toggle('on',b===e.target));sums()}});
+draw();sums();
+</script>
+</body>
+</html>

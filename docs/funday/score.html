@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex">
+<title>Fun Day — Score Station</title>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--red:#c8102e;--red-dark:#8f0b20;--cream:#f9edbe;--cream-lt:#fdf6d8;--blue:#cfe8f7;
+    --blue-line:#7db6d9;--ink:#5a1010;--green:#1d7a1d}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Fredoka',sans-serif;background:var(--red-dark);color:var(--ink);min-height:100vh;
+    background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 12px,transparent 12px 24px)}
+  #app{max-width:480px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:100vh}
+  .card{background:var(--cream);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  #hdr{text-align:center}
+  #hdr .ev{font-size:12px;font-weight:700;letter-spacing:2px;color:#8a6d1a;text-transform:uppercase}
+  #hdr .st{font-family:'Rye',serif;font-size:28px;color:var(--red);line-height:1.15;margin:2px 0}
+  #conn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+  #conn.on{background:#d9f2d9;color:var(--green)} #conn.off{background:#ffd9d9;color:var(--red)}
+  #conn .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+  h2{font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8a6d1a;margin-bottom:8px}
+  input[type=text],input[type=number]{width:100%;font-family:inherit;font-size:18px;padding:12px;border-radius:10px;
+    border:2px solid #d8c37a;background:#fff}
+  input:focus{outline:3px solid var(--blue-line)}
+  #playerList{display:flex;flex-direction:column;gap:6px;max-height:38vh;overflow-y:auto;margin-top:8px}
+  .pbtn{display:flex;justify-content:space-between;align-items:center;font-family:inherit;font-size:18px;font-weight:600;
+    padding:12px 14px;border-radius:10px;border:2px solid #e0cd8b;background:var(--cream-lt);color:var(--ink);text-align:left;cursor:pointer}
+  .pbtn .tot{font-size:14px;color:#8a6d1a;font-weight:700}
+  .pbtn.sel{border-color:var(--red);background:#ffe9ec;box-shadow:0 0 0 2px var(--red) inset}
+  #addBtn{width:100%;margin-top:8px;font-family:inherit;font-size:16px;font-weight:700;padding:12px;border-radius:10px;
+    border:2px dashed var(--blue-line);background:var(--blue);color:#1d4e6b;cursor:pointer}
+  #dupWarn{display:none;font-size:13px;font-weight:600;color:#a05a00;background:#ffefcf;border-radius:8px;padding:8px;margin-top:6px}
+  #ptGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  #ptGrid.sm{grid-template-columns:repeat(4,1fr);gap:8px}
+  .pt{font-family:'Rye',serif;font-size:30px;padding:18px 0;border-radius:14px;border:3px solid var(--red);
+    background:#fff;color:var(--red);cursor:pointer}
+  #ptGrid.sm .pt{font-size:22px;padding:12px 0;border-width:2px;border-radius:10px}
+  .pt:active{transform:scale(.96)}
+  #ptHint{font-size:13px;font-weight:600;color:#8a6d1a;margin-bottom:8px}
+  #custRow{display:flex;gap:8px;margin-top:10px}
+  #custPts{flex:1}
+  #custGo{font-family:inherit;font-weight:700;font-size:16px;padding:0 18px;border-radius:10px;border:none;
+    background:var(--red);color:#fff;cursor:pointer}
+  #flash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;
+    background:rgba(29,122,29,.92);color:#fff;flex-direction:column;gap:8px;text-align:center;padding:20px}
+  #flash .big{font-family:'Rye',serif;font-size:46px}
+  #flash .who{font-size:22px;font-weight:600}
+  #log{display:flex;flex-direction:column;gap:6px}
+  .lrow{display:flex;align-items:center;gap:8px;background:var(--cream-lt);border-radius:8px;padding:8px 10px;font-size:15px}
+  .lrow .t{flex:1}
+  .undo{font-family:inherit;font-weight:700;font-size:13px;color:var(--red);background:none;border:2px solid var(--red);
+    border-radius:8px;padding:4px 10px;cursor:pointer}
+  #demoTag{display:none;text-align:center;background:#222;color:#ffc93c;font-weight:700;border-radius:10px;padding:8px;font-size:14px}
+  #stButtons{display:flex;flex-wrap:wrap;gap:8px}
+  .stchip{font-family:inherit;font-size:16px;font-weight:600;padding:10px 14px;border-radius:999px;
+    border:2px solid #e0cd8b;background:var(--cream-lt);color:var(--ink);cursor:pointer}
+  .stchip.sel{border-color:var(--red);background:#ffe9ec;box-shadow:0 0 0 2px var(--red) inset;color:var(--red)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="demoTag" >DEMO MODE — scores are not being saved (no Firebase config)</div>
+
+  <div class="card" id="hdr">
+    <div class="ev" id="evName">FAMILY FUN DAY</div>
+    <div class="st" id="stName">Pick your station</div>
+    <span id="conn" class="off"><span class="dot"></span><span id="connTxt">connecting…</span></span>
+  </div>
+
+  <div class="card" id="stationPick">
+    <h2>Station — tap to switch anytime</h2>
+    <div id="stButtons"></div>
+  </div>
+
+  <div class="card" id="playerCard" style="display:none">
+    <h2>1 · Who played?</h2>
+    <input type="text" id="search" placeholder="Search or type a new name…" autocomplete="off">
+    <div id="dupWarn"></div>
+    <div id="playerList"></div>
+    <button id="addBtn">➕ Add “<span id="addName"></span>” as a new player</button>
+  </div>
+
+  <div class="card" id="ptsCard" style="display:none">
+    <h2>2 · Game total for <span id="selName" style="color:var(--red)">—</span></h2>
+    <div id="ptHint"></div>
+    <div id="ptGrid"></div>
+    <div id="custRow">
+      <input type="number" id="custPts" placeholder="Game total" inputmode="numeric">
+      <button id="custGo">Log</button>
+    </div>
+  </div>
+
+  <div class="card" id="logCard" style="display:none">
+    <h2>Recent at this station</h2>
+    <div id="log"></div>
+  </div>
+
+  <div class="card" id="adminCard" style="display:none">
+    <h2>🛠 Fix duplicate players (admin)</h2>
+    <p style="font-size:13px;margin-bottom:8px">Moves all of one player's points onto another, then removes the duplicate. Shows on the board instantly.</p>
+    <label style="font-size:13px;font-weight:700">Keep:</label>
+    <select id="mergeKeep" style="width:100%;font-size:16px;padding:8px;margin:4px 0 10px;border-radius:8px"></select>
+    <label style="font-size:13px;font-weight:700">Merge away (duplicate):</label>
+    <select id="mergeFrom" style="width:100%;font-size:16px;padding:8px;margin:4px 0 10px;border-radius:8px"></select>
+    <button id="mergeGo" style="width:100%;font-family:inherit;font-weight:700;font-size:16px;padding:12px;border-radius:10px;border:none;background:var(--red);color:#fff;cursor:pointer">Merge players</button>
+  </div>
+</div>
+
+<div id="flash"><div class="big" id="flashPts"></div><div class="who" id="flashWho"></div><div>🎪 Logged! Keep ’em coming!</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="funday-config.js?v=4"></script>
+<script>
+(function(){
+  "use strict";
+  var CFG=window.FUNDAY||{}, DEMO=!CFG.firebaseConfig||/[?&]demo/.test(location.search);
+  document.getElementById('evName').textContent=CFG.eventName||'FAMILY FUN DAY';
+
+  var stations=CFG.stations||[], stBySlug={};
+  stations.forEach(function(s){stBySlug[s.slug]=s;});
+  function pretty(slug){
+    var s=stBySlug[slug];
+    if(s) return (s.emoji?s.emoji+' ':'')+s.name;
+    return (slug||'').replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+  }
+
+  // state — MUST be initialized before setStation() can run (it renders the log)
+  var players={}, scores={}, base=null;
+
+  // ONE-SCORER MODE: every station is an always-visible chip — tap to switch,
+  // no navigation. ?st=<slug> (or ?station=) still preselects a chip.
+  var q=new URLSearchParams(location.search);
+  var station='';
+  var chipOf={}, wrap=document.getElementById('stButtons');
+  stations.forEach(function(s){
+    var b=document.createElement('button'); b.className='stchip';
+    b.textContent=(s.emoji?s.emoji+' ':'')+s.name;
+    b.onclick=function(){setStation(s.slug);};
+    chipOf[s.slug]=b; wrap.appendChild(b);
+  });
+  function setStation(sl){
+    station=sl;
+    Object.keys(chipOf).forEach(function(k){chipOf[k].className='stchip'+(k===sl?' sel':'');});
+    document.getElementById('stName').textContent=pretty(sl);
+    ['playerCard','ptsCard','logCard'].forEach(function(id){document.getElementById(id).style.display='block';});
+    renderPtButtons();
+    renderLog();
+  }
+  var fromUrl=q.get('st')||q.get('station')||'';
+  if(fromUrl){ setStation(fromUrl); }
+
+  // ---------- data layer ---------- (players/scores/base declared above)
+  var connEl=document.getElementById('conn'), connTxt=document.getElementById('connTxt');
+  function setConn(on,msg){ connEl.className=on?'on':'off'; connTxt.textContent=msg; }
+
+  if(!DEMO){
+    firebase.initializeApp(CFG.firebaseConfig);
+    var db=firebase.database();
+    var evOverride=q.get('ev');
+    if(evOverride){
+      var tag=document.getElementById('demoTag');
+      tag.textContent='TEST EVENT: '+evOverride+' — not the real leaderboard';
+      tag.style.display='block';
+    }
+    base=db.ref(evOverride?('events/'+evOverride):(CFG.eventPath||'events/funday'));
+    base.child('players').on('value',function(sn){players=sn.val()||{};renderPlayers();});
+    base.child('scores').on('value',function(sn){scores=sn.val()||{};renderPlayers();renderLog();});
+    db.ref('.info/connected').on('value',function(sn){ setConn(!!sn.val(), sn.val()?'live & saving':'offline — will sync'); });
+  } else {
+    document.getElementById('demoTag').style.display='block';
+    setConn(true,'demo (not saving)');
+    ['Maya F.','Eli T.','Zoe K.'].forEach(function(n,i){players['demo'+i]={name:n};});
+    setTimeout(renderPlayers,0);
+  }
+
+  function newKey(){ return base?base.child('x').push().key:('k'+Date.now()+Math.random().toString(36).slice(2,6)); }
+  function saveKV(path,val){
+    if(base){ base.child(path).set(val); }
+    else{ // demo: apply locally
+      var seg=path.split('/');
+      var root=seg[0]==='players'?players:scores;
+      if(val===null) delete root[seg[1]]; else root[seg[1]]=val;
+      renderPlayers(); renderLog();
+    }
+  }
+
+  // ---------- totals ----------
+  function totals(){
+    var t={};
+    Object.keys(scores).forEach(function(k){var s=scores[k];if(s&&s.p)t[s.p]=(t[s.p]||0)+(Number(s.pts)||0);});
+    return t;
+  }
+
+  // ---------- duplicate-name guards ----------
+  function norm(s){return String(s).toLowerCase().replace(/[^a-z ]/g,'').replace(/\s+/g,' ').trim();}
+  function lev(a,b){ // edit distance, catches typos like Hamila/Halima
+    var m=[],i,j;
+    for(i=0;i<=a.length;i++)m[i]=[i];
+    for(j=0;j<=b.length;j++)m[0][j]=j;
+    for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)
+      m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    return m[a.length][b.length];
+  }
+  // 2 = same name, 1 = suspiciously close, 0 = different
+  function similar(a,b){
+    a=norm(a); b=norm(b);
+    if(!a||!b) return 0;
+    if(a===b) return 2;
+    if(a.indexOf(b+' ')===0||b.indexOf(a+' ')===0||a===b.split(' ')[0]||b===a.split(' ')[0]) return 1; // "Halima" vs "Halima Edge"
+    var fa=a.split(' ')[0], fb=b.split(' ')[0];
+    var thr=Math.min(fa.length,fb.length)>=5?2:1;
+    if(fa===fb) return 1;
+    if(lev(fa,fb)<=thr) return 1; // "Hamila" vs "Halima"
+    return 0;
+  }
+  function findSimilar(name){
+    var exact=null, close=[];
+    Object.keys(players).forEach(function(pid){
+      var s=similar(name, players[pid].name||'');
+      if(s===2 && !exact) exact=pid;
+      else if(s===1) close.push(pid);
+    });
+    return {exact:exact, close:close};
+  }
+
+  // ---------- players UI ----------
+  var selected=null;
+  var searchEl=document.getElementById('search'), listEl=document.getElementById('playerList');
+  var addBtn=document.getElementById('addBtn'), dupWarn=document.getElementById('dupWarn');
+  searchEl.addEventListener('input',renderPlayers);
+
+  function renderPlayers(){
+    var q=searchEl.value.trim().toLowerCase();
+    var t=totals();
+    var ids=Object.keys(players).sort(function(a,b){
+      return (players[a].name||'').localeCompare(players[b].name||'');
+    }).filter(function(pid){ return !q || (players[pid].name||'').toLowerCase().indexOf(q)>=0; });
+
+    listEl.innerHTML='';
+    ids.forEach(function(pid){
+      var b=document.createElement('button'); b.className='pbtn'+(pid===selected?' sel':'');
+      b.innerHTML='<span>'+esc(players[pid].name)+'</span><span class="tot">'+(t[pid]||0)+' pts</span>';
+      b.onclick=function(){ selected=pid; document.getElementById('selName').textContent=players[pid].name; renderPlayers(); };
+      listEl.appendChild(b);
+    });
+
+    var raw=searchEl.value.trim();
+    addBtn.style.display = raw.length>=2 ? 'block':'none';
+    document.getElementById('addName').textContent=raw;
+    // near-duplicate warning (fuzzy: catches typos + first/full name variants)
+    dupWarn.style.display='none';
+    if(raw.length>=2){
+      var sim=findSimilar(raw);
+      var near=(sim.exact?[sim.exact]:[]).concat(sim.close);
+      if(near.length){
+        dupWarn.style.display='block';
+        dupWarn.textContent='⚠️ Already playing: '+near.map(function(p){return players[p].name;}).join(', ')+'. Same person? Tap them above instead of adding again.';
+      }
+    }
+  }
+  addBtn.onclick=function(){
+    var name=searchEl.value.trim(); if(name.length<2) return;
+    var sim=findSimilar(name);
+    if(sim.exact){ // identical name — never create a twin, just select them
+      selected=sim.exact;
+      document.getElementById('selName').textContent=players[sim.exact].name;
+      searchEl.value=''; renderPlayers();
+      return;
+    }
+    if(sim.close.length){
+      var existing=players[sim.close[0]].name;
+      if(confirm('⚠️ "'+existing+'" is already playing — is "'+name+'" the same person?\n\nOK = use "'+existing+'" (recommended)\nCancel = really add "'+name+'" as a NEW player')){
+        selected=sim.close[0];
+        document.getElementById('selName').textContent=existing;
+        searchEl.value=''; renderPlayers();
+        return;
+      }
+    }
+    var pid=newKey();
+    saveKV('players/'+pid,{name:name,ts:Date.now()});
+    selected=pid; document.getElementById('selName').textContent=name;
+    searchEl.value=''; setTimeout(renderPlayers,50);
+  };
+
+  // ---------- game-total UI ----------
+  // SELF-REPORTED TOTALS: players keep their own score and report ONE number
+  // per game. Hannah taps a quick-total button (stations with a fixed point
+  // menu) or types the reported total. Every play ADDS to the leaderboard.
+  function renderPtButtons(){ // self-contained: setStation may call this early (?st= deep link)
+    var grid=document.getElementById('ptGrid'), ptHint=document.getElementById('ptHint');
+    var s=stBySlug[station]||{}, quick=s.quick||[];
+    grid.innerHTML='';
+    grid.className=quick.length>6?'sm':'';
+    grid.style.display=quick.length?'grid':'none';
+    quick.forEach(function(v){
+      var b=document.createElement('button'); b.className='pt'; b.textContent=v;
+      b.onclick=function(){logScore(v);}; grid.appendChild(b);
+    });
+    ptHint.textContent=(quick.length?'Tap the total they report':'Type the total they report')
+      +(s.max?' — max possible is '+s.max:'')+'.';
+  }
+  document.getElementById('custGo').onclick=function(){
+    var v=parseInt(document.getElementById('custPts').value,10);
+    if(!isNaN(v)&&v>=0){ logScore(v); document.getElementById('custPts').value=''; }
+  };
+  document.getElementById('custPts').addEventListener('keydown',function(e){
+    if(e.key==='Enter') document.getElementById('custGo').onclick();
+  });
+
+  function logScore(pts){
+    if(!selected){ alert('Pick a player first! (Step 1)'); return; }
+    if(!station){ alert('Pick your station first.'); return; }
+    var s=stBySlug[station]||{};
+    if(s.max&&pts>s.max&&!confirm('Max possible at '+(s.name||station)+' is '+s.max+' — really log '+pts+'?')) return;
+    var sid=newKey();
+    saveKV('scores/'+sid,{p:selected,st:station,pts:pts,ts:Date.now()});
+    var f=document.getElementById('flash');
+    document.getElementById('flashPts').textContent='+'+pts+' pts';
+    document.getElementById('flashWho').textContent=players[selected]?players[selected].name:'';
+    f.style.display='flex'; setTimeout(function(){f.style.display='none';},900);
+  }
+
+  // ---------- recent log / undo ----------
+  function renderLog(){
+    var logEl=document.getElementById('log');
+    var mine=Object.keys(scores).map(function(k){var s=scores[k];return s?{id:k,s:s}:null;})
+      .filter(function(e){return e&&e.s.st===station;})
+      .sort(function(a,b){return (b.s.ts||0)-(a.s.ts||0);}).slice(0,6);
+    logEl.innerHTML= mine.length?'':'<div style="font-size:14px;color:#8a6d1a">Nothing yet — you’re up first!</div>';
+    mine.forEach(function(e){
+      var r=document.createElement('div'); r.className='lrow';
+      var nm=players[e.s.p]?players[e.s.p].name:'?';
+      r.innerHTML='<span class="t"><b>'+esc(nm)+'</b> +'+e.s.pts+'</span>';
+      var u=document.createElement('button'); u.className='undo'; u.textContent='Undo';
+      u.onclick=function(){ if(confirm('Remove +'+e.s.pts+' for '+nm+'?')) saveKV('scores/'+e.id,null); };
+      r.appendChild(u); logEl.appendChild(r);
+    });
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  // ---------- admin: merge duplicate players (?admin=1) ----------
+  if(q.get('admin')){
+    document.getElementById('adminCard').style.display='block';
+    var keepSel=document.getElementById('mergeKeep'), fromSel=document.getElementById('mergeFrom');
+    function fillMerge(){
+      var t=totals();
+      [keepSel,fromSel].forEach(function(sel){
+        sel.innerHTML='';
+        Object.keys(players).sort(function(a,b){return (players[a].name||'').localeCompare(players[b].name||'');})
+          .forEach(function(pid){
+            var o=document.createElement('option'); o.value=pid;
+            o.textContent=(players[pid].name||'?')+' ('+(t[pid]||0)+' pts)';
+            sel.appendChild(o);
+          });
+      });
+    }
+    setInterval(fillMerge,3000); setTimeout(fillMerge,500);
+    document.getElementById('mergeGo').onclick=function(){
+      var keep=keepSel.value, from=fromSel.value;
+      if(!keep||!from||keep===from){ alert('Pick two different players.'); return; }
+      var kn=players[keep].name, fn=players[from].name;
+      if(!confirm('Move ALL of "'+fn+'"’s points onto "'+kn+'" and delete "'+fn+'"?')) return;
+      Object.keys(scores).forEach(function(sid){
+        var s=scores[sid];
+        if(s&&s.p===from) saveKV('scores/'+sid,{p:keep,st:s.st,pts:s.pts,ts:s.ts||Date.now()});
+      });
+      saveKV('players/'+from,null);
+      alert('Merged. "'+kn+'" now has both totals; the board already shows it.');
+    };
+  }
+})();
+</script>
+</body>
+</html>

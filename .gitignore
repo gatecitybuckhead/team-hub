@@ -1,0 +1,15 @@
+build/
+data/
+.DS_Store
+__pycache__/
+*.pyc
+Publish to GitHub.command
+Encrypt.command
+docs/staff/funday-admin.html
+tools/_*.py
+
+# internal ops docs — never publish to the public repo
+CLAUDE.md
+HISTORY.md
+PHASE2-LIVE-SYNC.md
+FUNDAY-SETUP.md
