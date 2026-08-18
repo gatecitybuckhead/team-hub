@@ -28,6 +28,11 @@ header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content
 .kpi .l{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
 .kpi .d{font-size:12px;color:var(--dim)}
 .kpi.owed{border-left:4px solid var(--red)} .kpi.owed .v{color:var(--red)}
+.kpi.wide{grid-column:span 2;border-left:4px solid var(--green)}
+.kpi .sub2{display:flex;gap:8px;margin-top:9px}
+.kpi .mini{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:7px 10px}
+.kpi .mini .mv{font-size:16px;font-weight:700;margin-top:1px}
+@media(max-width:480px){.kpi.wide{grid-column:span 1}.kpi .mini .mv{font-size:14px}}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
 .card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
@@ -219,14 +224,9 @@ for (var i=WEEKS.length-1; i>=0; i--){
     : {l:'Giving YTD', v:'—', d:''});
   items.push(FIN.bank
     ? {l:'Cash on hand', v:money(FIN.bank.checking_available + FIN.bank.savings_total),
-       d:'checking + both savings'}
+       d:'', group:[{l:'Checking', v:money(FIN.bank.checking_available)},
+                    {l:'Savings', v:money(FIN.bank.savings_total)}]}
     : {l:'Cash on hand', v:'—', d:'no bank snapshot yet'});
-  items.push(FIN.bank
-    ? {l:'Checking', v:money(FIN.bank.checking_available), d:'GCB Chase · available'}
-    : {l:'Checking', v:'—', d:''});
-  items.push(FIN.bank
-    ? {l:'Savings', v:money(FIN.bank.savings_total), d:'both GCB savings accounts'}
-    : {l:'Savings', v:'—', d:''});
   items.push(FIN.bank
     ? {l:'Amex owed', v:money(FIN.bank.cards_owed), d:'card balances to pay down', owed:true}
     : {l:'Amex owed', v:'—', d:'', owed:true});
@@ -235,8 +235,17 @@ for (var i=WEEKS.length-1; i>=0; i--){
        d:'pool '+money(FIN.pex.business)+' + cards '+money(FIN.pex.cards_total)}
     : {l:'PEX pool', v:'—', d:'PEX unavailable at build time'});
   $('kpis').innerHTML = items.map(function(k){
-    return '<div class="kpi'+(k.owed?' owed':'')+'"><div class="l">'+esc(k.l)+'</div>'
-      +'<div class="v">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
+    var inner = '<div class="l">'+esc(k.l)+'</div>'
+      +'<div class="v">'+esc(k.v)+'</div>'
+      +(k.d ? '<div class="d">'+esc(k.d)+'</div>' : '');
+    if (k.group){
+      inner += '<div class="sub2">'+k.group.map(function(g){
+        return '<div class="mini"><div class="l">'+esc(g.l)+'</div>'
+          +'<div class="mv">'+esc(g.v)+'</div></div>';
+      }).join('')+'</div>';
+      return '<div class="kpi wide">'+inner+'</div>';
+    }
+    return '<div class="kpi'+(k.owed?' owed':'')+'">'+inner+'</div>';
   }).join('');
 })();
 
