@@ -218,8 +218,11 @@ for (var i=WEEKS.length-1; i>=0; i--){
     ? {l:'Giving YTD', v:money0(GIVING.ytd.amount), d:'as of '+fmtDateShort(GIVING.ytd.as_of)}
     : {l:'Giving YTD', v:'—', d:''});
   items.push(FIN.bank
-    ? {l:'In the bank', v:money(FIN.bank.checking_available), d:'checking avail · savings '+money(FIN.bank.savings_total)}
-    : {l:'In the bank', v:'—', d:'no bank snapshot yet'});
+    ? {l:'Checking', v:money(FIN.bank.checking_available), d:'GCB Chase · available'}
+    : {l:'Checking', v:'—', d:'no bank snapshot yet'});
+  items.push(FIN.bank
+    ? {l:'Savings', v:money(FIN.bank.savings_total), d:'both GCB savings accounts'}
+    : {l:'Savings', v:'—', d:''});
   items.push(FIN.bank
     ? {l:'Amex owed', v:money(FIN.bank.cards_owed), d:'card balances to pay down', owed:true}
     : {l:'Amex owed', v:'—', d:'', owed:true});
