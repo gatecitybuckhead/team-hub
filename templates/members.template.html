@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GCB Members</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--card:#181b24;--card2:#1e2230;--ink:#e8eaf2;--dim:#8a90a5;
+--gold:#e0b34c;--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px;max-width:1100px;margin:0 auto}
+h1{font-size:22px;letter-spacing:.4px} h1 span{color:var(--gold)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.sub{color:var(--dim);font-size:13px}
+.topnav{font-size:12.5px;color:var(--dim);margin-bottom:12px}
+.topnav a{color:var(--dim);text-decoration:none;padding:2px 4px}
+.topnav a:hover{color:var(--ink)}
+.topnav .cur{color:var(--gold);font-weight:700;padding:2px 4px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:700;margin:2px 0}
+.kpi .l{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.kpi .d{font-size:12px;color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.card h3 b{color:var(--gold)}
+canvas{max-height:260px}
+.cvbox{position:relative;height:260px;width:100%}
+.cvbox.sm{height:180px}
+.lblnote{color:var(--dim);font-size:11.5px;margin-top:7px}
+.nodata{color:var(--dim);font-size:13px;font-style:italic;padding:6px 0}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--dim);font-weight:600;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 10px;border-bottom:1px solid #20242f;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{color:var(--dim);font-size:12px}
+.zero{color:#4a5062}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+th.sortable:hover{color:var(--ink)}
+th .arrow{font-size:9px}
+.mbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid #4a3d1d;background:#221d10;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
+.chip{display:inline-block;border-radius:999px;padding:0 8px;font-size:10.5px;font-weight:600;border:1px solid var(--line);background:#232838;color:var(--dim);margin-left:6px;vertical-align:1px}
+.filterrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.filterrow input[type=text]{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;min-width:200px}
+label.chk{color:var(--dim);font-size:12.5px;cursor:pointer}
+/* heatmap */
+table.heat{width:auto;font-size:12px}
+table.heat td{border-bottom:none;padding:2px 2px;text-align:center}
+th.hmth{height:52px;vertical-align:bottom;padding:2px 2px;text-align:center}
+th.hmth span{writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block;font-size:9.5px;letter-spacing:.3px}
+td.hmname,th.hmcorner{position:sticky;left:0;background:var(--card);text-align:left;white-space:nowrap;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis;padding:2px 12px 2px 2px;z-index:2}
+th.hmcorner{z-index:3}
+.hm i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:middle}
+.hm i.d0{background:#232838}
+.hm i.d1{background:#8a6f2e}
+.hm i.d2{background:var(--gold)}
+.legend{color:var(--dim);font-size:11.5px;margin-top:9px;line-height:1.9}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin:0 3px 0 8px}
+a{color:var(--blue)}
+footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-height:1.7}
+@media(max-width:480px){table{font-size:12px}th,td{padding:7px 5px}.kpi .v{font-size:20px}}
+</style>
+</head>
+<body>
+<nav class="topnav"><a href="debrief.html">Debrief</a> · <a href="metrics.html">Metrics</a> · <span class="cur">Members</span> · <a href="finance.html">Finance</a></nav>
+<header>
+  <div>
+    <h1>GCB <span>Members</span></h1>
+    <div class="sub" id="subline">built __BUILT__</div>
+  </div>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <h3><b>Engagement</b> — peak Sunday volunteers per month</h3>
+  <div class="cvbox"><canvas id="cTrend"></canvas></div>
+  <div style="margin-top:14px" id="partWrap">
+    <h3><b>Giving participation</b> — % of members giving (rolling 90 days)</h3>
+    <div class="cvbox sm"><canvas id="cPart"></canvas></div>
+  </div>
+  <div class="lblnote">Volunteers = distinct people with a confirmed serve that Sunday; the month shows its best Sunday. Participation is the aggregate % only — nothing per person.</div>
+</div>
+
+<div class="card">
+  <h3><b>People</b> <span class="note" id="pplCount"></span></h3>
+  <div class="filterrow">
+    <input type="text" id="pplFilter" placeholder="filter by name…">
+    <label class="chk"><input type="checkbox" id="pplMembers"> members only</label>
+  </div>
+  <div class="tablewrap"><table id="pplTable"><thead></thead><tbody></tbody></table></div>
+  <div class="lblnote" id="prayerNote"></div>
+</div>
+
+<div class="card">
+  <h3><b>Serving heatmap</b> — confirmed Sundays per month, last 18 months</h3>
+  <div class="tablewrap" id="heatWrap"></div>
+  <div class="legend" id="heatLegend"></div>
+</div>
+
+<footer>One team password unlocks all staff dashboards.<br>
+Per-person giving is not on this page.</footer>
+
+<script>
+var DATA = /*__DATA__*/null;
+var MONTHS = (DATA && DATA.months) || [];
+var PEOPLE = (DATA && DATA.people) || [];
+var OV = (DATA && DATA.overview) || {};
+var TREND = (DATA && DATA.serve_trend) || [];
+var GP = (DATA && DATA.giving_participation) || null;
+var PRAYER = !!(DATA && DATA.prayer_started);
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ var d=document.createElement('div');
+  d.textContent = s==null ? '' : String(s); return d.innerHTML; }
+function fmtDate(iso){
+  if (!iso) return '—';
+  var p = String(iso).slice(0,10).split('-');
+  return new Date(+p[0], p[1]-1, +p[2])
+    .toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtMonY(ym){ var p=String(ym).split('-'); return MON[+p[1]-1]+' '+p[0].slice(2); }
+
+/* ── subtitle ── */
+(function(){
+  var parts = ['built __BUILT__'];
+  if (DATA && DATA.generated) parts.push('data through <b>'+esc(fmtDate(DATA.generated))+'</b>');
+  $('subline').innerHTML = parts.join(' · ');
+})();
+
+/* ── KPI tiles ── */
+(function(){
+  var items = [
+    {l:'Members', v:OV.members!=null?OV.members:'—', d:'Members (All) list'},
+    {l:'Served last 60 days', v:OV.served_60d!=null?OV.served_60d:'—', d:'confirmed serves'},
+    {l:'On teams', v:OV.on_teams!=null?OV.on_teams:'—', d:'current team rosters'},
+    {l:'Served in 18 months', v:OV.served_18mo!=null?OV.served_18mo:'—', d:'at least one Sunday'}];
+  var readings = (GP && GP.readings) || [];
+  var last = readings.length ? readings[readings.length-1] : null;
+  items.push(last
+    ? {l:'% of members giving (90-day)', v:Math.round(last.pct)+'%',
+       d:last.giving+' of '+last.members+' · '+fmtDate(last.sunday)}
+    : {l:'% of members giving (90-day)', v:'—', d:'no readings yet'});
+  $('kpis').innerHTML = items.map(function(k){
+    return '<div class="kpi"><div class="l">'+esc(k.l)+'</div>'
+      +'<div class="v">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
+  }).join('');
+})();
+
+/* ── value labels plugin (same hand-rolled one as finance/metrics — chart.umd only) ── */
+var valueLabels = {
+  id:'valueLabels',
+  afterDatasetsDraw:function(chart,args,pluginOpts){
+    var o = pluginOpts||{}; if (o.enabled===false) return;
+    var ctx = chart.ctx;
+    var drawn = [];
+    ctx.save();
+    ctx.font='700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    chart.data.datasets.forEach(function(ds,di){
+      var meta = chart.getDatasetMeta(di);
+      if (meta.hidden || ds.hideLabels) return;
+      var pts = meta.data||[];
+      var width = chart.chartArea.right - chart.chartArea.left;
+      var step = Math.max(1, Math.ceil(pts.length / Math.max(1, Math.floor(width/(o.slot||34)))));
+      pts.forEach(function(pt,i){
+        var v = ds.data[i];
+        if (v==null) return;
+        if (step>1 && (pts.length-1-i)%step!==0) return;
+        var txt = (o.fmt||function(x){return Math.round(x).toLocaleString();})(v,ds);
+        var w = ctx.measureText(txt).width+4;
+        var bar = meta.type==='bar' || ds.type==='bar';
+        var x = pt.x, y = pt.y-(bar?3:6);
+        if (y-11 < chart.chartArea.top) y = pt.y+18;
+        var box = {x1:x-w/2, x2:x+w/2, y1:y-11, y2:y+2};
+        var hit = drawn.some(function(b){
+          return !(box.x2<b.x1||box.x1>b.x2||box.y2<b.y1||box.y1>b.y2); });
+        if (hit) return;
+        drawn.push(box);
+        ctx.fillStyle='rgba(15,17,23,.82)';
+        ctx.fillRect(box.x1,box.y1,w,13);
+        ctx.fillStyle = ds.borderColor||ds.backgroundColor||'#e8eaf2';
+        ctx.fillText(txt,x,y+1);
+      });
+    });
+    ctx.restore();
+  }
+};
+if (window.Chart) Chart.register(valueLabels);
+
+var charts = {};
+function mkChart(id, cfg){
+  var ctx = $(id); if (!ctx || !window.Chart) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, cfg);
+}
+var tickStyle = {color:'#666c80', maxTicksLimit:14, font:{size:10}};
+var gridStyle = {color:'#20242f'};
+var legendStyle = {labels:{color:'#8a90a5', boxWidth:12, font:{size:11}}};
+function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No data yet.')+'</div>'; }
+
+/* ── engagement trend chart ── */
+(function(){
+  if (!TREND.length){ noData($('cTrend').parentNode,'No serving history yet.'); return; }
+  mkChart('cTrend',{type:'bar',
+    data:{labels:TREND.map(function(t){return fmtMonY(t.month);}),
+      datasets:[{label:'Peak Sunday volunteers', data:TREND.map(function(t){return t.volunteers;}),
+        backgroundColor:'#5aa2e0', borderColor:'#5aa2e0'}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false,
+      interaction:{mode:'index',intersect:false}, layout:{padding:{top:18}},
+      plugins:{legend:legendStyle, valueLabels:{slot:30}},
+      scales:{x:{ticks:tickStyle, grid:gridStyle},
+        y:{beginAtZero:true, grid:gridStyle, ticks:{color:'#666c80', font:{size:10}}}}}});
+})();
+
+/* ── participation % chart ── */
+(function(){
+  var readings = (GP && GP.readings) || [];
+  if (!readings.length){ noData($('partWrap'),'No participation readings yet.'); return; }
+  mkChart('cPart',{type:'line',
+    data:{labels:readings.map(function(r){return r.sunday.slice(5).replace('-','/');}),
+      datasets:[{label:'% of members giving (90-day)', data:readings.map(function(r){return r.pct;}),
+        borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
+        pointRadius:3, tension:.3, spanGaps:true}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false,
+      interaction:{mode:'index',intersect:false}, layout:{padding:{top:18}},
+      plugins:{legend:legendStyle,
+        valueLabels:{fmt:function(v){return Math.round(v)+'%';}, slot:38},
+        tooltip:{callbacks:{label:function(i){
+          var r = readings[i.dataIndex];
+          return r.pct+'% — '+r.giving+' of '+r.members+' members'; }}}},
+      scales:{x:{ticks:tickStyle, grid:gridStyle},
+        y:{beginAtZero:true, max:100, grid:gridStyle,
+           ticks:{color:'#666c80', font:{size:10}, callback:function(v){return v+'%';}}}}}});
+})();
+
+/* ── People table (sortable + filter) ── */
+var COLS = [
+  {k:'name', l:'Name', d:1},
+  {k:'teams', l:'Teams', d:1},
+  {k:'last_served', l:'Last served', d:-1},
+  {k:'serves_6mo', l:'6 mo', num:1, d:-1},
+  {k:'serves_18mo', l:'18 mo', num:1, d:-1},
+  {k:'declines_18mo', l:'Declines', num:1, d:-1},
+  {k:'no_response_18mo', l:'No response', num:1, d:-1}];
+if (PRAYER) COLS.push({k:'prayer_90d', l:'Prayer 90d', num:1, d:-1});
+var sortKey = 'name', sortDir = 1;
+
+function sortVal(p, k){
+  if (k==='name') return (p.name||'').toLowerCase();
+  if (k==='teams') return (p.teams||[]).join(', ').toLowerCase() || null;
+  return p[k];
+}
+function teamsCell(teams){
+  var t = teams||[];
+  if (!t.length) return '<span class="zero">—</span>';
+  if (t.length > 3){
+    return esc(t.slice(0,3).join(', '))
+      +' <span class="note" title="'+esc(t.join(', '))+'">+'+(t.length-3)+' more</span>';
+  }
+  return esc(t.join(', '));
+}
+function numCell(v){
+  if (v==null) return '<td class="num zero">—</td>';
+  return '<td class="num'+(v===0?' zero':'')+'">'+v+'</td>';
+}
+function renderHead(){
+  $('pplTable').querySelector('thead').innerHTML = '<tr>'+COLS.map(function(c){
+    var arrow = c.k===sortKey ? ' <span class="arrow">'+(sortDir===1?'▲':'▼')+'</span>' : '';
+    return '<th class="sortable'+(c.num?' num':'')+'" data-k="'+c.k+'">'+esc(c.l)+arrow+'</th>';
+  }).join('')+'</tr>';
+  Array.prototype.forEach.call($('pplTable').querySelectorAll('th.sortable'), function(th){
+    th.onclick = function(){
+      var k = th.getAttribute('data-k');
+      if (k===sortKey){ sortDir = -sortDir; }
+      else { sortKey = k; sortDir = COLS.filter(function(c){return c.k===k;})[0].d; }
+      renderPeople();
+    };
+  });
+}
+function renderPeople(){
+  renderHead();
+  var q = ($('pplFilter').value||'').toLowerCase();
+  var membersOnly = $('pplMembers').checked;
+  var rows = PEOPLE.filter(function(p){
+    if (membersOnly && !p.is_member) return false;
+    if (q && (p.name||'').toLowerCase().indexOf(q)===-1) return false;
+    return true;
+  });
+  rows.sort(function(a,b){
+    var x = sortVal(a,sortKey), y = sortVal(b,sortKey);
+    if (x==null && y==null) return 0;
+    if (x==null) return 1;
+    if (y==null) return -1;
+    if (x<y) return -sortDir;
+    if (x>y) return sortDir;
+    return 0;
+  });
+  $('pplCount').textContent = '· '+rows.length+' of '+PEOPLE.length+' shown';
+  var tbody = $('pplTable').querySelector('tbody');
+  if (!rows.length){
+    tbody.innerHTML = '<tr><td colspan="'+COLS.length+'" class="note">No one matches.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(p){
+    var name = '<b>'+esc(p.name||'(no name)')+'</b>';
+    if (p.is_member) name += '<span class="mbadge">member</span>';
+    if (p.status && p.status!=='active') name += '<span class="chip">'+esc(p.status)+'</span>';
+    var html = '<tr><td>'+name+'</td><td>'+teamsCell(p.teams)+'</td>'
+      +'<td class="num'+(p.last_served?'':' zero')+'">'+(p.last_served?esc(fmtDate(p.last_served)):'—')+'</td>'
+      +numCell(p.serves_6mo)+numCell(p.serves_18mo)
+      +numCell(p.declines_18mo)+numCell(p.no_response_18mo);
+    if (PRAYER) html += numCell(p.prayer_90d==null?0:p.prayer_90d);
+    return html+'</tr>';
+  }).join('');
+}
+$('pplFilter').addEventListener('input', renderPeople);
+$('pplMembers').addEventListener('change', renderPeople);
+if (!PRAYER) $('prayerNote').textContent = 'Prayer-call attendance starts capturing soon.';
+renderPeople();
+
+/* ── 18-month serving heatmap ── */
+(function(){
+  var hp = PEOPLE.filter(function(p){ return p.serves_18mo > 0 && p.heat; })
+    .slice().sort(function(a,b){ return b.serves_18mo - a.serves_18mo; });
+  if (!hp.length || !MONTHS.length){
+    noData($('heatWrap'),'No serving history yet.'); return;
+  }
+  var html = '<table class="heat"><thead><tr><th class="hmcorner"></th>'
+    + MONTHS.map(function(ym){ return '<th class="hmth"><span>'+esc(fmtMonY(ym))+'</span></th>'; }).join('')
+    + '<th class="num" style="padding-left:8px">18 mo</th></tr></thead><tbody>';
+  hp.forEach(function(p){
+    html += '<tr><td class="hmname" title="'+esc(p.name)+'">'+esc(p.name)+'</td>';
+    (p.heat||[]).forEach(function(v){
+      if (v===null){ html += '<td class="hm"></td>'; }
+      else { html += '<td class="hm"><i class="'+(v>=2?'d2':v===1?'d1':'d0')+'"></i></td>'; }
+    });
+    html += '<td class="num note" style="padding-left:8px">'+p.serves_18mo+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  $('heatWrap').innerHTML = html;
+  $('heatLegend').innerHTML =
+    '<i class="hm" style="background:var(--gold)"></i> 2+ Sundays'
+    +'<i style="background:#8a6f2e"></i> 1 Sunday'
+    +'<i style="background:#232838"></i> 0 that month'
+    +'<i style="background:transparent;border:1px dashed #2c3140"></i> blank = before their first record (not a miss)'
+    +'<span style="margin-left:10px">Only people who served in the last 18 months are listed, most Sundays first.</span>';
+})();
+
+/* Charts can lay out before the grid settles — re-measure once after paint. */
+requestAnimationFrame(function(){
+  Object.keys(charts).forEach(function(id){
+    if (charts[id]) { charts[id].resize(); charts[id].update('none'); }
+  });
+});
+</script>
+</body>
+</html>

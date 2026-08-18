@@ -66,11 +66,15 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center}
   <div class="card"><h3><b>Give</b> — weekly tithes &amp; offerings ($)</h3><canvas id="cGive"></canvas></div>
   <div class="card"><h3><b>Give</b> — % of members giving</h3><canvas id="cGivePct"></canvas>
     <div class="lblnote" id="giveNote"></div></div>
-  <div class="card"><h3><b>Membership</b> — total members & new decisions</h3><canvas id="cMem"></canvas></div>
+  <div class="card"><h3><b>Membership</b> — members, "become a member" forms &amp; decisions</h3><canvas id="cMem"></canvas></div>
   <div class="card"><h3><b>Pray</b> — commitments led / prayer mtgs</h3><canvas id="cPray"></canvas></div>
   <div class="card"><h3><b>Serve</b> — people in teams / unstaffed</h3><canvas id="cServe"></canvas></div>
   <div class="card"><h3><b>Form</b> — groups & participants</h3><canvas id="cForm"></canvas></div>
-  <div class="card"><h3><b>Reach</b> — guests, forms & salvations</h3><canvas id="cReach"></canvas></div>
+  <div class="card"><h3><b>Reach</b> — guests, forms, salvations &amp; baptisms</h3><canvas id="cReach"></canvas></div>
+  <div class="card"><h3><b>Digital</b> — YouTube &amp; Facebook views</h3><canvas id="cDigital"></canvas>
+    <div class="lblnote">Recorded periodically, so lines are stepped and gaps are left blank — a gap means nobody entered a figure that week, not zero views.</div></div>
+  <div class="card"><h3><b>Kids pipeline</b> — trained members &amp; % of members serving</h3><canvas id="cKids"></canvas>
+    <div class="lblnote">"% Members in Kids" (gold, right axis) is recorded periodically — gaps are unrecorded weeks. Volunteer count is the muted grey line, for context.</div></div>
 </div>
 <div class="sums">
   <div class="tabs" id="sumTabs">
@@ -167,7 +171,7 @@ function line(id,rows,series,opts={}){
         tension:s.stepped?0:.3,stepped:s.stepped||false,
         spanGaps:s.span===false?false:true,      // false = leave real gaps visible
         fill:!!s.fill,order:s.order,hideLabels:s.noLabel}))},
-    options:{responsive:true,interaction:{mode:'index',intersect:false},
+    options:{responsive:true,animation:false,interaction:{mode:'index',intersect:false},
       layout:{padding:{top:18}},                      // headroom for the labels
       plugins:{legend:{labels:{color:'#8a90a5',boxWidth:12,font:{size:11}}},
         valueLabels:{fmt:opts.fmt,slot:opts.slot},
@@ -285,8 +289,12 @@ function draw(){
     {fmt:v=>Math.round(v)+'%',slot:38,
      scales:{y:{beginAtZero:true,max:100,ticks:{color:'#666c80',font:{size:10},callback:v=>v+'%'},grid:{color:'#20242f'}}}});
   giveStaleness();
+  // Membership funnel on one chart: "become a member" forms (the ask) and new
+  // member decisions (the outcome) share the right axis as bars, so the
+  // ask-to-decision conversion reads at a glance under the members line.
   line('cMem',rows,[
     {l:'Members',f:w=>val(w,'total_members_core_congregation'),c:'#e0b34c'},
+    {l:'"Become a member" forms',f:w=>val(w,'i_want_to_become_a_member_form'),c:'#5aa2e0',type:'bar',fill:true,y:'y2'},
     {l:'New decisions',f:w=>val(w,'new_member_decisions'),c:'#57c98a',type:'bar',fill:true,y:'y2'}],
     {scales:{y2:{position:'right',ticks:{color:'#57c98a'},grid:{display:false},beginAtZero:true}}});
   line('cPray',rows,[
@@ -301,7 +309,25 @@ function draw(){
   line('cReach',rows,[
     {l:'New guests',f:w=>val(w,'new_guests_bag','new_visitors_bag'),c:'#e0b34c'},
     {l:'Salvations',f:w=>val(w,'salvation_decisions'),c:'#57c98a'},
-    {l:'"Learn more" forms',f:w=>val(w,'i_want_to_learn_more_form'),c:'#5aa2e0'}]);
+    {l:'"Learn more" forms',f:w=>val(w,'i_want_to_learn_more_form'),c:'#5aa2e0'},
+    {l:'Baptisms',f:w=>val(w,'baptisms'),c:'#a98ae0',type:'bar',fill:true}]);
+  // Digital views come out of the sheet sparsely (roughly a third of weeks), so
+  // they get the same treatment as the sheet's "% members giving": stepped with
+  // real gaps (span:false) instead of a smooth line implying readings nobody took.
+  line('cDigital',rows,[
+    {l:'YouTube views',f:w=>val(w,'yt_views'),c:'#e06767',bw:2,pr:2,stepped:true,span:false},
+    {l:'Facebook views',f:w=>val(w,'fb_views'),c:'#5aa2e0',bw:2,pr:2,stepped:true,span:false}]);
+  // Kids pipeline: trained members (count, left axis) vs "% Members in Kids"
+  // (a FRACTION in the sheet — 0.47 = 47% — so it goes through pctNum onto a
+  // right % axis). Both recorded periodically → stepped + span:false, same as
+  // the sheet giving series. Vols in Kids rides along muted for context.
+  line('cKids',rows,[
+    {l:'Members trained in Kids',f:w=>val(w,'members_trained_in_kids'),c:'#57c98a',bw:2,pr:2,stepped:true,span:false},
+    {l:'% members in Kids',f:w=>pctNum(val(w,'members_in_kids')),c:'#e0b34c',bw:2,pr:2,stepped:true,span:false,y:'y2'},
+    {l:'Vols in Kids',f:w=>val(w,'vols_in_kids'),c:'#8a90a5',bw:1.5,order:3,noLabel:true}],
+    {fmt:(v,ds)=>ds.yAxisID==='y2'?Math.round(v)+'%':Math.round(v).toLocaleString(),
+     scales:{y2:{position:'right',beginAtZero:true,max:100,
+       ticks:{color:'#e0b34c',font:{size:10},callback:v=>v+'%'},grid:{display:false}}}});
 }
 
 // range buttons

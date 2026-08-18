@@ -151,8 +151,119 @@ except FileNotFoundError:
     print('skip finance.html (no data/finance.json — run Finance Agent'
           ' build_teamhub_finance.py)')
 
+# ---------- members page (staff) + leadership giving ----------
+# Sources under data/members/ are written by Planning Center Agent scripts
+# (serving-backfill.mjs, members-snapshot.mjs, giving-backfill.mjs).
+# STAFF members payload: NO GIVING KEYS AT ALL (canary enforces).
+def month_seq(start, end):
+    ms, (y, m) = [], (int(start[:4]), int(start[5:7]))
+    while f'{y:04d}-{m:02d}' <= end[:7]:
+        ms.append(f'{y:04d}-{m:02d}')
+        y, m = (y + (m == 12), m % 12 + 1)
+    return ms
+
+def members_payload():
+    snap = json.load(open(DATA/'members/members-latest.json'))
+    ledger = json.load(open(DATA/'members/serving-history.json'))
+    today = datetime.date.today().isoformat()
+    months = month_seq('2025-02', today)
+    try:
+        prayer = json.load(open(DATA/'members/prayer-attendance.json'))
+    except FileNotFoundError:
+        prayer = None
+
+    # page set: members, anyone who served in 18 months, or current team rosters.
+    # (NOT the raw membership label — PCO stamps one on nearly every contact,
+    # which ballooned the page to 1,700 rows on the first build.)
+    ppl = [p for p in snap['people']
+           if p['is_member'] or p['serves_18mo'] > 0 or p['teams']]
+    ppl.sort(key=lambda p: (p.get('name') or '').lower())
+
+    # heatmap: distinct confirmed Sundays per month; None (= n/a) before a
+    # person's first record of ANY status — participation.py's rule.
+    for p in ppl:
+        recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
+        by_month = {}
+        for r in recs:
+            if r['status'] == 'C':
+                by_month.setdefault(r['date'][:7], set()).add(r['date'])
+        first = recs[0]['date'][:7] if recs else None
+        p['heat'] = [None if (first is None or ym < first)
+                     else len(by_month.get(ym, ()))
+                     for ym in months]
+
+    # prayer-call counts per person (90 days), if capture has begun
+    if prayer:
+        cutoff = (datetime.date.today() - datetime.timedelta(days=90)).isoformat()
+        counts = {}
+        for call in prayer.get('calls', []):
+            if call['date'] >= cutoff:
+                for part in call.get('participants', []):
+                    if part.get('person_id'):
+                        counts[part['person_id']] = counts.get(part['person_id'], 0) + 1
+        for p in ppl:
+            p['prayer_90d'] = counts.get(p['person_id'], 0)
+
+    served60 = sum(1 for p in ppl if p['last_served'] and
+                   (datetime.date.today() - datetime.date.fromisoformat(p['last_served'])).days <= 60)
+    weekly = {}
+    for person in ledger['people'].values():
+        for r in person['records']:
+            if r['status'] == 'C':
+                weekly.setdefault(r['date'], set()).add(id(person))
+    serve_trend = [{'month': ym,
+                    'volunteers': max((len(v) for d, v in weekly.items()
+                                       if d[:7] == ym), default=0)}
+                   for ym in months]
+    return {'generated': snap['generated_at'][:10], 'months': months,
+            'overview': {'members': snap['members_list_count'],
+                         'served_60d': served60,
+                         'on_teams': sum(1 for p in ppl if p['teams']),
+                         'served_18mo': sum(1 for p in ppl if p['serves_18mo'] > 0)},
+            'serve_trend': serve_trend,
+            'people': ppl,
+            'prayer_started': bool(prayer),
+            'giving_participation': giving_part}
+
+def leadership_giving():
+    gv = json.load(open(DATA/'members/giving-by-person.json'))
+    snap = json.load(open(DATA/'members/members-latest.json'))
+    by_id = {p['person_id']: p for p in snap['people']}
+    rows = []
+    for pid, g in gv['people'].items():
+        m = by_id.get(pid, {})
+        rows.append({'person_id': pid, 'name': g['name'] or m.get('name'),
+                     'is_member': m.get('is_member', False),
+                     'giver_status': g['giver_status'],
+                     'first_gift': g['first_gift'], 'last_gift': g['last_gift'],
+                     'gift_count': g['gift_count'],
+                     'months_given': g['months_given'],
+                     'total_cents': g['total_cents']})
+    rows.sort(key=lambda r: r['last_gift'], reverse=True)
+    never = [{'person_id': p['person_id'], 'name': p['name']}
+             for p in snap['people']
+             if p['is_member'] and p['person_id'] not in gv['people']]
+    st = {}
+    for r in rows:
+        st[r['giver_status']] = st.get(r['giver_status'], 0) + 1
+    return {'generated': gv['generated_at'][:10], 'since': gv['since'],
+            'summary': {**st, 'never_members': len(never),
+                        'total_givers': len(rows)},
+            'people': rows, 'never': sorted(never, key=lambda n: (n['name'] or '').lower())}
+
+try:
+    mp = members_payload()
+    assert_staff_safe(mp, 'members.html')
+    inject('members.template.html', 'members.html', mp)
+except FileNotFoundError as e:
+    print(f'skip members.html ({e.filename or e})')
+
 try:
     leadership = json.load(open(DATA/'finance_leadership.json'))
+    try:
+        leadership['giving_people'] = leadership_giving()
+    except FileNotFoundError:
+        pass  # placeholder card renders until giving data exists
     inject('leadership.template.html', 'leadership.html', leadership)
 except FileNotFoundError:
     print('skip leadership.html (no data/finance_leadership.json)')

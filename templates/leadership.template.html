@@ -47,6 +47,17 @@ tr:last-child td{border-bottom:none}
 .errbox{border-left:4px solid var(--gold);background:var(--card);border-radius:0 10px 10px 0;
   padding:8px 12px;margin:8px 0;font-size:12.5px;color:var(--ink)}
 label.chk{color:var(--dim);font-size:12.5px;cursor:pointer}
+.chip{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:#232838;color:var(--dim)}
+.chip.recent{color:var(--green);border-color:#1d4a2e;background:#102217}
+.chip.occasional{color:var(--gold);border-color:#4a3d1d;background:#221d10}
+.chip.lapsed{color:var(--red);border-color:#4a2222;background:#221010}
+.mbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid #4a3d1d;background:#221d10;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
+.filterrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.filterrow input[type=text]{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;min-width:200px}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+th.sortable:hover{color:var(--ink)}
+th .arrow{font-size:9px}
+#gvTable.noamt th.amt,#gvTable.noamt td.amt{display:none}
 a{color:var(--blue)}
 footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-height:1.7}
 @media(max-width:480px){table{font-size:12px}th,td{padding:7px 5px}.kpi .v{font-size:20px}}
@@ -86,8 +97,27 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
 </div>
 
 <div class="card" id="givingPeople">
-  <h3><b>Per-person giving</b></h3>
-  <div class="nodata">Per-person giving lands here with the Members dashboard build.</div>
+  <h3><b>Per-person giving</b> <span class="note" id="gvMeta"></span></h3>
+  <div class="nodata" id="gvHold">Per-person giving lands here with the Members dashboard build.</div>
+  <div class="kpis" id="gvTiles" style="display:none;margin-bottom:4px"></div>
+</div>
+
+<div class="card" id="gvWatchCard" style="display:none">
+  <h3><b>Lapsed member watchlist</b> — pastoral-care leads</h3>
+  <div class="tablewrap"><table id="gvWatch">
+    <thead><tr><th>Name</th><th>Last gift</th><th>First gift</th>
+    <th class="num">Gifts</th><th class="num">Months active</th></tr></thead><tbody></tbody>
+  </table></div>
+  <div id="gvNever" class="note" style="margin-top:12px"></div>
+</div>
+
+<div class="card" id="gvAllCard" style="display:none">
+  <h3><b>All givers</b> <span class="note" id="gvSince"></span></h3>
+  <div class="filterrow">
+    <input type="text" id="gvFilter" placeholder="filter by name…">
+    <label class="chk"><input type="checkbox" id="gvAmts"> show amounts</label>
+  </div>
+  <div class="tablewrap"><table id="gvTable" class="noamt"><thead></thead><tbody></tbody></table></div>
 </div>
 
 <footer>Leadership password only — payroll and per-person giving never appear on the staff pages.</footer>
@@ -253,10 +283,115 @@ function renderRunway(){
 $('inclSavings').addEventListener('change', renderRunway);
 renderRunway();
 
-/* ── per-person giving placeholder ── */
+/* ── per-person giving ── */
 (function(){
-  if (GPPL === null) return; // muted "coming" card already in the markup
-  // future: render per-person giving once the members build lands
+  if (!GPPL) return; // muted "coming" card already in the markup
+  $('gvHold').style.display = 'none';
+  $('gvTiles').style.display = '';
+  $('gvWatchCard').style.display = '';
+  $('gvAllCard').style.display = '';
+  $('gvMeta').textContent = '· data through '+GPPL.generated;
+  $('gvSince').textContent = '· since '+GPPL.since;
+
+  /* summary tiles */
+  var S = GPPL.summary || {};
+  var tiles = [
+    {l:'Recent givers', v:S.recent||0, d:'gave in the last 90 days'},
+    {l:'Occasional', v:S.occasional||0, d:'last gift 91–180 days ago'},
+    {l:'Lapsed', v:S.lapsed||0, d:'no gift in 180+ days'},
+    {l:'Members never given', v:S.never_members||0, d:'no recorded gift since '+GPPL.since},
+    {l:'Total givers', v:S.total_givers||0, d:'anyone with a gift since '+GPPL.since}];
+  $('gvTiles').innerHTML = tiles.map(function(k){
+    return '<div class="kpi"><div class="l">'+esc(k.l)+'</div>'
+      +'<div class="v">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
+  }).join('');
+
+  function nameCell(r){
+    return '<b>'+esc(r.name||'(no name)')+'</b>'
+      +(r.is_member?'<span class="mbadge">member</span>':'');
+  }
+
+  /* lapsed member watchlist — members whose giving has gone quiet */
+  var watch = (GPPL.people||[]).filter(function(r){
+    return r.is_member && r.giver_status==='lapsed';
+  }).sort(function(a,b){ return a.last_gift < b.last_gift ? -1 : 1; });
+  var wBody = $('gvWatch').querySelector('tbody');
+  wBody.innerHTML = watch.length ? watch.map(function(r){
+    return '<tr><td>'+nameCell(r)+'</td>'
+      +'<td class="num" style="color:var(--red);font-weight:700">'+esc(fmtDateShort(r.last_gift))+'</td>'
+      +'<td class="num">'+esc(fmtDateShort(r.first_gift))+'</td>'
+      +'<td class="num">'+esc(r.gift_count)+'</td>'
+      +'<td class="num">'+(r.months_given||[]).length+'</td></tr>';
+  }).join('')
+    : '<tr><td colspan="5" class="note">No lapsed member givers — every member who gives is current.</td></tr>';
+  var never = GPPL.never || [];
+  $('gvNever').innerHTML = '<b>Members with no recorded gift since '+esc(GPPL.since)+':</b> '
+    +(never.length ? never.map(function(n){ return esc(n.name||'(no name)'); }).join(', ')
+      : 'none — every member has a recorded gift.');
+
+  /* full giver table — sortable, filterable, amounts off by default */
+  var GCOLS = [
+    {k:'name', l:'Name', d:1},
+    {k:'giver_status', l:'Status', d:1},
+    {k:'first_gift', l:'First gift', d:-1},
+    {k:'last_gift', l:'Last gift', d:-1},
+    {k:'gift_count', l:'Gifts', num:1, d:-1},
+    {k:'months', l:'Months active', num:1, d:-1},
+    {k:'total_cents', l:'Total', num:1, d:-1, amt:1}];
+  var sortKey = 'last_gift', sortDir = -1;
+  function sortVal(r, k){
+    if (k==='name') return (r.name||'').toLowerCase();
+    if (k==='months') return (r.months_given||[]).length;
+    return r[k];
+  }
+  function renderGiverHead(){
+    $('gvTable').querySelector('thead').innerHTML = '<tr>'+GCOLS.map(function(c){
+      var arrow = c.k===sortKey ? ' <span class="arrow">'+(sortDir===1?'▲':'▼')+'</span>' : '';
+      return '<th class="sortable'+(c.num?' num':'')+(c.amt?' amt':'')+'" data-k="'+c.k+'">'
+        +esc(c.l)+arrow+'</th>';
+    }).join('')+'</tr>';
+    Array.prototype.forEach.call($('gvTable').querySelectorAll('th.sortable'), function(th){
+      th.onclick = function(){
+        var k = th.getAttribute('data-k');
+        if (k===sortKey){ sortDir = -sortDir; }
+        else { sortKey = k; sortDir = GCOLS.filter(function(c){return c.k===k;})[0].d; }
+        renderGivers();
+      };
+    });
+  }
+  function renderGivers(){
+    renderGiverHead();
+    var q = ($('gvFilter').value||'').toLowerCase();
+    var rows = (GPPL.people||[]).filter(function(r){
+      return !q || (r.name||'').toLowerCase().indexOf(q)!==-1;
+    });
+    rows.sort(function(a,b){
+      var x = sortVal(a,sortKey), y = sortVal(b,sortKey);
+      if (x==null && y==null) return 0;
+      if (x==null) return 1;
+      if (y==null) return -1;
+      if (x<y) return -sortDir;
+      if (x>y) return sortDir;
+      return 0;
+    });
+    var tbody = $('gvTable').querySelector('tbody');
+    if (!rows.length){
+      tbody.innerHTML = '<tr><td colspan="7" class="note">No one matches.</td></tr>'; return; }
+    tbody.innerHTML = rows.map(function(r){
+      return '<tr><td>'+nameCell(r)+'</td>'
+        +'<td><span class="chip '+esc(r.giver_status)+'">'+esc(r.giver_status)+'</span></td>'
+        +'<td class="num">'+esc(fmtDateShort(r.first_gift))+'</td>'
+        +'<td class="num">'+esc(fmtDateShort(r.last_gift))+'</td>'
+        +'<td class="num">'+esc(r.gift_count)+'</td>'
+        +'<td class="num">'+(r.months_given||[]).length+'</td>'
+        +'<td class="num amt">'+money((r.total_cents||0)/100)+'</td></tr>';
+    }).join('');
+  }
+  $('gvFilter').addEventListener('input', renderGivers);
+  $('gvAmts').addEventListener('change', function(){
+    $('gvTable').classList.toggle('noamt', !$('gvAmts').checked);
+  });
+  renderGivers();
 })();
 </script>
 </body>
