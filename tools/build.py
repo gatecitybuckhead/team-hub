@@ -104,3 +104,55 @@ inject('debrief.template.html', 'debrief.html',
         'summaries': summaries, 'words': word_months,
         'narratives': narratives, 'notes': notes_by_sunday,
         'participation': part})
+
+# ---------- finance pages (data from Finance Agent's build_teamhub_finance.py) ----------
+# Giving dollars/participation are injected HERE from metrics.json so the
+# numbers can't drift from the Metrics page. Weekly $ = digital + cash +
+# special (the combined sheet column died in Mar 2025 — don't use it).
+def giving_series():
+    weeks = []
+    for w in metrics['weeks']:
+        v = w['values']
+        digital, cash, special = (v.get('week_s_tithes_offerings_digital'),
+                                  v.get('week_s_tithes_offerings_cash'),
+                                  v.get('special_gifts'))
+        total = None
+        if any(x is not None for x in (digital, cash, special)):
+            total = round(sum(x or 0 for x in (digital, cash, special)), 2)
+        weeks.append({'sunday': w['date'], 'digital': digital, 'cash': cash,
+                      'special': special, 'total': total})
+    ytd = next(({'amount': w['values']['ytd_total'], 'as_of': w['date']}
+                for w in reversed(metrics['weeks'])
+                if w['values'].get('ytd_total') is not None), None)
+    return {'weeks': weeks, 'ytd': ytd}
+
+# Canary: leadership-tier terms must never reach a STAFF payload. The finance
+# builder has its own guard; this one also covers future members payloads.
+STAFF_CANARY = ('payroll', 'runway', 'debit_total', 'giver_status', 'last_gift')
+def assert_staff_safe(payload, name):
+    # The payment-request board's status text may legitimately say "gusto"/
+    # "payroll" (staff already see it on the Apps Script board) — check the
+    # payload with the board REMOVED so a leak elsewhere can't hide behind it.
+    scrubbed = json.loads(json.dumps(payload))
+    if isinstance(scrubbed.get('finance'), dict):
+        scrubbed['finance'].pop('board', None)
+    blob = json.dumps(scrubbed).lower()
+    hits = [t for t in STAFF_CANARY if t in blob]
+    if hits:
+        raise SystemExit(f'CANARY: staff payload {name} contains {hits} — build aborted.')
+
+try:
+    finance = json.load(open(DATA/'finance.json'))
+    fin_payload = {'finance': finance, 'giving': giving_series(),
+                   'giving_participation': giving_part}
+    assert_staff_safe(fin_payload, 'finance.html')
+    inject('finance.template.html', 'finance.html', fin_payload)
+except FileNotFoundError:
+    print('skip finance.html (no data/finance.json — run Finance Agent'
+          ' build_teamhub_finance.py)')
+
+try:
+    leadership = json.load(open(DATA/'finance_leadership.json'))
+    inject('leadership.template.html', 'leadership.html', leadership)
+except FileNotFoundError:
+    print('skip leadership.html (no data/finance_leadership.json)')

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GCB Finance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--card:#181b24;--card2:#1e2230;--ink:#e8eaf2;--dim:#8a90a5;
+--gold:#e0b34c;--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--line:#272c3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 22px 60px;max-width:1100px;margin:0 auto}
+h1{font-size:22px;letter-spacing:.4px} h1 span{color:var(--gold)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.sub{color:var(--dim);font-size:13px}
+.stale{color:var(--red);font-weight:700}
+.topnav{font-size:12.5px;color:var(--dim);margin-bottom:12px}
+.topnav a{color:var(--dim);text-decoration:none;padding:2px 4px}
+.topnav a:hover{color:var(--ink)}
+.topnav .cur{color:var(--gold);font-weight:700;padding:2px 4px}
+.range{display:flex;gap:6px;flex-wrap:wrap}
+.range button{background:var(--card);border:1px solid var(--line);color:var(--dim);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:13px}
+.range button.on{background:var(--gold);color:#161616;border-color:var(--gold);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:700;margin:2px 0}
+.kpi .l{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.kpi .d{font-size:12px;color:var(--dim)}
+.kpi.owed{border-left:4px solid var(--red)} .kpi.owed .v{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h3{font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.card h3 b{color:var(--gold)}
+.grid .card{margin-bottom:0}
+canvas{max-height:260px}
+.cvbox{position:relative;height:260px;width:100%}
+.cvbox.sm{height:180px}
+.lblnote{color:var(--dim);font-size:11.5px;margin-top:7px}
+.nodata{color:var(--dim);font-size:13px;font-style:italic;padding:6px 0}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--dim);font-weight:600;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 10px;border-bottom:1px solid #20242f;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{border-top:2px solid var(--line);font-weight:700}
+.note{color:var(--dim);font-size:12px}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:#232838}
+.pill.held{color:var(--gold);border-color:#4a3d1d;background:#221d10}
+.pill.blocked{color:var(--red);border-color:#4a2222;background:#221010}
+.errbox{border-left:4px solid var(--gold);background:var(--card);border-radius:0 10px 10px 0;padding:8px 12px;margin:8px 0;font-size:12.5px;color:var(--ink)}
+.allclear{color:var(--green);font-size:13px;font-weight:600;padding:6px 0}
+.boardlink{display:inline-block;background:#1d2a3a;border:1px solid #2f4a66;color:#9dc9f2;text-decoration:none;font-weight:700;font-size:13.5px;border-radius:8px;padding:7px 14px;margin-top:10px}
+.boardlink:hover{background:#243447;border-color:var(--blue)}
+a{color:var(--blue)}
+footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-height:1.7}
+@media(max-width:480px){table{font-size:12px}th,td{padding:7px 5px}.kpi .v{font-size:20px}}
+</style>
+</head>
+<body>
+<nav class="topnav"><a href="debrief.html">Debrief</a> · <a href="metrics.html">Metrics</a> · <a href="members.html">Members</a> · <span class="cur">Finance</span></nav>
+<header>
+  <div>
+    <h1>GCB <span>Finance</span></h1>
+    <div class="sub" id="subline">built __BUILT__</div>
+  </div>
+</header>
+<div id="errors"></div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <h3><b>Give</b> — weekly giving ($) <span style="float:right" class="range" id="range"></span></h3>
+  <div id="giveWrap" class="cvbox"><canvas id="cGive"></canvas></div>
+  <div style="margin-top:14px" id="gpWrap">
+    <h3><b>Give</b> — % of members giving (Planning Center, rolling 90 days)</h3>
+    <div class="cvbox sm"><canvas id="cGivePct"></canvas></div>
+  </div>
+  <div class="lblnote">Dollars now live here — the Metrics page keeps participation %.</div>
+</div>
+
+<div class="card">
+  <h3><b>P&amp;L</b> by month <span class="note" id="pnlWindow"></span></h3>
+  <div id="pnlWrap" class="cvbox"><canvas id="cPnl"></canvas></div>
+  <div class="lblnote" id="pnlCaption"></div>
+  <div class="grid" style="margin-top:14px">
+    <div>
+      <h3>Top expense accounts</h3>
+      <div class="tablewrap"><table id="topExp">
+        <thead><tr><th>#</th><th>Account</th><th class="num">Amount</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>Top income accounts</h3>
+      <div class="tablewrap"><table id="topInc">
+        <thead><tr><th>#</th><th>Account</th><th class="num">Amount</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3><b>Balances</b> — GCB bank accounts</h3>
+  <div class="tablewrap"><table id="bankTable">
+    <thead><tr><th>Account</th><th>Type</th><th class="num">Available</th><th class="num">Current</th></tr></thead><tbody></tbody>
+  </table></div>
+  <div class="lblnote" id="bankNote"></div>
+</div>
+
+<div class="card">
+  <h3><b>PEX</b> &amp; receipts</h3>
+  <div class="grid">
+    <div>
+      <h3>PEX cards</h3>
+      <div class="tablewrap"><table id="pexTable">
+        <thead><tr><th>Card</th><th class="num">Balance</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>Receipt compliance <span class="note" id="rcMonth"></span></h3>
+      <div id="rcClear"></div>
+      <div class="tablewrap"><table id="rcTable">
+        <thead><tr><th>Person</th><th class="num">Purchases</th><th class="num">Missing receipts</th><th class="num">Missing notes</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3><b>Payment requests</b> — open queue</h3>
+  <div class="tablewrap"><table id="queue">
+    <thead><tr><th>Payee</th><th>Submitted</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody></tbody>
+  </table></div>
+  <div id="boardLinkWrap"></div>
+  <div class="lblnote">Statuses update on the staff board instantly; this page rebuilds daily.</div>
+</div>
+
+<footer>One team password unlocks all staff dashboards.<br>
+Questions about a payment → the status board. Nothing on this page moves money.</footer>
+
+<script>
+var DATA = /*__DATA__*/null;
+var FIN = (DATA && DATA.finance) || {};
+var GIVING = (DATA && DATA.giving) || null;
+var GP = (DATA && DATA.giving_participation) || null;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ var d=document.createElement('div');
+  d.textContent = s==null ? '' : String(s); return d.innerHTML; }
+function money(n){
+  if (n===null || n===undefined || isNaN(n)) return '—';
+  var sign = n<0 ? '−$' : '$';
+  return sign + Math.abs(n).toLocaleString('en-US',
+    {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function money0(n){
+  if (n===null || n===undefined || isNaN(n)) return '—';
+  return (n<0?'−$':'$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+}
+var fmt$k = function(n){ return n>=1000 ? '$'+(n/1000).toFixed(n>=10000?0:1)+'k'
+  : '$'+Math.round(n).toLocaleString('en-US'); };
+function fmtDate(iso){
+  if (!iso) return '—';
+  var p = String(iso).slice(0,10).split('-');
+  return new Date(+p[0], p[1]-1, +p[2])
+    .toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtDateShort(iso){
+  var p = String(iso).slice(0,10).split('-');
+  return new Date(+p[0], p[1]-1, +p[2])
+    .toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function fmtMonth(ym){
+  var p = String(ym).split('-');
+  return new Date(+p[0], p[1]-1, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+}
+function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No data yet.')+'</div>'; }
+
+/* ── header / subtitle ── */
+(function(){
+  var parts = ['built __BUILT__'];
+  if (FIN.books_through) parts.push('books current through <b>'+esc(fmtDate(FIN.books_through))+'</b>');
+  if (FIN.bank){
+    var s = 'balances synced '+esc(FIN.bank.as_of_label||'');
+    if (FIN.bank.age_hours > 36) s += ' <span class="stale">STALE</span>';
+    parts.push(s);
+  }
+  $('subline').innerHTML = parts.join(' · ');
+})();
+((FIN.errors)||[]).forEach(function(e){
+  var d = document.createElement('div'); d.className='errbox';
+  d.textContent = '⚠ ' + e; $('errors').appendChild(d);
+});
+
+/* ── giving helpers ── */
+var WEEKS = (GIVING && GIVING.weeks) || [];
+function weekTotal(w){
+  if (w.total != null) return w.total;
+  if (w.digital==null && w.cash==null && w.special==null) return null;
+  return (w.digital||0)+(w.cash||0)+(w.special||0);
+}
+var lastWk = null;
+for (var i=WEEKS.length-1; i>=0; i--){
+  if (weekTotal(WEEKS[i]) != null){ lastWk = WEEKS[i]; break; }
+}
+
+/* ── KPI tiles ── */
+(function(){
+  var items = [];
+  items.push(lastWk
+    ? {l:'Giving last week', v:money0(weekTotal(lastWk)), d:fmtDateShort(lastWk.sunday)}
+    : {l:'Giving last week', v:'—', d:'no weekly data yet'});
+  items.push((GIVING && GIVING.ytd)
+    ? {l:'Giving YTD', v:money0(GIVING.ytd.amount), d:'as of '+fmtDateShort(GIVING.ytd.as_of)}
+    : {l:'Giving YTD', v:'—', d:''});
+  items.push(FIN.bank
+    ? {l:'In the bank', v:money(FIN.bank.checking_available), d:'checking avail · savings '+money(FIN.bank.savings_total)}
+    : {l:'In the bank', v:'—', d:'no bank snapshot yet'});
+  items.push(FIN.bank
+    ? {l:'Amex owed', v:money(FIN.bank.cards_owed), d:'card balances to pay down', owed:true}
+    : {l:'Amex owed', v:'—', d:'', owed:true});
+  items.push(FIN.pex
+    ? {l:'PEX pool', v:money(FIN.pex.business + FIN.pex.cards_total),
+       d:'pool '+money(FIN.pex.business)+' + cards '+money(FIN.pex.cards_total)}
+    : {l:'PEX pool', v:'—', d:'PEX unavailable at build time'});
+  $('kpis').innerHTML = items.map(function(k){
+    return '<div class="kpi'+(k.owed?' owed':'')+'"><div class="l">'+esc(k.l)+'</div>'
+      +'<div class="v">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
+  }).join('');
+})();
+
+/* ── value labels plugin (hand-rolled — chart.umd is the only CDN dependency) ── */
+var valueLabels = {
+  id:'valueLabels',
+  afterDatasetsDraw:function(chart,args,pluginOpts){
+    var o = pluginOpts||{}; if (o.enabled===false) return;
+    var ctx = chart.ctx;
+    var drawn = [];
+    ctx.save();
+    ctx.font='700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    chart.data.datasets.forEach(function(ds,di){
+      var meta = chart.getDatasetMeta(di);
+      if (meta.hidden || ds.hideLabels) return;
+      var pts = meta.data||[];
+      var width = chart.chartArea.right - chart.chartArea.left;
+      var step = Math.max(1, Math.ceil(pts.length / Math.max(1, Math.floor(width/(o.slot||34)))));
+      pts.forEach(function(pt,i){
+        var v = ds.data[i];
+        if (v==null) return;
+        if (step>1 && (pts.length-1-i)%step!==0) return;
+        var txt = (o.fmt||function(x){return Math.round(x).toLocaleString();})(v,ds);
+        var w = ctx.measureText(txt).width+4;
+        var bar = meta.type==='bar' || ds.type==='bar';
+        var x = pt.x, y = pt.y-(bar?3:6);
+        if (y-11 < chart.chartArea.top) y = pt.y+18;
+        var box = {x1:x-w/2, x2:x+w/2, y1:y-11, y2:y+2};
+        var hit = drawn.some(function(b){
+          return !(box.x2<b.x1||box.x1>b.x2||box.y2<b.y1||box.y1>b.y2); });
+        if (hit) return;
+        drawn.push(box);
+        ctx.fillStyle='rgba(15,17,23,.82)';
+        ctx.fillRect(box.x1,box.y1,w,13);
+        ctx.fillStyle = ds.borderColor||ds.backgroundColor||'#e8eaf2';
+        ctx.fillText(txt,x,y+1);
+      });
+    });
+    ctx.restore();
+  }
+};
+if (window.Chart) Chart.register(valueLabels);
+
+/* ── range selector (metrics-template pattern) ── */
+var RANGES = {'13 wks':91,'26 wks':182,'YTD':'ytd','All':'all'};
+var range = 'YTD';
+function inRange(dateStr, lastDate){
+  if (range==='All') return true;
+  if (range==='YTD') return dateStr.slice(0,4)===lastDate.slice(0,4);
+  var days = RANGES[range];
+  return (new Date(lastDate)-new Date(dateStr))/864e5 <= days;
+}
+var charts = {};
+function mkChart(id, cfg){
+  var ctx = $(id); if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, cfg);
+}
+var tickStyle = {color:'#666c80', maxTicksLimit:14, font:{size:10}};
+var gridStyle = {color:'#20242f'};
+var legendStyle = {labels:{color:'#8a90a5', boxWidth:12, font:{size:11}}};
+
+/* ── Give charts ── */
+function drawGive(){
+  if (!WEEKS.length){ noData($('giveWrap'),'No giving data yet.'); return; }
+  var lastDate = WEEKS[WEEKS.length-1].sunday;
+  var rows = WEEKS.filter(function(w){ return inRange(w.sunday,lastDate); });
+  var labels = rows.map(function(w){
+    return w.sunday.slice(5).replace('-','/')
+      +(w.sunday.slice(0,4)!==lastDate.slice(0,4)?'·'+w.sunday.slice(2,4):''); });
+  mkChart('cGive',{type:'bar',
+    data:{labels:labels, datasets:[
+      {label:'Digital', data:rows.map(function(w){return w.digital;}), backgroundColor:'#57c98a', borderColor:'#57c98a'},
+      {label:'Cash', data:rows.map(function(w){return w.cash;}), backgroundColor:'#e0b34c', borderColor:'#e0b34c'},
+      {label:'Special', data:rows.map(function(w){return w.special;}), backgroundColor:'#a98ae0', borderColor:'#a98ae0'}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},
+      plugins:{legend:legendStyle, valueLabels:{fmt:fmt$k, slot:40}},
+      scales:{x:{stacked:true, ticks:tickStyle, grid:gridStyle},
+        y:{stacked:true, beginAtZero:true, grid:gridStyle,
+           ticks:{color:'#666c80', font:{size:10}, callback:fmt$k}}}}});
+
+  var readings = (GP && GP.readings) || [];
+  if (!readings.length){ noData($('gpWrap'),'No participation readings yet.'); return; }
+  var lastR = readings[readings.length-1].sunday;
+  var rrows = readings.filter(function(r){ return inRange(r.sunday,lastR); });
+  if (!rrows.length) rrows = readings.slice(-1);
+  mkChart('cGivePct',{type:'line',
+    data:{labels:rrows.map(function(r){return r.sunday.slice(5).replace('-','/');}),
+      datasets:[{label:'% of members giving (90-day)', data:rrows.map(function(r){return r.pct;}),
+        borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
+        pointRadius:3, tension:.3, spanGaps:true}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},
+      plugins:{legend:legendStyle,
+        valueLabels:{fmt:function(v){return Math.round(v)+'%';}, slot:38},
+        tooltip:{callbacks:{label:function(i){
+          var r = rrows[i.dataIndex];
+          return r.pct+'% — '+r.giving+' of '+r.members+' members'; }}}},
+      scales:{x:{ticks:tickStyle, grid:gridStyle},
+        y:{beginAtZero:true, max:100, grid:gridStyle,
+           ticks:{color:'#666c80', font:{size:10}, callback:function(v){return v+'%';}}}}}});
+}
+
+/* range buttons */
+(function(){
+  var rangeEl = $('range');
+  Object.keys(RANGES).forEach(function(k){
+    var b = document.createElement('button');
+    b.textContent = k; if (k===range) b.classList.add('on');
+    b.onclick = function(){
+      range = k;
+      Array.prototype.forEach.call(rangeEl.children,function(x){x.classList.remove('on');});
+      b.classList.add('on'); drawGive();
+    };
+    rangeEl.appendChild(b);
+  });
+})();
+
+/* ── P&L ── */
+(function(){
+  var PNL = FIN.pnl;
+  var expBody = $('topExp').querySelector('tbody');
+  var incBody = $('topInc').querySelector('tbody');
+  if (!PNL || !(PNL.months||[]).length){
+    noData($('pnlWrap'),'No P&L data yet — books still syncing.');
+    expBody.innerHTML = '<tr><td colspan="3" class="note">no data yet</td></tr>';
+    incBody.innerHTML = '<tr><td colspan="3" class="note">no data yet</td></tr>';
+    return;
+  }
+  $('pnlWindow').textContent = PNL.window ? '· '+PNL.window : '';
+  mkChart('cPnl',{type:'bar',
+    data:{labels:PNL.months.map(function(m){return fmtMonth(m.month);}),
+      datasets:[
+        {label:'Income', data:PNL.months.map(function(m){return m.income;}),
+         backgroundColor:'#57c98a', borderColor:'#57c98a'},
+        {label:'Expense', data:PNL.months.map(function(m){return m.expense;}),
+         backgroundColor:'#e06767', borderColor:'#e06767'},
+        {label:'Net', type:'line', data:PNL.months.map(function(m){return m.net;}),
+         borderColor:'#e0b34c', backgroundColor:'#e0b34c', borderWidth:2,
+         pointRadius:3, tension:.3}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},
+      plugins:{legend:legendStyle, valueLabels:{fmt:fmt$k, slot:44}},
+      scales:{x:{ticks:tickStyle, grid:gridStyle},
+        y:{beginAtZero:true, grid:gridStyle,
+           ticks:{color:'#666c80', font:{size:10}, callback:fmt$k}}}}});
+  $('pnlCaption').textContent = PNL.current_month_partial
+    ? 'The newest month is month-to-date, not final — it fills in as the month runs.'
+    : '';
+  function fillTop(tbody, rows){
+    if (!(rows||[]).length){
+      tbody.innerHTML = '<tr><td colspan="3" class="note">no data yet</td></tr>'; return; }
+    tbody.innerHTML = rows.map(function(a){
+      return '<tr><td class="note">'+esc(a.number)+'</td><td>'+esc(a.name)
+        +'</td><td class="num">'+money(a.amount)+'</td></tr>'; }).join('');
+  }
+  fillTop(expBody, PNL.top_expenses);
+  fillTop(incBody, PNL.top_income);
+})();
+
+/* ── Balances ── */
+(function(){
+  var tbody = $('bankTable').querySelector('tbody');
+  if (!FIN.bank || !(FIN.bank.accounts||[]).length){
+    tbody.innerHTML = '<tr><td colspan="4" class="note">No bank snapshot yet.</td></tr>'; return; }
+  tbody.innerHTML = FIN.bank.accounts.map(function(a){
+    var isCard = a.type==='card';
+    return '<tr><td><b>'+esc(a.name)+'</b></td><td class="note">'+esc(a.type)
+      +'</td><td class="num">'+(a.available==null?'—':money(a.available))
+      +'</td><td class="num">'+(isCard
+        ? '<span style="color:var(--red)">'+money(a.current)+' owed</span>'
+        : money(a.current))
+      +'</td></tr>'; }).join('');
+  $('bankNote').textContent = 'Synced '+(FIN.bank.as_of_label||'')+'. Card balances are amounts owed, not cash.';
+})();
+
+/* ── PEX & receipts ── */
+(function(){
+  var pexBody = $('pexTable').querySelector('tbody');
+  if (!FIN.pex || !(FIN.pex.cards||[]).length){
+    pexBody.innerHTML = '<tr><td colspan="2" class="note">PEX unavailable at build time.</td></tr>';
+  } else {
+    pexBody.innerHTML = FIN.pex.cards.map(function(c){
+      return '<tr><td>'+esc(c.card)+'</td><td class="num">'+money(c.balance)+'</td></tr>'; }).join('');
+  }
+  var rcBody = $('rcTable').querySelector('tbody');
+  var RC = FIN.receipts;
+  if (!RC || !(RC.people||[]).length){
+    rcBody.innerHTML = '<tr><td colspan="4" class="note">No receipt data yet.</td></tr>'; return; }
+  $('rcMonth').textContent = RC.month ? '· '+fmtMonth(RC.month) : '';
+  if (RC.total_missing === 0){
+    $('rcClear').innerHTML = '<div class="allclear">✓ All clear — every purchase this month has its receipt.</div>';
+  }
+  rcBody.innerHTML = RC.people.map(function(p){
+    var warn = (p.missing_receipt||0) > 0;
+    return '<tr><td>'+esc(p.name)+'</td><td class="num">'+esc(p.purchases)
+      +'</td><td class="num"'+(warn?' style="color:var(--red);font-weight:700"':'')+'>'+esc(p.missing_receipt)
+      +'</td><td class="num">'+esc(p.missing_notes)+'</td></tr>'; }).join('');
+})();
+
+/* ── Payment requests ── */
+(function(){
+  var tbody = $('queue').querySelector('tbody');
+  var B = FIN.board;
+  if (!B){
+    tbody.innerHTML = '<tr><td colspan="4" class="note">No payment-request data yet.</td></tr>'; return; }
+  if (!(B.open||[]).length){
+    tbody.innerHTML = '<tr><td colspan="4" class="note">Queue is empty — all paid.'
+      +(B.last_sweep?' Last sweep '+esc(fmtDateShort(B.last_sweep))+'.':'')+'</td></tr>';
+  } else {
+    tbody.innerHTML = B.open.map(function(i){
+      var pillCls = /blocked/i.test(i.status||'') ? 'pill blocked'
+        : /held/i.test(i.status||'') ? 'pill held' : 'pill';
+      return '<tr><td><b>'+esc(i.payee)+'</b><div class="note">'+esc(i.type)
+        +' · by '+esc(i.requester)+'</div></td><td>'+esc(i.submitted)
+        +'</td><td><span class="'+pillCls+'">'+esc(i.status)+'</span>'
+        +(i.detail?'<div class="note">'+esc(i.detail)+'</div>':'')
+        +'</td><td class="num"><b>'+money(i.amount)+'</b></td></tr>'; }).join('')
+      + '<tr class="total"><td colspan="3">Total open</td><td class="num">'+money(B.open_total)+'</td></tr>';
+  }
+  if (B.url){
+    $('boardLinkWrap').innerHTML =
+      '<a class="boardlink" href="'+esc(B.url)+'" target="_blank" rel="noopener">Open the live status board ↗</a>';
+  }
+})();
+
+drawGive();
+/* Charts can lay out before the grid settles — re-measure once after paint. */
+requestAnimationFrame(function(){
+  Object.keys(charts).forEach(function(id){
+    if (charts[id]) { charts[id].resize(); charts[id].update('none'); }
+  });
+});
+</script>
+</body>
+</html>
