@@ -19,12 +19,17 @@ Blank cells are just empty. Values may include $ , and % — they get cleaned th
 same way the full parser cleans them. Precedence: Sunday cell, else Data Set cell.
 Rows where both cells are empty are skipped.
 
+BOTH cells matter for giving dollars (metrics_common.GIVING_KEYS): the Data Set
+cell is Mon–Sat and the Sunday cell is Sunday, so they're summed rather than
+collapsed. Those rows are also written to week['giving_cols'] so build.py can
+add them — always pass the third field for giving rows, even when it's blank.
+
 Prints a report of any label that is not already in the catalog (a new metric, or
 a typo/label drift that needs an ALIASES entry in tools/metrics_common.py).
 """
 import argparse, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from metrics_common import clean, key_for
+from metrics_common import clean, key_for, GIVING_KEYS
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 METRICS = os.path.join(HERE, 'data', 'metrics.json')
@@ -43,7 +48,7 @@ def main():
     m = json.load(open(METRICS))
     catalog = m['catalog']
 
-    values, unknown, seen = {}, [], 0
+    values, giving_cols, unknown, seen = {}, {}, [], 0
     for raw in sys.stdin:
         if not raw.strip() or raw.lstrip().startswith('#!'):
             continue
@@ -59,9 +64,11 @@ def main():
         key = key_for(label)
         if key not in catalog:
             unknown.append((label, key))
-        v = clean(sun)
-        if v is None:
-            v = clean(ds)
+        ds_v, sun_v = clean(ds), clean(sun)
+        if key in GIVING_KEYS and (ds_v is not None or sun_v is not None):
+            # keep both cells — the week is Mon–Sat + Sunday (see GIVING_KEYS)
+            giving_cols[key] = {'ds': ds_v, 'sun': sun_v}
+        v = sun_v if sun_v is not None else ds_v
         if v is not None:
             values[key] = v
 
@@ -92,6 +99,8 @@ def main():
                 return 1
 
     week = {'date': a.date, 'series': a.series, 'special': a.special, 'values': values}
+    if giving_cols:
+        week['giving_cols'] = giving_cols
     dates = [w['date'] for w in m['weeks']]
     action = 'replaced' if a.date in dates else 'appended'
     if a.date in dates:

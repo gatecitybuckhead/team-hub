@@ -3,7 +3,7 @@
 import json, os, re, sys, datetime
 from openpyxl import load_workbook
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from metrics_common import clean, slug, ALIASES, canon
+from metrics_common import clean, slug, ALIASES, canon, GIVING_KEYS
 
 # Full-history rebuild only. Needs an xlsx export of the sheet, because the Drive
 # connector truncates it (~146K chars). Pass paths on the command line:
@@ -96,9 +96,12 @@ for tabname, year in TABS:
         elif owner and not catalog[key]['owner']:
             catalog[key]['owner']=owner
         for c,dt in suncols.items():
-            v = clean(ws.cell(r,c).value)
-            if v is None and datacols[c]:
-                v = clean(ws.cell(r,datacols[c]).value)
+            sun_v = clean(ws.cell(r,c).value)
+            ds_v = clean(ws.cell(r,datacols[c]).value) if datacols[c] else None
+            if key in GIVING_KEYS and (sun_v is not None or ds_v is not None):
+                # keep both cells — the week is Mon–Sat + Sunday (see GIVING_KEYS)
+                weeks[dt].setdefault('giving_cols', {})[key] = {'ds': ds_v, 'sun': sun_v}
+            v = sun_v if sun_v is not None else ds_v
             if v is not None:
                 weeks[dt]['values'][key] = v
 

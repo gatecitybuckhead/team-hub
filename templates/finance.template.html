@@ -222,7 +222,9 @@ for (var i=WEEKS.length-1; i>=0; i--){
 (function(){
   var items = [];
   items.push(lastWk
-    ? {l:'Giving last week', v:money0(weekTotal(lastWk)), d:fmtDateShort(lastWk.sunday)}
+    ? {l:'Giving last week', v:money0(weekTotal(lastWk)),
+       d:fmtDateShort(lastWk.sunday)+(lastWk.window==='full'
+           ? ' · Mon–Sun' : ' · partial week (one column)')}
     : {l:'Giving last week', v:'—', d:'no weekly data yet'});
   items.push((GIVING && GIVING.ytd)
     ? {l:'Giving YTD', v:money0(GIVING.ytd.amount), d:'as of '+fmtDateShort(GIVING.ytd.as_of)}

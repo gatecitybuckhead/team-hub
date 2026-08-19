@@ -7,6 +7,21 @@ paths can never drift and produce different keys for the same sheet label.
 """
 import re
 
+# The sheet gives every metric TWO cells per week: a "Data Set" column and a
+# "Sunday" column. For counts (attendance, leaders…) the Sunday cell supersedes
+# the Data Set cell — they measure the same thing at different moments.
+#
+# Giving dollars are the exception: the GIVE Agent writes Mon–Sat into the Data
+# Set cell and Sunday alone into the Sunday cell, so they are DISJOINT and the
+# week is their SUM. Collapsing them by precedence silently dropped Sunday —
+# the church's biggest giving day — from every "giving last week" figure until
+# 2026-08-19. Ingest paths keep both cells for these keys; build.py adds them.
+GIVING_KEYS = frozenset({
+    'week_s_tithes_offerings_digital',
+    'week_s_tithes_offerings_cash',
+    'special_gifts',
+})
+
 def clean(v):
     """Sheet cell -> number or None. Handles $, commas, %, error strings."""
     if v is None: return None

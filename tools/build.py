@@ -113,14 +113,25 @@ def giving_series():
     weeks = []
     for w in metrics['weeks']:
         v = w['values']
-        digital, cash, special = (v.get('week_s_tithes_offerings_digital'),
-                                  v.get('week_s_tithes_offerings_cash'),
-                                  v.get('special_gifts'))
+        # A giving week = the sheet's Data Set cell (Mon–Sat) PLUS its Sunday
+        # cell. Weeks ingested before 2026-08-19 kept only one of the two, so
+        # they carry no 'giving_cols' and stay partial (window='partial') until
+        # the history is restated from Planning Center.
+        cols = w.get('giving_cols') or {}
+        def amount(key):
+            c = cols.get(key)
+            if c and (c.get('ds') is not None or c.get('sun') is not None):
+                return round((c.get('ds') or 0) + (c.get('sun') or 0), 2)
+            return v.get(key)
+        digital, cash, special = (amount('week_s_tithes_offerings_digital'),
+                                  amount('week_s_tithes_offerings_cash'),
+                                  amount('special_gifts'))
         total = None
         if any(x is not None for x in (digital, cash, special)):
             total = round(sum(x or 0 for x in (digital, cash, special)), 2)
         weeks.append({'sunday': w['date'], 'digital': digital, 'cash': cash,
-                      'special': special, 'total': total})
+                      'special': special, 'total': total,
+                      'window': 'full' if cols else 'partial'})
     ytd = next(({'amount': w['values']['ytd_total'], 'as_of': w['date']}
                 for w in reversed(metrics['weeks'])
                 if w['values'].get('ytd_total') is not None), None)
