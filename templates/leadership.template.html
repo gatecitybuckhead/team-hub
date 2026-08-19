@@ -52,6 +52,16 @@ label.chk{color:var(--dim);font-size:12.5px;cursor:pointer}
 .chip.occasional{color:var(--gold);border-color:#4a3d1d;background:#221d10}
 .chip.lapsed{color:var(--red);border-color:#4a2222;background:#221010}
 .mbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid #4a3d1d;background:#221d10;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
+/* serving × giving + decline patterns */
+.sxgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.sxgrid{grid-template-columns:1fr}}
+.sxgrid h4{font-size:13px;color:var(--ink);margin-bottom:6px}
+.sxgrid h4 .note{font-weight:400}
+tr.offteam td:first-child{border-left:3px solid var(--red)}
+.flagchip{display:inline-block;font-size:10.5px;font-weight:700;color:var(--red);border:1px solid #5a2b2b;background:#2a1616;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.rline{color:var(--dim);font-size:12px;margin-top:2px}
+.morebtn{display:block;margin:10px auto 0;background:var(--card2);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:6px 14px;font:inherit;font-size:12.5px;cursor:pointer}
+.morebtn:hover{color:var(--ink);border-color:var(--gold)}
 .filterrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .filterrow input[type=text]{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;min-width:200px}
 th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
@@ -121,6 +131,37 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
     <label class="chk"><input type="checkbox" id="gvAmts"> show amounts</label>
   </div>
   <div class="tablewrap"><table id="gvTable" class="noamt"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="card" id="sxgCard" style="display:none">
+  <h3><b>Serving × giving</b> — crossover lists</h3>
+  <div class="note" style="margin:-4px 0 12px">Two pastoral lists, not scorecards: a faithful
+    server who never gives may be stretched thin or unaware; a faithful giver who never serves
+    is the most natural person to invite onto a team.</div>
+  <div class="sxgrid">
+    <div>
+      <h4>Serving, not giving <span class="note" id="sngCount"></span></h4>
+      <div class="tablewrap"><table id="sngTable">
+        <thead><tr><th>Name</th><th class="num">Last served</th><th class="num">Last gift</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+    <div>
+      <h4>Giving, not serving <span class="note" id="gnsCount"></span></h4>
+      <div class="tablewrap"><table id="gnsTable">
+        <thead><tr><th>Name</th><th class="num">Last gift</th><th class="num">Last served</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="decCard" style="display:none">
+  <h3><b>Decline patterns</b> <span class="note" id="decCount"></span></h3>
+  <div class="note" style="margin:-4px 0 10px">Verbatim decline reasons are sensitive —
+    they live only on this page, never the staff pages.</div>
+  <div class="tablewrap"><table id="decTable">
+    <thead><tr><th>Name</th><th class="num">18-mo declines</th><th class="num">Last 13 wks</th><th>Recent reasons</th></tr></thead><tbody></tbody>
+  </table></div>
+  <button class="morebtn" id="decMore" style="display:none" type="button"></button>
 </div>
 
 <footer>Leadership password only — payroll and per-person giving never appear on the staff pages.</footer>
@@ -395,6 +436,72 @@ renderRunway();
     $('gvTable').classList.toggle('noamt', !$('gvAmts').checked);
   });
   renderGivers();
+})();
+
+/* ── serving × giving + decline patterns (leadership-only insights) ── */
+(function(){
+  var INS = (DATA && DATA.insights) || null;
+  if (!INS) return; /* older payload — both cards stay hidden */
+  function nameCell(r){
+    return '<b>'+esc(r.name||'(no name)')+'</b>'
+      +(r.is_member?'<span class="mbadge">member</span>':'');
+  }
+
+  /* serving × giving quadrants */
+  var sng = INS.serving_not_giving || [];
+  var gns = INS.giving_not_serving || [];
+  if (sng.length || gns.length){
+    $('sxgCard').style.display = '';
+    $('sngCount').textContent = '('+sng.length+')';
+    $('gnsCount').textContent = '('+gns.length+')';
+    $('sngTable').querySelector('tbody').innerHTML = sng.length ? sng.map(function(r){
+      return '<tr><td>'+nameCell(r)
+        +((r.teams||[]).length ? '<div class="note">'+esc(r.teams.join(', '))+'</div>' : '')
+        +'</td><td class="num">'+esc(fmtDateShort(r.last_served))+'</td>'
+        +'<td class="num">'+(r.last_gift ? esc(fmtDateShort(r.last_gift))
+          : '<span style="color:var(--red);font-weight:700">never</span>')+'</td></tr>';
+    }).join('')
+      : '<tr><td colspan="3" class="note">Everyone serving is also giving.</td></tr>';
+    $('gnsTable').querySelector('tbody').innerHTML = gns.length ? gns.map(function(r){
+      return '<tr><td>'+nameCell(r)
+        +(r.on_teams ? '<div class="note" title="On a team roster but not serving — recruitment is a conversation, not onboarding.">on a roster</div>' : '')
+        +'</td><td class="num">'+esc(fmtDateShort(r.last_gift))+'</td>'
+        +'<td class="num">'+(r.last_served ? esc(fmtDateShort(r.last_served))
+          : '<span class="note">never</span>')+'</td></tr>';
+    }).join('')
+      : '<tr><td colspan="3" class="note">Every recent giver is also serving.</td></tr>';
+  }
+
+  /* decline patterns — verbatim reasons, first 15 with a show-all toggle */
+  var dec = INS.decliners || [];
+  if (dec.length){
+    $('decCard').style.display = '';
+    $('decCount').textContent = '· '+dec.length+' people with declines · off-team language first';
+    var SHOW = 15, expanded = false;
+    function decRow(r){
+      var flag = r.off_team_language
+        ? ' <span class="flagchip" title="A recent decline reason reads like they consider themselves off the team — check before scheduling them again.">says they&#39;re off the team</span>'
+        : '';
+      var reasons = (r.recent_reasons||[]).map(function(x){
+        return '<div class="rline">'+esc(fmtDateShort(x.date))+' · '+esc(x.team)
+          +' — “'+esc(x.reason)+'”</div>';
+      }).join('');
+      return '<tr'+(r.off_team_language?' class="offteam"':'')+'><td>'+nameCell(r)+flag+'</td>'
+        +'<td class="num">'+esc(r.declines_18mo!=null?r.declines_18mo:'—')+'</td>'
+        +'<td class="num">'+esc(r.declines_13wk!=null?r.declines_13wk:'—')+'</td>'
+        +'<td>'+(reasons||'<span class="note">—</span>')+'</td></tr>';
+    }
+    function renderDec(){
+      var rows = expanded ? dec : dec.slice(0, SHOW);
+      $('decTable').querySelector('tbody').innerHTML = rows.map(decRow).join('');
+      var btn = $('decMore');
+      if (dec.length <= SHOW){ btn.style.display = 'none'; return; }
+      btn.style.display = '';
+      btn.textContent = expanded ? 'Show first '+SHOW+' only' : 'Show all '+dec.length;
+    }
+    $('decMore').onclick = function(){ expanded = !expanded; renderDec(); };
+    renderDec();
+  }
 })();
 </script>
 </body>

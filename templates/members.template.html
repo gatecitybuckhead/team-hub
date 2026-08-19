@@ -43,7 +43,16 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
 th.sortable:hover{color:var(--ink)}
 th .arrow{font-size:9px}
 .mbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid #4a3d1d;background:#221d10;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
+.newchip{display:inline-block;font-size:10.5px;font-weight:700;color:var(--green);border:1px solid #1d4a2e;background:#102217;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
 .chip{display:inline-block;border-radius:999px;padding:0 8px;font-size:10.5px;font-weight:600;border:1px solid var(--line);background:#232838;color:var(--dim);margin-left:6px;vertical-align:1px}
+/* pastoral care card */
+.caregrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.caregrid{grid-template-columns:1fr}}
+.caregrid h4{font-size:13px;color:var(--ink);margin-bottom:2px}
+.caregrid .subnote{color:var(--dim);font-size:12px;margin-bottom:8px}
+.dwarn{color:var(--gold);font-weight:700}
+.dlate{color:var(--red);font-weight:700}
+.okmsg{color:var(--green);font-size:13px;padding:6px 0}
 .filterrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 /* teams grid */
 .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
@@ -103,6 +112,22 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 <div class="card" id="teamsCard" style="display:none">
   <h3><b>Teams</b> <span class="note" id="teamsNote"></span></h3>
   <div class="teamgrid" id="teamsGrid"></div>
+</div>
+
+<div class="card" id="careCard" style="display:none">
+  <h3><b>Pastoral care</b> — serving check-ins</h3>
+  <div class="caregrid">
+    <div>
+      <h4>Gone quiet — worth a call</h4>
+      <div class="subnote">Served regularly (6+ Sundays), nothing in the last month or more.</div>
+      <div id="gqWrap"></div>
+    </div>
+    <div>
+      <h4>New servers — first 60 days</h4>
+      <div class="subnote">First-ever serve in the last 60 days. Celebrate them; check in around week 4.</div>
+      <div id="nsWrap"></div>
+    </div>
+  </div>
 </div>
 
 <div class="card">
@@ -251,6 +276,56 @@ function renderTeamTiles(){
   $('teamsCard').style.display = '';
   $('teamsNote').textContent = '· '+TEAMS.length+' teams · dormant = no confirmed serve in ~13 weeks';
   renderTeamTiles();
+})();
+
+/* ── Pastoral care: gone quiet + new servers ── */
+(function(){
+  var GQ = (DATA && DATA.gone_quiet) || null;
+  var NS = (DATA && DATA.new_servers) || null;
+  if (!GQ && !NS) return; /* older payload — whole card stays hidden */
+  $('careCard').style.display = '';
+  var byId = {};
+  PEOPLE.forEach(function(p){ if (p.person_id != null) byId[p.person_id] = p; });
+  function careName(name, pid){
+    var html = '<b>'+esc(name||'(no name)')+'</b>';
+    var p = pid != null ? byId[pid] : null;
+    if (p && p.is_member) html += '<span class="mbadge">member</span>';
+    return html;
+  }
+  /* left: regular servers who went quiet */
+  (function(){
+    var rows = GQ || [];
+    if (!rows.length){
+      $('gqWrap').innerHTML = '<div class="okmsg">Nobody has gone quiet — every regular server has served recently.</div>';
+      return;
+    }
+    $('gqWrap').innerHTML = '<div class="tablewrap"><table><thead><tr>'
+      +'<th>Name</th><th class="num">Last served</th><th class="num">History</th></tr></thead><tbody>'
+      + rows.map(function(r){
+        var tint = (r.days||0) >= 61 ? 'dlate' : 'dwarn';
+        return '<tr><td>'+careName(r.name, r.person_id)
+          +((r.teams||[]).length ? '<div class="note">'+esc(r.teams.join(', '))+'</div>' : '')
+          +'</td><td class="num">'+esc(fmtDate(r.last_served))
+          +' · <span class="'+tint+'">'+esc(r.days!=null?r.days:'—')+' days ago</span></td>'
+          +'<td class="num note">'+esc(r.serves_18mo!=null?r.serves_18mo:'—')+' serves in 18 mo</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  })();
+  /* right: first-ever serves in the last 60 days */
+  (function(){
+    var rows = NS || [];
+    if (!rows.length){
+      $('nsWrap').innerHTML = '<div class="nodata">No first-time servers in the last 60 days.</div>';
+      return;
+    }
+    $('nsWrap').innerHTML = '<div class="tablewrap"><table><thead><tr>'
+      +'<th>Name</th><th class="num">First serve</th><th class="num">Sundays</th><th>Teams</th></tr></thead><tbody>'
+      + rows.map(function(r){
+        return '<tr><td>'+careName(r.name, r.person_id)+'</td>'
+          +'<td class="num">'+esc(fmtDate(r.first))+'</td>'
+          +'<td class="num">'+esc(r.serves!=null?r.serves:'—')+' so far</td>'
+          +'<td class="note">'+((r.teams||[]).length ? esc(r.teams.join(', ')) : '—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  })();
 })();
 
 /* ── value labels plugin (same hand-rolled one as finance/metrics — chart.umd only) ── */
@@ -450,6 +525,7 @@ function loadCell(p){
 function rowHTML(p){
   var name = '<b>'+esc(p.name||'(no name)')+'</b>';
   if (p.is_member) name += '<span class="mbadge">member</span>';
+  if (p.new_server) name += '<span class="newchip" title="First serve in the last 60 days">new</span>';
   if (p.status && p.status!=='active') name += '<span class="chip">'+esc(p.status)+'</span>';
   var html = '<tr><td>'+name+'</td><td>'+teamsCell(p.teams)+'</td>'
     +'<td class="num'+(p.last_served?'':' zero')+'">'+(p.last_served?esc(fmtDate(p.last_served)):'—')+'</td>'

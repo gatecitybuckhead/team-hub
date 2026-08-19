@@ -272,6 +272,44 @@ def members_payload():
     except FileNotFoundError:
         pass
 
+    # --- gone quiet: regular servers whose serving stopped 30-97 days ago ---
+    # The drift window where a check-in call still lands easily. "Regular" =
+    # 6+ distinct Sundays served in 18 months. Excludes shared accounts.
+    NONPERSONS = {'audio link'}
+    # Staff see each other weekly — they don't need a drift call. Tier list is
+    # the shared source of truth in Planning Center Agent/data/tiers.json.
+    try:
+        _tiers = json.load(open(ROOT.parent/'Planning Center Agent/data/tiers.json'))
+        STAFF_NAMES = {n.lower() for n in _tiers.get('staff', [])}
+    except FileNotFoundError:
+        STAFF_NAMES = set()
+    gone_quiet = []
+    for p in ppl:
+        if (p['name'] or '').lower() in NONPERSONS or (p['name'] or '').lower() in STAFF_NAMES:
+            continue
+        if p['last_served'] and p['serves_18mo'] >= 6:
+            d = _days_since(p['last_served'])
+            if 30 <= d <= 97:
+                gone_quiet.append({'name': p['name'], 'person_id': p['person_id'],
+                                   'last_served': p['last_served'], 'days': d,
+                                   'serves_18mo': p['serves_18mo'],
+                                   'teams': p['teams']})
+    gone_quiet.sort(key=lambda g: -g['days'])
+
+    # --- new servers: FIRST CONFIRMED serve within the last 60 days ---------
+    new_servers = []
+    for p in ppl:
+        if (p['name'] or '').lower() in NONPERSONS:
+            continue
+        recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
+        confirmed = sorted(r['date'] for r in recs if r['status'] == 'C')
+        p['new_server'] = bool(confirmed and _days_since(confirmed[0]) <= 60)
+        if p['new_server']:
+            new_servers.append({'name': p['name'], 'person_id': p['person_id'],
+                                'first': confirmed[0], 'serves': len(set(confirmed)),
+                                'teams': p['teams']})
+    new_servers.sort(key=lambda n: n['first'])
+
     served60 = sum(1 for p in ppl if p['last_served'] and
                    (datetime.date.today() - datetime.date.fromisoformat(p['last_served'])).days <= 60)
     weekly = {}
@@ -292,6 +330,8 @@ def members_payload():
             'people': ppl,
             'teams': teams,
             'giving_windows': giving_windows,
+            'gone_quiet': gone_quiet,
+            'new_servers': new_servers,
             # shared accounts, not humans — excluded from rest/high-load flags
             'nonpersons': ['Audio Link'],
             'prayer_started': bool(prayer),
@@ -323,6 +363,67 @@ def leadership_giving():
                         'total_givers': len(rows)},
             'people': rows, 'never': sorted(never, key=lambda n: (n['name'] or '').lower())}
 
+OFF_TEAM_RE = re.compile(
+    r"not (on|part of|in).*(team|ministry)|no longer|stepped (down|back|away)|off the team", re.I)
+
+def leadership_insights():
+    """Serving x giving quadrant + decline-reason patterns. LEADERSHIP ONLY —
+    touches per-person giving and verbatim decline reasons (people say
+    personal things in declines; those never reach the staff pages)."""
+    gv = json.load(open(DATA/'members/giving-by-person.json'))
+    snap = json.load(open(DATA/'members/members-latest.json'))
+    ledger = json.load(open(DATA/'members/serving-history.json'))
+    today = datetime.date.today()
+    days = lambda iso: (today - datetime.date.fromisoformat(iso)).days
+    NONPERSONS = {'audio link'}
+
+    people = [p for p in snap['people'] if (p['name'] or '').lower() not in NONPERSONS]
+    by_id = {p['person_id']: p for p in people}
+    last_gift = {pid: g['last_gift'] for pid, g in gv['people'].items()}
+
+    serving_not_giving, giving_not_serving = [], []
+    for p in people:
+        active_server = p['last_served'] and days(p['last_served']) <= 60
+        lg = last_gift.get(p['person_id'])
+        if active_server and (lg is None or days(lg) > 180):
+            serving_not_giving.append({'name': p['name'], 'is_member': p['is_member'],
+                                       'teams': p['teams'], 'last_served': p['last_served'],
+                                       'last_gift': lg})
+        if lg is not None and days(lg) <= 90 and \
+           (not p['last_served'] or days(p['last_served']) > 183):
+            giving_not_serving.append({'name': p['name'], 'is_member': p['is_member'],
+                                       'last_gift': lg, 'last_served': p['last_served'],
+                                       'on_teams': bool(p['teams'])})
+    serving_not_giving.sort(key=lambda r: (r['last_gift'] or ''), reverse=False)
+    giving_not_serving.sort(key=lambda r: r['last_gift'], reverse=True)
+
+    # decline patterns from the serving ledger (status D + reason text)
+    cutoff13 = (today - datetime.timedelta(weeks=13)).isoformat()
+    decliners = []
+    for pid, person in ledger['people'].items():
+        if (person['name'] or '').lower() in NONPERSONS:
+            continue
+        ds = [r for r in person['records'] if r['status'] == 'D']
+        if not ds:
+            continue
+        reasons = [{'date': r['date'], 'team': r['team'],
+                    'reason': (r['decline_reason'] or '').strip()}
+                   for r in ds if (r['decline_reason'] or '').strip()]
+        off_team = any(OFF_TEAM_RE.search(x['reason']) for x in reasons)
+        recent = sum(1 for r in ds if r['date'] >= cutoff13)
+        if len(ds) >= 3 or off_team:
+            decliners.append({'name': person['name'],
+                              'person_id': pid,
+                              'is_member': by_id.get(pid, {}).get('is_member', False),
+                              'declines_18mo': len(ds), 'declines_13wk': recent,
+                              'off_team_language': off_team,
+                              'recent_reasons': reasons[-3:]})
+    decliners.sort(key=lambda d: (-int(d['off_team_language']), -d['declines_13wk'],
+                                  -d['declines_18mo']))
+    return {'serving_not_giving': serving_not_giving,
+            'giving_not_serving': giving_not_serving,
+            'decliners': decliners}
+
 try:
     mp = members_payload()
     assert_staff_safe(mp, 'members.html')
@@ -334,6 +435,7 @@ try:
     leadership = json.load(open(DATA/'finance_leadership.json'))
     try:
         leadership['giving_people'] = leadership_giving()
+        leadership['insights'] = leadership_insights()
     except FileNotFoundError:
         pass  # placeholder card renders until giving data exists
     inject('leadership.template.html', 'leadership.html', leadership)
