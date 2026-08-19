@@ -56,6 +56,11 @@ tr.total td{border-top:2px solid var(--line);font-weight:700}
 .pill.blocked{color:var(--red);border-color:#4a2222;background:#221010}
 .errbox{border-left:4px solid var(--gold);background:var(--card);border-radius:0 10px 10px 0;padding:8px 12px;margin:8px 0;font-size:12.5px;color:var(--ink)}
 .allclear{color:var(--green);font-size:13px;font-weight:600;padding:6px 0}
+.sla{display:inline-block;font-weight:700;font-size:12px;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.sla.green{color:#57c98a;background:#12271c;border:1px solid #245c3a}
+.sla.amber{color:#e0b34c;background:#221d10;border:1px solid #4a3d1d}
+.sla.red{color:#e06767;background:#221010;border:1px solid #4a2222}
+.slanote{color:var(--dim);font-size:11.5px;margin-top:2px}
 .boardlink{display:inline-block;background:#1d2a3a;border:1px solid #2f4a66;color:#9dc9f2;text-decoration:none;font-weight:700;font-size:13.5px;border-radius:8px;padding:7px 14px;margin-top:10px}
 .boardlink:hover{background:#243447;border-color:var(--blue)}
 a{color:var(--blue)}
@@ -136,12 +141,12 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 </div>
 
 <div class="card">
-  <h3><b>Payment requests</b> — open queue</h3>
+  <h3><b>Payment requests</b> — open queue <span class="note" id="slaSummary"></span></h3>
   <div class="tablewrap"><table id="queue">
-    <thead><tr><th>Payee</th><th>Submitted</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody></tbody>
+    <thead><tr><th>Payee</th><th>Submitted</th><th>Pay by <span style="font-weight:400">(2 wks)</span></th><th>Status</th><th class="num">Amount</th></tr></thead><tbody></tbody>
   </table></div>
   <div id="boardLinkWrap"></div>
-  <div class="lblnote">Statuses update on the staff board instantly; this page rebuilds daily.</div>
+  <div class="lblnote">Target: contractors paid within <b>2 weeks</b> of submitting. Green = on track, amber = due within a week, red = past the 2-week mark. Statuses update on the board instantly; this page rebuilds daily.</div>
 </div>
 
 <footer>One team password unlocks all staff dashboards.<br>
@@ -453,24 +458,60 @@ function drawGive(){
   var tbody = $('queue').querySelector('tbody');
   var B = FIN.board;
   if (!B){
-    tbody.innerHTML = '<tr><td colspan="4" class="note">No payment-request data yet.</td></tr>'; return; }
+    tbody.innerHTML = '<tr><td colspan="5" class="note">No payment-request data yet.</td></tr>'; return; }
+
+  /* 2-week pay target. Computed against TODAY in the viewer's browser, not the
+     build date, so the colors stay honest even if the page wasn't rebuilt. */
+  var SLA_DAYS = 14;
+  function sla(submitted){
+    if (!submitted) return null;
+    var due = new Date(submitted + 'T00:00:00');
+    if (isNaN(due)) return null;
+    due.setDate(due.getDate() + SLA_DAYS);
+    var today = new Date(); today.setHours(0,0,0,0);
+    var left = Math.round((due - today) / 864e5);
+    return {
+      due: due,
+      left: left,
+      cls: left < 0 ? 'red' : left <= 6 ? 'amber' : 'green',
+      label: left < 0 ? Math.abs(left) + (Math.abs(left)===1?' day over':' days over')
+           : left === 0 ? 'due today'
+           : left + (left===1?' day left':' days left'),
+      dueLabel: (due.getMonth()+1) + '/' + due.getDate()
+    };
+  }
+
   if (!(B.open||[]).length){
-    tbody.innerHTML = '<tr><td colspan="4" class="note">Queue is empty — all paid.'
+    tbody.innerHTML = '<tr><td colspan="5" class="note">Queue is empty — all paid.'
       +(B.last_sweep?' Last sweep '+esc(fmtDateShort(B.last_sweep))+'.':'')+'</td></tr>';
   } else {
+    var over = 0, dueSoon = 0;
     tbody.innerHTML = B.open.map(function(i){
       var pillCls = /blocked/i.test(i.status||'') ? 'pill blocked'
         : /held/i.test(i.status||'') ? 'pill held' : 'pill';
+      var t = sla(i.submitted);
+      if (t){ if (t.left < 0) over++; else if (t.left <= 6) dueSoon++; }
+      var dueCell = t
+        ? '<span class="sla '+t.cls+'">'+esc(t.label)+'</span>'
+          +'<div class="slanote">by '+esc(t.dueLabel)+'</div>'
+        : '<span class="note">—</span>';
       return '<tr><td><b>'+esc(i.payee)+'</b><div class="note">'+esc(i.type)
         +' · by '+esc(i.requester)+'</div></td><td>'+esc(i.submitted)
+        +'</td><td>'+dueCell
         +'</td><td><span class="'+pillCls+'">'+esc(i.status)+'</span>'
         +(i.detail?'<div class="note">'+esc(i.detail)+'</div>':'')
         +'</td><td class="num"><b>'+money(i.amount)+'</b></td></tr>'; }).join('')
-      + '<tr class="total"><td colspan="3">Total open</td><td class="num">'+money(B.open_total)+'</td></tr>';
+      + '<tr class="total"><td colspan="4">Total open</td><td class="num">'+money(B.open_total)+'</td></tr>';
+    var bits = [];
+    if (over) bits.push(over + ' past 2 weeks');
+    if (dueSoon) bits.push(dueSoon + ' due within a week');
+    $('slaSummary').innerHTML = bits.length
+      ? '· <span style="color:'+(over?'var(--red)':'var(--gold)')+'">'+esc(bits.join(' · '))+'</span>'
+      : '· <span style="color:var(--green)">all within the 2-week target</span>';
   }
   if (B.url){
     $('boardLinkWrap').innerHTML =
-      '<a class="boardlink" href="'+esc(B.url)+'" target="_blank" rel="noopener">Open the live status board ↗</a>';
+      '<a class="boardlink" href="'+esc(B.url)+'" target="_blank" rel="noopener">Check Payment Status ↗</a>';
   }
 })();
 
