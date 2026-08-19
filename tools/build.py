@@ -185,7 +185,7 @@ def members_payload():
         recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
         by_month = {}
         for r in recs:
-            if r['status'] == 'C':
+            if r['status'] in ('C', 'U'):  # present = scheduled, didn't decline
                 by_month.setdefault(r['date'][:7], set()).add(r['date'])
         first = recs[0]['date'][:7] if recs else None
         p['heat'] = [None if (first is None or ym < first)
@@ -212,7 +212,7 @@ def members_payload():
     last6 = set(all_sundays[:6])
     for p in ppl:
         recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
-        confirmed = {r['date'] for r in recs if r['status'] == 'C'}
+        confirmed = {r['date'] for r in recs if r['status'] in ('C', 'U')}
         p['recent6'] = len(last6 & confirmed)
         streak = 0
         for d in all_sundays:
@@ -302,7 +302,7 @@ def members_payload():
         if (p['name'] or '').lower() in NONPERSONS:
             continue
         recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
-        confirmed = sorted(r['date'] for r in recs if r['status'] == 'C')
+        confirmed = sorted(r['date'] for r in recs if r['status'] in ('C', 'U'))
         p['new_server'] = bool(confirmed and _days_since(confirmed[0]) <= 60)
         if p['new_server']:
             new_servers.append({'name': p['name'], 'person_id': p['person_id'],
@@ -315,7 +315,7 @@ def members_payload():
     weekly = {}
     for person in ledger['people'].values():
         for r in person['records']:
-            if r['status'] == 'C':
+            if r['status'] in ('C', 'U'):
                 weekly.setdefault(r['date'], set()).add(id(person))
     serve_trend = [{'month': ym,
                     'volunteers': max((len(v) for d, v in weekly.items()

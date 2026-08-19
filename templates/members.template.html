@@ -119,7 +119,7 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
   <div class="caregrid">
     <div>
       <h4>Gone quiet — worth a call</h4>
-      <div class="subnote">Served regularly (6+ Sundays), nothing in the last month or more.</div>
+      <div class="subnote">On plans regularly (6+ Sundays), nothing in the last month or more. Counts anyone scheduled who didn't decline — someone serving without being on the Planning Center plan is invisible here.</div>
       <div id="gqWrap"></div>
     </div>
     <div>
@@ -197,7 +197,7 @@ function fmtMonY(ym){ var p=String(ym).split('-'); return MON[+p[1]-1]+' '+p[0].
 (function(){
   var items = [
     {l:'Members', v:OV.members!=null?OV.members:'—', d:'Members (All) list'},
-    {l:'Served last 60 days', v:OV.served_60d!=null?OV.served_60d:'—', d:'confirmed serves'},
+    {l:'Served last 60 days', v:OV.served_60d!=null?OV.served_60d:'—', d:'on a Sunday plan (didn't decline)'},
     {l:'On teams', v:OV.on_teams!=null?OV.on_teams:'—', d:'current team rosters'},
     {l:'Served in 18 months', v:OV.served_18mo!=null?OV.served_18mo:'—', d:'at least one Sunday'}];
   var readings = (GP && GP.readings) || [];
