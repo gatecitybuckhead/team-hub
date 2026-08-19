@@ -204,6 +204,74 @@ def members_payload():
         for p in ppl:
             p['prayer_90d'] = counts.get(p['person_id'], 0)
 
+    # --- recent load + streaks (rest signal) --------------------------------
+    # last 6 ledger Sundays; how many each person served, and their current
+    # consecutive-Sunday streak. 5+ of 6 = carrying a lot; a long streak with
+    # no week off is the "needs rest" pastoral flag Andrew asked for.
+    all_sundays = sorted({pl['date'] for pl in ledger['plans'].values()}, reverse=True)
+    last6 = set(all_sundays[:6])
+    for p in ppl:
+        recs = (ledger['people'].get(p['person_id']) or {}).get('records', [])
+        confirmed = {r['date'] for r in recs if r['status'] == 'C'}
+        p['recent6'] = len(last6 & confirmed)
+        streak = 0
+        for d in all_sundays:
+            if d in confirmed:
+                streak += 1
+            else:
+                break
+        p['streak'] = streak
+
+    # --- teams section -------------------------------------------------------
+    def _days_since(iso):
+        return (datetime.date.today() - datetime.date.fromisoformat(iso)).days
+    teams_map = {}
+    for p in ppl:
+        for t in p['teams']:
+            tm = teams_map.setdefault(t, {'team': t, 'roster': 0, 'active_60d': 0,
+                                          'dormant': 0, 'members': 0, 'people': []})
+            tm['roster'] += 1
+            tm['members'] += 1 if p['is_member'] else 0
+            if p['last_served'] and _days_since(p['last_served']) <= 60:
+                tm['active_60d'] += 1
+            elif not p['last_served'] or _days_since(p['last_served']) > 91:
+                tm['dormant'] += 1   # no confirmed serve in ~13 Sundays
+            tm['people'].append(p['name'])
+    teams = sorted(teams_map.values(), key=lambda t: -t['roster'])
+    for t in teams:
+        t['people'].sort(key=str.lower)
+
+    # --- giving participation windows (AGGREGATE ONLY — staff-safe) ----------
+    # Computed from real donation history (PCO Giving backfill), so unlike the
+    # rolling 90-day list these CAN be charted backwards. Denominator = the
+    # CURRENT Members (All) list applied to past months (membership history
+    # isn't versioned in PCO) — a steady-denominator approximation, flagged in
+    # the UI. Only counts/percentages leave this function; no per-person data.
+    giving_windows = None
+    try:
+        gv = json.load(open(DATA/'members/giving-by-person.json'))
+        member_ids = {p['person_id'] for p in snap['people'] if p['is_member']}
+        n_members = len(member_ids)
+        member_months = [set(g['months_given']) for pid, g in gv['people'].items()
+                         if pid in member_ids]
+        def _mshift(ym, back):
+            y, m = int(ym[:4]), int(ym[5:7])
+            m -= back
+            while m <= 0:
+                y, m = y - 1, m + 12
+            return f'{y:04d}-{m:02d}'
+        giving_windows = {'members': n_members, 'windows': {}}
+        for w in (1, 3, 6, 12):
+            series = []
+            for ym in months:
+                span = {_mshift(ym, b) for b in range(w)}
+                gave = sum(1 for mm in member_months if mm & span)
+                series.append({'month': ym, 'gave': gave,
+                               'pct': round(gave / n_members * 100, 1) if n_members else None})
+            giving_windows['windows'][str(w)] = series
+    except FileNotFoundError:
+        pass
+
     served60 = sum(1 for p in ppl if p['last_served'] and
                    (datetime.date.today() - datetime.date.fromisoformat(p['last_served'])).days <= 60)
     weekly = {}
@@ -222,6 +290,10 @@ def members_payload():
                          'served_18mo': sum(1 for p in ppl if p['serves_18mo'] > 0)},
             'serve_trend': serve_trend,
             'people': ppl,
+            'teams': teams,
+            'giving_windows': giving_windows,
+            # shared accounts, not humans — excluded from rest/high-load flags
+            'nonpersons': ['Audio Link'],
             'prayer_started': bool(prayer),
             'giving_participation': giving_part}
 

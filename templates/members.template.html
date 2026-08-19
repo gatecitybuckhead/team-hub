@@ -45,6 +45,26 @@ th .arrow{font-size:9px}
 .mbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid #4a3d1d;background:#221d10;border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
 .chip{display:inline-block;border-radius:999px;padding:0 8px;font-size:10.5px;font-weight:600;border:1px solid var(--line);background:#232838;color:var(--dim);margin-left:6px;vertical-align:1px}
 .filterrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+/* teams grid */
+.teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.teamtile{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.teamtile:hover{border-color:var(--gold)}
+.teamtile.active{border-color:var(--gold);background:#221d10}
+.teamtile .tn{font-weight:700;font-size:13px}
+.teamtile .tm{font-size:11.5px;color:var(--dim);margin-top:2px}
+.tgood{color:var(--green)} .tbad{color:var(--red)}
+/* range pills */
+.pillrow{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.pill.rng{display:inline-block;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:600;
+  border:1px solid var(--line);background:#232838;color:var(--dim);cursor:pointer;user-select:none}
+.pill.rng:hover{color:var(--ink)}
+.pill.rng.on{color:var(--gold);border-color:#4a3d1d;background:#221d10}
+/* grouped people table */
+tr.grouphead td{background:var(--card2);color:var(--gold);font-weight:700;font-size:12px;
+  text-transform:uppercase;letter-spacing:.5px;padding:6px 10px}
+/* serving-load badge */
+.loadbadge{display:inline-block;font-size:10px;font-weight:700;color:var(--red);border:1px solid #5a2b2b;
+  background:#2a1616;border-radius:999px;padding:0 7px;margin-left:6px;white-space:nowrap;vertical-align:1px}
 .filterrow input[type=text]{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;min-width:200px}
 label.chk{color:var(--dim);font-size:12.5px;cursor:pointer}
 /* heatmap */
@@ -80,21 +100,29 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 
 <div class="kpis" id="kpis"></div>
 
+<div class="card" id="teamsCard" style="display:none">
+  <h3><b>Teams</b> <span class="note" id="teamsNote"></span></h3>
+  <div class="teamgrid" id="teamsGrid"></div>
+</div>
+
 <div class="card">
   <h3><b>Engagement</b> — peak Sunday volunteers per month</h3>
   <div class="cvbox"><canvas id="cTrend"></canvas></div>
   <div style="margin-top:14px" id="partWrap">
-    <h3><b>Giving participation</b> — % of members giving (rolling 90 days)</h3>
+    <h3 id="partHead"><b>Giving participation</b> — % of members giving (rolling 90 days)</h3>
+    <div class="pillrow" id="gwPills"></div>
     <div class="cvbox sm"><canvas id="cPart"></canvas></div>
+    <div class="lblnote" id="gwCaption"></div>
   </div>
   <div class="lblnote">Volunteers = distinct people with a confirmed serve that Sunday; the month shows its best Sunday. Participation is the aggregate % only — nothing per person.</div>
 </div>
 
-<div class="card">
-  <h3><b>People</b> <span class="note" id="pplCount"></span></h3>
+<div class="card" id="peopleCard">
+  <h3><b>People</b> <span class="note" id="pplCount"></span><span id="pplTeamChip"></span></h3>
   <div class="filterrow">
     <input type="text" id="pplFilter" placeholder="filter by name…">
     <label class="chk"><input type="checkbox" id="pplMembers"> members only</label>
+    <label class="chk" id="pplGroupLbl" style="display:none"><input type="checkbox" id="pplGroup"> group by team</label>
   </div>
   <div class="tablewrap"><table id="pplTable"><thead></thead><tbody></tbody></table></div>
   <div class="lblnote" id="prayerNote"></div>
@@ -117,6 +145,9 @@ var OV = (DATA && DATA.overview) || {};
 var TREND = (DATA && DATA.serve_trend) || [];
 var GP = (DATA && DATA.giving_participation) || null;
 var PRAYER = !!(DATA && DATA.prayer_started);
+var TEAMS = (DATA && DATA.teams) || [];
+var GW = (DATA && DATA.giving_windows) || null;
+var HAS_LOAD = PEOPLE.some(function(p){ return p.recent6 != null; });
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ var d=document.createElement('div');
@@ -146,14 +177,80 @@ function fmtMonY(ym){ var p=String(ym).split('-'); return MON[+p[1]-1]+' '+p[0].
     {l:'Served in 18 months', v:OV.served_18mo!=null?OV.served_18mo:'—', d:'at least one Sunday'}];
   var readings = (GP && GP.readings) || [];
   var last = readings.length ? readings[readings.length-1] : null;
+  var hint12 = '';
+  if (GW && GW.windows && GW.windows['12']){
+    var w12 = GW.windows['12'];
+    for (var i = w12.length-1; i >= 0; i--){
+      if (w12[i] && w12[i].pct != null){ hint12 = '12-mo: '+Math.round(w12[i].pct)+'%'; break; }
+    }
+  }
   items.push(last
     ? {l:'% of members giving (90-day)', v:Math.round(last.pct)+'%',
-       d:last.giving+' of '+last.members+' · '+fmtDate(last.sunday)}
-    : {l:'% of members giving (90-day)', v:'—', d:'no readings yet'});
+       d:hint12 ? '90-day list · '+hint12
+                : last.giving+' of '+last.members+' · '+fmtDate(last.sunday)}
+    : {l:'% of members giving (90-day)', v:'—',
+       d:hint12 ? 'no readings yet · '+hint12 : 'no readings yet'});
+  var NONPERSON = {}; (DATA.nonpersons||[]).forEach(function(n){ NONPERSON[n.toLowerCase()] = 1; });
+  function isAccount(p){ return NONPERSON[(p.name||'').toLowerCase()] === 1; }
+  window._isAccount = isAccount;
+  if (HAS_LOAD){
+    items.push({l:'High load',
+      v:PEOPLE.filter(function(p){ return (p.recent6||0) >= 5 && !isAccount(p); }).length,
+      d:'served 5+ of the last 6 Sundays'});
+  }
   $('kpis').innerHTML = items.map(function(k){
     return '<div class="kpi"><div class="l">'+esc(k.l)+'</div>'
       +'<div class="v">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
   }).join('');
+})();
+
+/* ── Teams section (tiles filter the People table) ── */
+var teamFilter = null;
+function setTeamFilter(t){
+  teamFilter = (teamFilter === t) ? null : t;
+  renderTeamTiles();
+  renderTeamChip();
+  renderPeople();
+  var pc = $('peopleCard');
+  if (teamFilter && pc && pc.scrollIntoView) pc.scrollIntoView({behavior:'smooth'});
+}
+function renderTeamChip(){
+  var el = $('pplTeamChip'); if (!el) return;
+  if (!teamFilter){ el.innerHTML = ''; return; }
+  el.innerHTML = ' <span class="chip" style="cursor:pointer;color:var(--gold);border-color:#4a3d1d;background:#221d10" '
+    +'title="click to clear the team filter">team: '+esc(teamFilter)+' ✕</span>';
+  var chip = el.querySelector('.chip');
+  if (chip) chip.onclick = function(){ setTeamFilter(teamFilter); };
+}
+function renderTeamTiles(){
+  if (!TEAMS.length) return;
+  var html = TEAMS.map(function(t,i){
+    var on = teamFilter === t.team;
+    var dor = (t.dormant>0)
+      ? ' · <span class="tbad">'+t.dormant+' dormant (13+ wks)</span>' : '';
+    return '<div class="teamtile'+(on?' active':'')+'" data-ti="'+i+'" title="'
+      +(on?'click to clear the filter':'click to filter the People table')+'">'
+      +'<div class="tn">'+esc(t.team)+(on?' <span class="note">▸ filtering</span>':'')+'</div>'
+      +'<div class="tm">'+(t.roster||0)+' on roster</div>'
+      +'<div class="tm"><span class="tgood">'+(t.active_60d||0)+' active (60d)</span>'+dor+'</div>'
+      +'</div>';
+  }).join('')
+  + '<div class="teamtile'+(teamFilter?'':' active')+'" data-ti="-1">'
+  + '<div class="tn">All teams</div><div class="tm">clear team filter</div></div>';
+  $('teamsGrid').innerHTML = html;
+  Array.prototype.forEach.call($('teamsGrid').querySelectorAll('.teamtile'), function(el){
+    el.onclick = function(){
+      var i = +el.getAttribute('data-ti');
+      if (i < 0){ if (teamFilter) setTeamFilter(teamFilter); return; }
+      setTeamFilter(TEAMS[i].team);
+    };
+  });
+}
+(function(){
+  if (!TEAMS.length) return;
+  $('teamsCard').style.display = '';
+  $('teamsNote').textContent = '· '+TEAMS.length+' teams · dormant = no confirmed serve in ~13 weeks';
+  renderTeamTiles();
 })();
 
 /* ── value labels plugin (same hand-rolled one as finance/metrics — chart.umd only) ── */
@@ -222,25 +319,76 @@ function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No dat
         y:{beginAtZero:true, grid:gridStyle, ticks:{color:'#666c80', font:{size:10}}}}}});
 })();
 
-/* ── participation % chart ── */
+/* ── participation % chart (windowed 1/3/6/12-mo from donation history + live 90-day list) ── */
 (function(){
   var readings = (GP && GP.readings) || [];
-  if (!readings.length){ noData($('partWrap'),'No participation readings yet.'); return; }
-  mkChart('cPart',{type:'line',
-    data:{labels:readings.map(function(r){return r.sunday.slice(5).replace('-','/');}),
-      datasets:[{label:'% of members giving (90-day)', data:readings.map(function(r){return r.pct;}),
-        borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
-        pointRadius:3, tension:.3, spanGaps:true}]},
-    options:{responsive:true, maintainAspectRatio:false, animation:false,
-      interaction:{mode:'index',intersect:false}, layout:{padding:{top:18}},
-      plugins:{legend:legendStyle,
-        valueLabels:{fmt:function(v){return Math.round(v)+'%';}, slot:38},
-        tooltip:{callbacks:{label:function(i){
-          var r = readings[i.dataIndex];
-          return r.pct+'% — '+r.giving+' of '+r.members+' members'; }}}},
-      scales:{x:{ticks:tickStyle, grid:gridStyle},
-        y:{beginAtZero:true, max:100, grid:gridStyle,
-           ticks:{color:'#666c80', font:{size:10}, callback:function(v){return v+'%';}}}}}});
+  function pctScales(){
+    return {x:{ticks:tickStyle, grid:gridStyle},
+      y:{beginAtZero:true, max:100, grid:gridStyle,
+         ticks:{color:'#666c80', font:{size:10}, callback:function(v){return v+'%';}}}};
+  }
+  function drawLive(){
+    mkChart('cPart',{type:'line',
+      data:{labels:readings.map(function(r){return r.sunday.slice(5).replace('-','/');}),
+        datasets:[{label:'% of members giving (90-day)', data:readings.map(function(r){return r.pct;}),
+          borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
+          pointRadius:3, tension:.3, spanGaps:true}]},
+      options:{responsive:true, maintainAspectRatio:false, animation:false,
+        interaction:{mode:'index',intersect:false}, layout:{padding:{top:18}},
+        plugins:{legend:legendStyle,
+          valueLabels:{fmt:function(v){return Math.round(v)+'%';}, slot:38},
+          tooltip:{callbacks:{label:function(i){
+            var r = readings[i.dataIndex];
+            return r.pct+'% — '+r.giving+' of '+r.members+' members'; }}}},
+        scales:pctScales()}});
+  }
+  if (!GW || !GW.windows){
+    /* no giving_windows in the payload — exactly today's behavior */
+    if (!readings.length){ noData($('partWrap'),'No participation readings yet.'); return; }
+    drawLive();
+    return;
+  }
+  function drawWindow(k){
+    var series = GW.windows[k] || [];
+    mkChart('cPart',{type:'line',
+      data:{labels:series.map(function(r){return fmtMonY(r.month);}),
+        datasets:[{label:'% of members giving ('+k+'-mo window)',
+          data:series.map(function(r){return r.pct==null ? null : r.pct;}),
+          borderColor:'#57c98a', backgroundColor:'#57c98a55', borderWidth:3,
+          pointRadius:3, tension:.25, spanGaps:false}]},
+      options:{responsive:true, maintainAspectRatio:false, animation:false,
+        interaction:{mode:'index',intersect:false}, layout:{padding:{top:18}},
+        plugins:{legend:legendStyle,
+          valueLabels:{fmt:function(v){return Math.round(v)+'%';}, slot:38},
+          tooltip:{callbacks:{label:function(i){
+            var r = series[i.dataIndex];
+            if (!r || r.pct==null) return '';
+            return r.pct+'% — '+r.gave+' of '+GW.members+' members'; }}}},
+        scales:pctScales()}});
+  }
+  var modes = [{k:'1',l:'1 mo'},{k:'3',l:'3 mo'},{k:'6',l:'6 mo'},{k:'12',l:'12 mo'}];
+  if (readings.length) modes.push({k:'live',l:'90-day (live)'});
+  var cur = '3';
+  function renderPills(){
+    $('gwPills').innerHTML = modes.map(function(m,i){
+      return '<span class="pill rng'+(m.k===cur?' on':'')+'" data-mi="'+i+'">'+esc(m.l)+'</span>';
+    }).join('');
+    Array.prototype.forEach.call($('gwPills').querySelectorAll('.pill'), function(el){
+      el.onclick = function(){
+        cur = modes[+el.getAttribute('data-mi')].k;
+        renderPills(); draw();
+      };
+    });
+  }
+  function draw(){
+    if (cur==='live') drawLive(); else drawWindow(cur);
+    $('partHead').innerHTML = '<b>Giving participation</b> — % of members giving ('
+      +(cur==='live' ? 'rolling 90 days, live list' : cur+'-month window')+')';
+  }
+  $('gwCaption').textContent = '1/3/6/12-month curves are computed from actual donation history (PCO Giving) '
+    +'against the CURRENT members list — solid for trends, approximate for early months. '
+    +'The 90-day line is the live Planning Center list reading, captured weekly.';
+  renderPills(); draw();
 })();
 
 /* ── People table (sortable + filter) ── */
@@ -252,6 +400,7 @@ var COLS = [
   {k:'serves_18mo', l:'18 mo', num:1, d:-1},
   {k:'declines_18mo', l:'Declines', num:1, d:-1},
   {k:'no_response_18mo', l:'No response', num:1, d:-1}];
+if (HAS_LOAD) COLS.splice(4, 0, {k:'recent6', l:'Load (6 wks)', num:1, d:-1});
 if (PRAYER) COLS.push({k:'prayer_90d', l:'Prayer 90d', num:1, d:-1});
 var sortKey = 'name', sortDir = 1;
 
@@ -287,13 +436,39 @@ function renderHead(){
     };
   });
 }
+function loadCell(p){
+  if (p.recent6 == null) return '<td class="num zero">—</td>';
+  var badge = '';
+  if (p.recent6 >= 5 && !(window._isAccount && window._isAccount(p))){
+    var tip = 'Served '+p.recent6+' of the last 6 Sundays — streak '+(p.streak||0)
+      +'. Consider giving them a Sunday to just attend.';
+    var txt = (p.streak >= 5) ? p.streak+'-wk streak' : 'no rest';
+    badge = ' <span class="loadbadge" title="'+esc(tip)+'">'+esc(txt)+'</span>';
+  }
+  return '<td class="num'+(p.recent6===0?' zero':'')+'">'+p.recent6+'/6'+badge+'</td>';
+}
+function rowHTML(p){
+  var name = '<b>'+esc(p.name||'(no name)')+'</b>';
+  if (p.is_member) name += '<span class="mbadge">member</span>';
+  if (p.status && p.status!=='active') name += '<span class="chip">'+esc(p.status)+'</span>';
+  var html = '<tr><td>'+name+'</td><td>'+teamsCell(p.teams)+'</td>'
+    +'<td class="num'+(p.last_served?'':' zero')+'">'+(p.last_served?esc(fmtDate(p.last_served)):'—')+'</td>'
+    +numCell(p.serves_6mo);
+  if (HAS_LOAD) html += loadCell(p);
+  html += numCell(p.serves_18mo)
+    +numCell(p.declines_18mo)+numCell(p.no_response_18mo);
+  if (PRAYER) html += numCell(p.prayer_90d==null?0:p.prayer_90d);
+  return html+'</tr>';
+}
 function renderPeople(){
   renderHead();
   var q = ($('pplFilter').value||'').toLowerCase();
   var membersOnly = $('pplMembers').checked;
+  var groupOn = !!(TEAMS.length && $('pplGroup') && $('pplGroup').checked);
   var rows = PEOPLE.filter(function(p){
     if (membersOnly && !p.is_member) return false;
     if (q && (p.name||'').toLowerCase().indexOf(q)===-1) return false;
+    if (teamFilter && (p.teams||[]).indexOf(teamFilter)===-1) return false;
     return true;
   });
   rows.sort(function(a,b){
@@ -305,26 +480,53 @@ function renderPeople(){
     if (x>y) return sortDir;
     return 0;
   });
-  $('pplCount').textContent = '· '+rows.length+' of '+PEOPLE.length+' shown';
+  $('pplCount').textContent = '· '+rows.length+' of '+PEOPLE.length+' shown'
+    +(teamFilter ? ' · filtered to '+teamFilter : '');
   var tbody = $('pplTable').querySelector('tbody');
   if (!rows.length){
     tbody.innerHTML = '<tr><td colspan="'+COLS.length+'" class="note">No one matches.</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(function(p){
-    var name = '<b>'+esc(p.name||'(no name)')+'</b>';
-    if (p.is_member) name += '<span class="mbadge">member</span>';
-    if (p.status && p.status!=='active') name += '<span class="chip">'+esc(p.status)+'</span>';
-    var html = '<tr><td>'+name+'</td><td>'+teamsCell(p.teams)+'</td>'
-      +'<td class="num'+(p.last_served?'':' zero')+'">'+(p.last_served?esc(fmtDate(p.last_served)):'—')+'</td>'
-      +numCell(p.serves_6mo)+numCell(p.serves_18mo)
-      +numCell(p.declines_18mo)+numCell(p.no_response_18mo);
-    if (PRAYER) html += numCell(p.prayer_90d==null?0:p.prayer_90d);
-    return html+'</tr>';
-  }).join('');
+  if (!groupOn){
+    tbody.innerHTML = rows.map(rowHTML).join('');
+    return;
+  }
+  /* grouped: batch by team, subheader per team; multi-team people repeat, teamless go last */
+  var groups = {};
+  rows.forEach(function(p){
+    var ts = (p.teams && p.teams.length) ? p.teams : ['No team'];
+    ts.forEach(function(t){
+      if (teamFilter && t !== teamFilter) return;
+      (groups[t] = groups[t] || []).push(p);
+    });
+  });
+  var order = TEAMS.map(function(t){ return t.team; });
+  var names = Object.keys(groups);
+  names.sort(function(a,b){
+    if (a==='No team') return 1;
+    if (b==='No team') return -1;
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia===-1 && ib===-1) return a<b ? -1 : 1;
+    if (ia===-1) return 1;
+    if (ib===-1) return -1;
+    return ia-ib;
+  });
+  var rosterOf = {};
+  TEAMS.forEach(function(t){ rosterOf[t.team] = t.roster; });
+  var html = '';
+  names.forEach(function(g){
+    var r = rosterOf[g];
+    html += '<tr class="grouphead"><td colspan="'+COLS.length+'">'+esc(g)
+      +' <span style="color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0">· '
+      +(r!=null ? r+' on roster · ' : '')+groups[g].length+' shown</span></td></tr>';
+    html += groups[g].map(rowHTML).join('');
+  });
+  tbody.innerHTML = html;
 }
 $('pplFilter').addEventListener('input', renderPeople);
 $('pplMembers').addEventListener('change', renderPeople);
+if ($('pplGroup')) $('pplGroup').addEventListener('change', renderPeople);
+if (TEAMS.length && $('pplGroupLbl')) $('pplGroupLbl').style.display = '';
 if (!PRAYER) $('prayerNote').textContent = 'Prayer-call attendance starts capturing soon.';
 renderPeople();
 
