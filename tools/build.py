@@ -90,11 +90,39 @@ part = participation.build(debrief)
 
 built = datetime.date.today().isoformat()
 
+def check_js(out_name):
+    """Fail the build on a JavaScript syntax error in the generated page.
+
+    One stray apostrophe (`'didn't decline'`) killed the whole inline script on
+    members.html and shipped to the live site for a day — every chart and table
+    silently blank, with nothing in the build output to notice. Encryption hides
+    the payload afterwards, so this is the last point where it can be caught.
+    Skips quietly if node isn't installed; never let the guard itself block a build.
+    """
+    import os, shutil, subprocess, tempfile
+    if not shutil.which('node'):
+        return
+    html = (OUT/out_name).read_text(errors='ignore')
+    scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', html, re.S)
+    if not scripts:
+        return
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as f:
+        f.write('\n;\n'.join(scripts))
+        tmp = f.name
+    r = subprocess.run(['node', '--check', tmp], capture_output=True, text=True)
+    os.unlink(tmp)
+    if r.returncode:
+        raise SystemExit(f'JS SYNTAX ERROR in {out_name} — refusing to build.\n'
+                         f'{r.stderr.strip()[:600]}\n'
+                         f'(most often an unescaped apostrophe inside a single-quoted string)')
+
+
 def inject(tpl_name, out_name, payload):
     html = open(TPL/tpl_name).read()
     html = html.replace('/*__DATA__*/null', json.dumps(payload, separators=(',',':')))
     html = html.replace('__BUILT__', built)
     open(OUT/out_name, 'w').write(html)
+    check_js(out_name)
     print('built', out_name, f'{(OUT/out_name).stat().st_size//1024}KB')
 
 inject('metrics.template.html', 'metrics.html',

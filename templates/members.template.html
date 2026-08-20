@@ -197,7 +197,7 @@ function fmtMonY(ym){ var p=String(ym).split('-'); return MON[+p[1]-1]+' '+p[0].
 (function(){
   var items = [
     {l:'Members', v:OV.members!=null?OV.members:'—', d:'Members (All) list'},
-    {l:'Served last 60 days', v:OV.served_60d!=null?OV.served_60d:'—', d:'on a Sunday plan (didn't decline)'},
+    {l:'Served last 60 days', v:OV.served_60d!=null?OV.served_60d:'—', d:'on a Sunday plan (did not decline)'},
     {l:'On teams', v:OV.on_teams!=null?OV.on_teams:'—', d:'current team rosters'},
     {l:'Served in 18 months', v:OV.served_18mo!=null?OV.served_18mo:'—', d:'at least one Sunday'}];
   var readings = (GP && GP.readings) || [];

@@ -158,6 +158,9 @@ var DATA = /*__DATA__*/null;
 var FIN = (DATA && DATA.finance) || {};
 var GIVING = (DATA && DATA.giving) || null;
 var GP = (DATA && DATA.giving_participation) || null;
+/* live giving from Planning Center — top-level: both the KPI tiles and the
+   giving-chart source note read it, and they are separate functions */
+var GL = (FIN && FIN.giving_live) || null;
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ var d=document.createElement('div');
@@ -225,7 +228,6 @@ for (var i=WEEKS.length-1; i>=0; i--){
   /* Giving KPIs prefer GL (live from Planning Center, always gross and current).
      The sheet-derived series only moves on the Tuesday ingest, so it can sit up to
      a week stale — it stays the source for the chart history, not these tiles. */
-  var GL = FIN.giving_live || null;
   items.push(GL
     ? {l:'Giving last week', v:money0(GL.week),
        d:GL.week_label+' · '+GL.week_gifts+' gifts'}
