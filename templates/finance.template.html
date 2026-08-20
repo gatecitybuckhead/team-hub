@@ -142,12 +142,9 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 </div>
 
 <div class="card">
-  <h3><b>Payment requests</b> — open queue <span class="note" id="slaSummary"></span></h3>
-  <div class="tablewrap"><table id="queue">
-    <thead><tr><th>Payee</th><th>Submitted</th><th>Pay by <span style="font-weight:400">(2 wks)</span></th><th>Status</th><th class="num">Amount</th></tr></thead><tbody></tbody>
-  </table></div>
+  <h3><b>Payment requests</b></h3>
   <div id="boardLinkWrap"></div>
-  <div class="lblnote">Target: contractors paid within <b>2 weeks</b> of submitting. Green = on track, amber = due within a week, red = past the 2-week mark. Statuses update on the board instantly; this page rebuilds daily.</div>
+  <div class="lblnote">The status board is the live list — it updates the moment a status changes, while this page rebuilds a few times a day. Target: contractors paid within <b>2 weeks</b> of submitting.</div>
 </div>
 
 <footer>One team password unlocks all staff dashboards.<br>
@@ -483,66 +480,17 @@ function drawGive(){
       +'</td><td class="num">'+esc(p.missing_notes)+'</td></tr>'; }).join('');
 })();
 
-/* ── Payment requests ── */
+/* ── Payment requests: link only (2026-08-20) ──
+   The queue table used to be mirrored here. Removed: the board is the live
+   source and this copy could only ever be a stale duplicate of it — when the
+   board fetch failed the page silently fell back to the agent's own queue file,
+   and the two disagreed, so the same request showed twice with different
+   statuses. One list, on the board. */
 (function(){
-  var tbody = $('queue').querySelector('tbody');
   var B = FIN.board;
-  if (!B){
-    tbody.innerHTML = '<tr><td colspan="5" class="note">No payment-request data yet.</td></tr>'; return; }
-
-  /* 2-week pay target. Computed against TODAY in the viewer's browser, not the
-     build date, so the colors stay honest even if the page wasn't rebuilt. */
-  var SLA_DAYS = 14;
-  function sla(submitted){
-    if (!submitted) return null;
-    var due = new Date(submitted + 'T00:00:00');
-    if (isNaN(due)) return null;
-    due.setDate(due.getDate() + SLA_DAYS);
-    var today = new Date(); today.setHours(0,0,0,0);
-    var left = Math.round((due - today) / 864e5);
-    return {
-      due: due,
-      left: left,
-      cls: left < 0 ? 'red' : left <= 6 ? 'amber' : 'green',
-      label: left < 0 ? Math.abs(left) + (Math.abs(left)===1?' day over':' days over')
-           : left === 0 ? 'due today'
-           : left + (left===1?' day left':' days left'),
-      dueLabel: (due.getMonth()+1) + '/' + due.getDate()
-    };
-  }
-
-  if (!(B.open||[]).length){
-    tbody.innerHTML = '<tr><td colspan="5" class="note">Queue is empty — all paid.'
-      +(B.last_sweep?' Last sweep '+esc(fmtDateShort(B.last_sweep))+'.':'')+'</td></tr>';
-  } else {
-    var over = 0, dueSoon = 0;
-    tbody.innerHTML = B.open.map(function(i){
-      var pillCls = /blocked/i.test(i.status||'') ? 'pill blocked'
-        : /held/i.test(i.status||'') ? 'pill held' : 'pill';
-      var t = sla(i.submitted);
-      if (t){ if (t.left < 0) over++; else if (t.left <= 6) dueSoon++; }
-      var dueCell = t
-        ? '<span class="sla '+t.cls+'">'+esc(t.label)+'</span>'
-          +'<div class="slanote">by '+esc(t.dueLabel)+'</div>'
-        : '<span class="note">—</span>';
-      return '<tr><td><b>'+esc(i.payee)+'</b><div class="note">'+esc(i.type)
-        +' · by '+esc(i.requester)+'</div></td><td>'+esc(i.submitted)
-        +'</td><td>'+dueCell
-        +'</td><td><span class="'+pillCls+'">'+esc(i.status)+'</span>'
-        +(i.detail?'<div class="note">'+esc(i.detail)+'</div>':'')
-        +'</td><td class="num"><b>'+money(i.amount)+'</b></td></tr>'; }).join('')
-      + '<tr class="total"><td colspan="4">Total open</td><td class="num">'+money(B.open_total)+'</td></tr>';
-    var bits = [];
-    if (over) bits.push(over + ' past 2 weeks');
-    if (dueSoon) bits.push(dueSoon + ' due within a week');
-    $('slaSummary').innerHTML = bits.length
-      ? '· <span style="color:'+(over?'var(--red)':'var(--gold)')+'">'+esc(bits.join(' · '))+'</span>'
-      : '· <span style="color:var(--green)">all within the 2-week target</span>';
-  }
-  if (B.url){
-    $('boardLinkWrap').innerHTML =
-      '<a class="boardlink" href="'+esc(B.url)+'" target="_blank" rel="noopener">Check Payment Status ↗</a>';
-  }
+  $('boardLinkWrap').innerHTML = (B && B.url)
+    ? '<a class="boardlink" href="'+esc(B.url)+'" target="_blank" rel="noopener">Check Payment Status ↗</a>'
+    : '<span class="note">Board link unavailable — ask Andrew.</span>';
 })();
 
 drawGive();
