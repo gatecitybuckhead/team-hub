@@ -86,6 +86,7 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 <div class="card">
   <h3><b>Give</b> — weekly giving ($) <span style="float:right" class="range" id="range"></span></h3>
   <div id="giveWrap" class="cvbox"><canvas id="cGive"></canvas></div>
+  <p id="giveSrc" class="note" style="margin-top:6px"></p>
   <div style="margin-top:14px" id="gpWrap">
     <h3><b>Give</b> — % of members giving (Planning Center, rolling 90 days)</h3>
     <div class="cvbox sm"><canvas id="cGivePct"></canvas></div>
@@ -221,11 +222,28 @@ for (var i=WEEKS.length-1; i>=0; i--){
 /* ── KPI tiles ── */
 (function(){
   var items = [];
-  items.push(lastWk
-    ? {l:'Giving last week', v:money0(weekTotal(lastWk)),
-       d:fmtDateShort(lastWk.sunday)+(lastWk.window==='full'
-           ? ' · Mon–Sun' : ' · partial week (one column)')}
-    : {l:'Giving last week', v:'—', d:'no weekly data yet'});
+  /* Giving KPIs prefer GL (live from Planning Center, always gross and current).
+     The sheet-derived series only moves on the Tuesday ingest, so it can sit up to
+     a week stale — it stays the source for the chart history, not these tiles. */
+  var GL = FIN.giving_live || null;
+  items.push(GL
+    ? {l:'Giving last week', v:money0(GL.week),
+       d:GL.week_label+' · '+GL.week_gifts+' gifts'}
+    : (lastWk
+        ? {l:'Giving last week', v:money0(weekTotal(lastWk)),
+           d:fmtDateShort(lastWk.sunday)+(lastWk.window==='full'
+               ? ' · Mon–Sun' : ' · partial week (one column)')}
+        : {l:'Giving last week', v:'—', d:'no weekly data yet'}));
+  if (GL) {
+    /* compare like with like: month-to-date vs the same stretch of last month */
+    var ps = GL.prior_same_total, delta = '';
+    if (ps) {
+      var pct = Math.round(100*(GL.month_to_date-ps)/ps);
+      delta = ' · '+(pct>=0?'+':'')+pct+'% vs '+GL.prior_same_label;
+    }
+    items.push({l:'Giving this month', v:money0(GL.month_to_date),
+                d:GL.month_label+' through '+GL.month_through+delta});
+  }
   items.push((GIVING && GIVING.ytd)
     ? {l:'Giving YTD', v:money0(GIVING.ytd.amount), d:'as of '+fmtDateShort(GIVING.ytd.as_of)}
     : {l:'Giving YTD', v:'—', d:''});
@@ -318,6 +336,14 @@ var legendStyle = {labels:{color:'#8a90a5', boxWidth:12, font:{size:11}}};
 
 /* ── Give charts ── */
 function drawGive(){
+  (function(){
+    var el = $('giveSrc'); if (!el) return;
+    el.textContent = GL
+      ? 'The two giving totals above come live from Planning Center (gross). This chart is the '
+        + 'weekly history from the metrics sheet, which updates on the Tuesday refresh — so it can '
+        + 'trail the tiles by a few days, and older weeks are still being restated to gross.'
+      : 'Weekly history from the metrics sheet; updates on the Tuesday refresh.';
+  })();
   if (!WEEKS.length){ noData($('giveWrap'),'No giving data yet.'); return; }
   var lastDate = WEEKS[WEEKS.length-1].sunday;
   var rows = WEEKS.filter(function(w){ return inRange(w.sunday,lastDate); });
