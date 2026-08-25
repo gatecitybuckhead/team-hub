@@ -188,7 +188,7 @@ td.tot{background:none;width:auto;padding-left:9px;white-space:nowrap;color:var(
   <!-- PROS / GROWS — the summary the team reads first -->
   <div class="step">
     <div class="lab"><span class="n">1.1</span> PROS &amp; GROWS
-      <span class="q">everyone’s feedback in one summary — read this first</span></div>
+      <span class="q">everyone’s feedback in one anonymous overview — read this first; names are in 1.2</span></div>
     <div class="pg">
       <div class="sect pros"><h4>✅ PROS — wins to celebrate</h4><div class="body" id="pros">—</div>
         <div class="topics" id="prosTopics"></div></div>
@@ -391,7 +391,11 @@ function renderScorecard(){
 
 /* ══════════ 1.1 PROS / GROWS / OVERALL SUMMARY ══════════
    Priority: hand-written narrative → parsed meeting-notes report → auto-split
-   from the raw form responses. Never blank, never stale.                     */
+   from the raw form responses. Never blank, never stale.
+   ANONYMOUS BY DESIGN (Andrew's call 2026-08-25): nothing in 1.1 attributes a
+   comment to a person — not the written narrative, not this auto-split fallback.
+   Names live in 1.2 Review FORM Results for anyone who wants to know who said
+   what. Do not reintroduce sh(c.by) here.                                    */
 const TAGLABEL={overall:'Overall',service:'Service flow',lobby:'Lobby',kids:'Kids',
   other:'Other notes',worship:'Worship',word:'Word',message:'Message'};
 // The 'other' catch-all field is mostly production/ops notes; route it to the
@@ -406,22 +410,22 @@ function autoPG(w){
   const pros=[];
   if(hi.length) pros.push(`<li><b>Strongest marks:</b> ${hi.map(([k,v])=>`${esc(k)} (${Math.round(v)})`).join(', ')}</li>`);
   cm.filter(c=>c.tag==='overall').slice(0,3).forEach(c=>
-    pros.push(`<li><b>${esc(sh(c.by))}:</b> “${esc(c.text)}”</li>`));
+    pros.push(`<li>“${esc(c.text)}”</li>`));
   const grows=[];
   if(lo.length) grows.push(`<li><b>Lowest-rated:</b> ${lo.map(([k,v])=>`${esc(k)} (${Math.round(v)})`).join(', ')}</li>`);
   cm.filter(c=>c.tag!=='overall').slice(0,4).forEach(c=>
-    grows.push(`<li><b>${esc(TAGLABEL[c.tag]||c.tag)} — ${esc(sh(c.by))}:</b> “${esc(c.text)}”</li>`));
+    grows.push(`<li><b>${esc(TAGLABEL[c.tag]||c.tag)}:</b> “${esc(c.text)}”</li>`));
   return {
     pros: pros.length?`<ul>${pros.join('')}</ul>`:'<span class="empty">No pros captured for this Sunday.</span>',
     grows: grows.length?`<ul>${grows.join('')}</ul>`:'<span class="empty">No grows flagged for this Sunday.</span>',
-    src:'Auto-split from this week’s form responses.'
+    src:'Auto-split from this week’s form responses — unattributed; names are in 1.2 below.'
   };
 }
 function renderPG(){
   const w=wk(), n=noteFor(w.sunday), nar=NAR[w.sunday];
   let pros,grows,src;
   if(nar&&(nar.pros||nar.grows)){
-    pros=nar.pros||''; grows=nar.grows||''; src='Written summary of this week’s debrief.';
+    pros=nar.pros||''; grows=nar.grows||''; src='Anonymous summary of this week’s debrief — names are in 1.2 below.';
   }else{
     const a=autoPG(w); pros=a.pros; grows=a.grows; src=a.src;
   }
