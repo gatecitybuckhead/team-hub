@@ -176,18 +176,33 @@ td.tot{background:none;width:auto;padding-left:9px;white-space:nowrap;color:var(
     <span class="note" id="dbNote"></span>
   </div>
 
+  <!-- week picker governs every section below -->
+  <div class="wknav">
+    <button id="wPrev" title="previous Sunday">‹</button>
+    <select id="wSel"></select>
+    <button id="wNext" title="next Sunday">›</button>
+    <button id="wLatest" style="font-size:12px;padding:5px 11px">Latest</button>
+    <span class="sub" id="wSpecial"></span>
+  </div>
+
+  <!-- PROS / GROWS — the summary the team reads first -->
+  <div class="step">
+    <div class="lab"><span class="n">1.1</span> PROS &amp; GROWS
+      <span class="q">everyone’s feedback in one summary — read this first</span></div>
+    <div class="pg">
+      <div class="sect pros"><h4>✅ PROS — wins to celebrate</h4><div class="body" id="pros">—</div>
+        <div class="topics" id="prosTopics"></div></div>
+      <div class="sect grows"><h4>🧠 GROWS — where we missed or need to grow</h4><div class="body" id="grows">—</div>
+        <div class="topics" id="growsTopics"></div></div>
+    </div>
+    <div class="overall" id="overallBox"></div>
+  </div>
+
   <!-- Review FORM Results -->
   <div class="step">
-    <div class="lab"><span class="n">1.1</span> Review FORM Results
+    <div class="lab"><span class="n">1.2</span> Review FORM Results
       <span class="count" id="respCount">—</span>
-      <span class="q">what did the team say?</span></div>
-    <div class="wknav">
-      <button id="wPrev" title="previous Sunday">‹</button>
-      <select id="wSel"></select>
-      <button id="wNext" title="next Sunday">›</button>
-      <button id="wLatest" style="font-size:12px;padding:5px 11px">Latest</button>
-      <span class="sub" id="wSpecial"></span>
-    </div>
+      <span class="q">the scores behind the summary, and every comment</span></div>
     <div class="grid">
       <div class="card">
         <h3><b>Sunday scorecard</b> — <span id="scDate" style="text-transform:none"></span></h3>
@@ -202,19 +217,6 @@ td.tot{background:none;width:auto;padding-left:9px;white-space:nowrap;color:var(
         <div id="wComments" style="max-height:430px;overflow:auto"></div>
       </div>
     </div>
-  </div>
-
-  <!-- Discuss PROS / GROWS -->
-  <div class="step">
-    <div class="lab"><span class="n">1.2</span> Discuss PROS &amp; GROWS
-      <span class="q">what's working, where we can improve</span></div>
-    <div class="pg">
-      <div class="sect pros"><h4>✅ PROS — what's working well</h4><div class="body" id="pros">—</div>
-        <div class="topics" id="prosTopics"></div></div>
-      <div class="sect grows"><h4>🧠 GROWS — where we can improve</h4><div class="body" id="grows">—</div>
-        <div class="topics" id="growsTopics"></div></div>
-    </div>
-    <div class="overall" id="overallBox"></div>
   </div>
 
   <!-- Pastoral Same Page -->
@@ -362,7 +364,7 @@ function renderPrework(){
   document.getElementById('barWho').textContent=`Sunday ${fmtD(w.sunday)} · ${got} responses`;
 }
 
-/* ══════════ 1.1 REVIEW FORM RESULTS ══════════ */
+/* ══════════ 1.2 REVIEW FORM RESULTS ══════════ */
 function renderScorecard(){
   const w=wk(), n=noteFor(w.sunday); wSel.value=wi;
   const stated = n && n.respondents;
@@ -387,7 +389,7 @@ function renderScorecard(){
     ||'<div class="empty">No comments this week.</div>';
 }
 
-/* ══════════ 1.2 PROS / GROWS / OVERALL SUMMARY ══════════
+/* ══════════ 1.1 PROS / GROWS / OVERALL SUMMARY ══════════
    Priority: hand-written narrative → parsed meeting-notes report → auto-split
    from the raw form responses. Never blank, never stale.                     */
 const TAGLABEL={overall:'Overall',service:'Service flow',lobby:'Lobby',kids:'Kids',
