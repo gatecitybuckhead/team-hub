@@ -89,6 +89,13 @@ for n in sorted(notes_raw, key=lambda x: x['meeting_date']):
 part = participation.build(debrief)
 
 built = datetime.date.today().isoformat()
+# Full timestamp (with UTC offset) for the refresh pill's "Numbers as of ..."
+# stamp. Separate from `built` on purpose: `built` is printed as visible text on
+# six pages and stays a plain date.
+built_at = datetime.datetime.now().astimezone().isoformat(timespec='seconds')
+# Shared refresh pill (fixed bottom-right "Numbers as of X · Refresh"). One
+# source file, injected into every page — see templates/refresh-pill.html.
+REFRESH_HTML = (TPL/'refresh-pill.html').read_text()
 
 def check_js(out_name):
     """Fail the build on a JavaScript syntax error in the generated page.
@@ -120,6 +127,8 @@ def check_js(out_name):
 def inject(tpl_name, out_name, payload):
     html = open(TPL/tpl_name).read()
     html = html.replace('/*__DATA__*/null', json.dumps(payload, separators=(',',':')))
+    html = html.replace('<!--__REFRESH__-->', REFRESH_HTML)
+    html = html.replace('__BUILT_AT__', built_at)
     html = html.replace('__BUILT__', built)
     open(OUT/out_name, 'w').write(html)
     check_js(out_name)

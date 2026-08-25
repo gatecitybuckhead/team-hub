@@ -80,6 +80,9 @@ html = html.replace('/*__DATA__*/null', json.dumps(payload, separators=(',', ':'
 html = html.replace('/*__FBCONFIG__*/null',
                     json.dumps(fb_config, separators=(',', ':')) if fb_config else 'null')
 html = html.replace('<!--__QR__-->', qr_svg)
+html = html.replace('<!--__REFRESH__-->', (ROOT/'templates'/'refresh-pill.html').read_text())
+html = html.replace('__BUILT_AT__',
+                    datetime.datetime.now().astimezone().isoformat(timespec='seconds'))
 html = html.replace('__BUILT__', built)
 
 # ---- encrypt ----
