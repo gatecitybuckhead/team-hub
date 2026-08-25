@@ -45,6 +45,10 @@ ALIASES = {
     'vols_in_teams_sun_service': 'total_people_in_sunday_teams',
     # 2026-08 sheet rename: "# Total People in Sunday Teams (- Kids Min)"
     'total_people_in_sunday_teams_kids_min': 'total_people_in_sunday_teams',
+    # 2026-08 sheet rename: "Week's $ Tithes/Offerings (CASH)" gained "/CHECK".
+    # Must map back, or the cash giving series silently forks in two and the
+    # Give chart loses its cash bars from that week on.
+    'week_s_tithes_offerings_cash_check': 'week_s_tithes_offerings_cash',
 }
 
 def canon(key):
