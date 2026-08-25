@@ -115,8 +115,20 @@ function inRange(w){
   return (new Date(last)-new Date(w.date))/864e5 <= days;
 }
 const val=(w,...keys)=>{for(const k of keys){const v=w.values[k];if(v!=null)return v}return null};
-const giving=w=>{const d=val(w,'week_s_tithes_offerings_digital'),c=val(w,'week_s_tithes_offerings_cash'),
-  comb=val(w,'week_s_tithes_offerings');return (d==null&&c==null)?comb:(d||0)+(c||0)};
+/* A giving week is the sheet's "Data Set" cell (Mon-Sat) PLUS its "Sunday" cell.
+   `values` holds only ONE of the two (Sunday-wins precedence), so reading it
+   alone silently drops the Mon-Sat money: 2026-08-23 read $3,336 here while the
+   sheet's real total was $5,173. `week.giving_cols` carries both cells for the
+   three GIVE dollar rows — this is the same sum build.py's giving_series() does
+   for the Finance page, so the two pages now agree. Weeks ingested before
+   2026-08-19 carry no giving_cols and fall back to `values` (still partial —
+   they stay that way until the history is restated from Planning Center). */
+const gcol=(w,k)=>{const c=(w.giving_cols||{})[k];
+  if(c&&(c.ds!=null||c.sun!=null))return Math.round(((c.ds||0)+(c.sun||0))*100)/100;
+  return val(w,k)};
+const giving=w=>{const d=gcol(w,'week_s_tithes_offerings_digital'),
+  c=gcol(w,'week_s_tithes_offerings_cash'),comb=val(w,'week_s_tithes_offerings');
+  return (d==null&&c==null)?comb:(d||0)+(c||0)};
 
 /* ── value labels ───────────────────────────────────────────────────────────
    Prints each week's number on the chart so you can read it without hovering.
@@ -198,7 +210,7 @@ function kpis(rows){
   const yr=W.filter(w=>w.date.slice(0,4)===last.date.slice(0,4));
   let ytdGive=null;
   for(let i=yr.length-1;i>=0;i--){const v=val(yr[i],'ytd_total');if(v!=null){ytdGive=v;break}}
-  if(ytdGive==null)ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(val(w,'special_gifts')||0),0);
+  if(ytdGive==null)ytdGive=yr.reduce((t,w)=>t+(giving(w)||0)+(gcol(w,'special_gifts')||0),0);
   // Prefer the live Planning Center reading. Failing that, fall back to the most
   // recent non-null sheet figure (not `last`, which is usually blank) and say
   // how old it is, so the card never reads "not recorded" when a number exists.
@@ -277,7 +289,7 @@ function draw(){
     {l:'Kids',f:w=>val(w,'of_kids'),c:'#a98ae0',bw:1.5,order:3,noLabel:true}]);
   line('cGive',rows,[
     {l:'Tithes/Offerings',f:w=>giving(w),c:'#57c98a',type:'bar',fill:true},
-    {l:'Special gifts',f:w=>val(w,'special_gifts'),c:'#e0b34c',type:'bar',fill:true}],
+    {l:'Special gifts',f:w=>gcol(w,'special_gifts'),c:'#e0b34c',type:'bar',fill:true}],
     {type:'bar',fmt:fmt$k,slot:40,scales:{x:{stacked:true},y:{stacked:true},
       y:{stacked:true,ticks:{color:'#666c80',font:{size:10},callback:fmt$k},grid:{color:'#20242f'},beginAtZero:true}}});
   // % of Members Giving — two sources, deliberately kept as separate series so
