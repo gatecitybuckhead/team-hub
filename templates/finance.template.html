@@ -83,6 +83,14 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 
 <div class="kpis" id="kpis"></div>
 
+<div class="card" id="msCard" style="display:none">
+  <h3><b>Month so far</b> <span class="note" id="msThrough"></span></h3>
+  <div class="kpis" id="msKpis" style="margin:10px 0 4px"></div>
+  <div class="lblnote" id="msMix"></div>
+  <div id="msOneTime"></div>
+  <div class="lblnote" id="msNote"></div>
+</div>
+
 <div class="card">
   <h3><b>Give</b> — weekly giving ($) <span style="float:right" class="range" id="range"></span></h3>
   <div id="giveWrap" class="cvbox"><canvas id="cGive"></canvas></div>
@@ -271,6 +279,39 @@ for (var i=WEEKS.length-1; i>=0; i--){
     }
     return '<div class="kpi'+(k.owed?' owed':'')+'">'+inner+'</div>';
   }).join('');
+})();
+
+/* ── Month so far: Income / Spend / Net (the numbers Hazen asks for) ── */
+(function(){
+  var MS = FIN.month_snapshot;
+  if (!MS) return;
+  $('msCard').style.display = '';
+  $('msThrough').textContent = MS.month_label+' 1 – '+MS.through
+    +' · updated '+fmtDate(MS.as_of);
+  var tiles = [
+    {l:'Income', v:money0(MS.income), d:MS.income_gifts+' gifts, gross'},
+    {l:'Spend', v:money0(MS.spend), d:'booked '+money0(MS.spend_booked)
+      +' + not yet posted'},
+    {l:'Net', v:money0(MS.net), d:MS.net>=0?'ahead so far':'behind so far',
+     owed:MS.net<0}
+  ];
+  $('msKpis').innerHTML = tiles.map(function(k){
+    return '<div class="kpi'+(k.owed?' owed':'')+'"><div class="l">'+esc(k.l)
+      +'</div><div class="v">'+esc(k.v)+'</div>'
+      +(k.d?'<div class="d">'+esc(k.d)+'</div>':'')+'</div>';
+  }).join('');
+  var m = MS.income_methods || {};
+  $('msMix').textContent = 'Giving mix: digital '+money0(m.digital||0)
+    +' · checks/cash '+money0(m.physical||0)
+    +(m.other ? ' · other '+money0(m.other) : '');
+  var big = MS.one_time_gifts || [];
+  if (big.length){
+    $('msOneTime').innerHTML = '<div class="lblnote">Includes '
+      +big.map(function(g){ return 'a '+money0(g.amount)+' '
+        +esc(g.method||'')+' gift ('+esc(fmtDateShort(g.date))+')'; }).join(' and ')
+      +' — one-time gifts, shown so the underlying pace stays readable.</div>';
+  }
+  $('msNote').textContent = MS.note || '';
 })();
 
 /* ── value labels plugin (hand-rolled — chart.umd is the only CDN dependency) ── */
