@@ -61,6 +61,9 @@ header{margin-bottom:18px}
 
 /* ---- checklist ---- */
 .chk h4{font-size:13px;color:var(--ink);margin:14px 0 6px;letter-spacing:.3px}
+.chk h4 .rolechip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(224,179,76,.4);border-radius:999px;padding:1px 8px;margin-right:7px;vertical-align:1px}
+.chk h4 .rolechip.mine{color:#10331f;background:var(--green);border-color:var(--green)}
 .chk h4:first-child{margin-top:0}
 .chk h4 .c{color:var(--dim);font-weight:400;font-size:12px;margin-left:6px}
 .chk ul{list-style:none;margin-left:2px}
@@ -154,6 +157,7 @@ a.live{color:var(--gold);font-weight:600;text-decoration:none}
   <div class="card tall chk">
     <h3><b>Pre-Service Checklist</b> — <span id="chkTitle" style="text-transform:none"></span></h3>
     <div class="lockmsg" id="lockMsg" style="display:none">Sign in first — every check records who did it and when.</div>
+    <div class="note" style="margin:0 0 10px">Grouped by role — the green chip marks your sections. Anyone can still check anything.</div>
     <div id="checklist"></div>
     <div class="note" id="liveNote"></div>
     <span class="reset" id="resetChk">Reset checklist</span>
@@ -297,6 +301,15 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
     return out;
   }
 
+  // Positions this person holds on today's roster (matches sec.role names).
+  function myRoles(name){
+    const n = String(name||'').trim().toLowerCase(); const out=[];
+    (DATA.positions||[]).forEach(p=>{ (p.people||[]).forEach(pe=>{
+      if(pe.name && pe.name.trim().toLowerCase()===n) out.push(p.position);
+    }); });
+    return out;
+  }
+
   function openSignIn(){
     const host = document.getElementById('nameBtns');
     host.innerHTML='';
@@ -408,7 +421,9 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
       const items=sec.items||[];
       const h=document.createElement('h4');
       const done=items.filter(it=>state[it.id]).length;
-      h.innerHTML=esc(sec.name)+' <span class="c">'+done+'/'+items.length+'</span>';
+      const mine = me && sec.role && (sec.role==='Everyone' || myRoles(me.name).indexOf(sec.role)>=0);
+      const chip = sec.role ? '<span class="rolechip'+(mine?' mine':'')+'">'+esc(sec.role)+'</span>' : '';
+      h.innerHTML=chip+esc(sec.name)+' <span class="c">'+done+'/'+items.length+'</span>';
       wrap.appendChild(h);
       const ul=document.createElement('ul');
       items.forEach(it=>{

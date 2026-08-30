@@ -47,6 +47,7 @@ payload['checklist'] = {
     'title': raw.get('title', ''),
     'sections': [
         {'name': s['name'],
+         'role': s.get('role', ''),
          'critical': bool(s.get('critical')),
          'teardown': bool(s.get('teardown')),
          'items': [{'id': it['id'], 'text': it['text']} for it in s.get('items', [])]}
