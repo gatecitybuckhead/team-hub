@@ -89,6 +89,7 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 <div class="card" id="msCard" style="display:none">
   <h3><b>Month so far</b> — income vs spend <span class="note" id="msThrough"></span></h3>
   <div class="kpis" id="msKpis" style="margin:10px 0 4px"></div>
+  <div class="lblnote" id="msLast" style="display:none"></div>
   <div class="tablewrap"><table id="msDetail">
     <thead><tr><th>Spend detail</th><th class="num">Amount</th></tr></thead><tbody></tbody>
   </table></div>
@@ -250,6 +251,21 @@ function fmtStamp(iso){
     return '<div class="kpi"><div class="l">'+esc(k.l)+'</div><div class="v">'
       +esc(k.v)+'</div>'+(k.d?'<div class="d">'+esc(k.d)+'</div>':'')+'</div>';
   }).join('');
+  /* last full month — keeps the closed month visible after the 1st */
+  var LM = MS.last_month;
+  if (LM){
+    var lmEl = $('msLast');
+    lmEl.style.display = '';
+    lmEl.innerHTML = '<b>Last month ('+esc(LM.month_label)+'):</b> income '
+      +money(LM.income)
+      +(LM.income_gifts ? ' ('+esc(LM.income_gifts)+' gifts)' : '')
+      +' · spend '+money(LM.spend)
+      +' · net '+money(LM.net)
+      +(LM.spend > LM.spend_booked
+          ? ' — ledger has '+money(LM.spend_booked)+' booked; the rest is '
+            +'payroll debited but not yet imported'
+          : '');
+  }
   var rows = [
     ['Booked in Aplos', MS.spend_booked],
     ['Payroll debited (Gusto)', MS.staffing_paid],

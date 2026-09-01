@@ -86,6 +86,7 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 <div class="card" id="msCard" style="display:none">
   <h3><b>Month so far</b> <span class="note" id="msThrough"></span></h3>
   <div class="kpis" id="msKpis" style="margin:10px 0 4px"></div>
+  <div class="lblnote" id="msLast" style="display:none"></div>
   <div class="lblnote" id="msMix"></div>
   <div id="msOneTime"></div>
   <div class="lblnote" id="msNote"></div>
@@ -300,6 +301,21 @@ for (var i=WEEKS.length-1; i>=0; i--){
       +'</div><div class="v">'+esc(k.v)+'</div>'
       +(k.d?'<div class="d">'+esc(k.d)+'</div>':'')+'</div>';
   }).join('');
+  /* last full month — so the card doesn't read $0 on the 1st */
+  var LM = MS.last_month;
+  if (LM){
+    var el = $('msLast');
+    el.style.display = '';
+    el.innerHTML = '<b>Last month ('+esc(LM.month_label)+'):</b> income '
+      +esc(money0(LM.income))
+      +(LM.income_gifts ? ' ('+esc(LM.income_gifts)+' gifts)' : '')
+      +' · spend '+esc(money0(LM.spend))
+      +' · net '+esc(money0(LM.net))
+      +(LM.spend > LM.spend_booked
+          ? ' — '+esc(money0(LM.spend_booked))+' booked so far; spend firms up '
+            +'as the ledger finishes importing the month'
+          : '');
+  }
   var m = MS.income_methods || {};
   $('msMix').textContent = 'Giving mix: digital '+money0(m.digital||0)
     +' · checks/cash '+money0(m.physical||0)
