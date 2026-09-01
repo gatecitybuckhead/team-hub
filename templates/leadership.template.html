@@ -87,10 +87,12 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
 <div id="errors"></div>
 
 <div class="card" id="msCard" style="display:none">
-  <h3><b>Month so far</b> — income vs spend <span class="note" id="msThrough"></span></h3>
+  <h3><b>Month by month</b> — income vs spend
+    <select id="msMonth" style="margin-left:8px;background:#1a1e28;color:#e8eaf2;border:1px solid #2a2f3d;border-radius:6px;padding:2px 6px;font-size:12px"></select>
+    <span class="note" id="msThrough"></span></h3>
   <div class="kpis" id="msKpis" style="margin:10px 0 4px"></div>
   <div class="lblnote" id="msLast" style="display:none"></div>
-  <div class="tablewrap"><table id="msDetail">
+  <div class="tablewrap" id="msDetailWrap"><table id="msDetail">
     <thead><tr><th>Spend detail</th><th class="num">Amount</th></tr></thead><tbody></tbody>
   </table></div>
   <div class="lblnote" id="msUpcoming"></div>
@@ -229,63 +231,113 @@ function fmtStamp(iso){
   d.textContent = '⚠ ' + e; $('errors').appendChild(d);
 });
 
-/* ── Month so far: the numbers Hazen asks for (8/26) ── */
+/* ── Month by month: the numbers Hazen asks for (8/26) — dropdown reaches
+   back to Jan 2026 (9/1 ask). Past months show the closed-month totals;
+   the spend-detail table and projection only apply to the live month. ── */
 (function(){
   if (!MS) return;
   $('msCard').style.display = '';
-  $('msThrough').textContent = MS.month_label+' 1 – '+MS.through
-    +' · updated '+fmtDate(MS.as_of);
-  var m = MS.income_methods || {};
-  var tiles = [
-    {l:'Income (gross, PCO)', v:money(MS.income),
-     d:MS.income_gifts+' gifts · digital '+money(m.digital||0)
-       +' · checks/cash '+money(m.physical||0)},
-    {l:'Spend (real)', v:money(MS.spend),
-     d:'ledger '+money(MS.spend_booked)+' + unposted '
-       +money(MS.spend - MS.spend_booked)},
-    {l:'Net so far', v:money(MS.net), d:''},
-    {l:'Projected month spend', v:money(MS.projected_spend),
-     d:'incl. what’s still to come'}
-  ];
-  $('msKpis').innerHTML = tiles.map(function(k){
-    return '<div class="kpi"><div class="l">'+esc(k.l)+'</div><div class="v">'
-      +esc(k.v)+'</div>'+(k.d?'<div class="d">'+esc(k.d)+'</div>':'')+'</div>';
-  }).join('');
-  /* last full month — keeps the closed month visible after the 1st */
-  var LM = MS.last_month;
-  if (LM){
-    var lmEl = $('msLast');
-    lmEl.style.display = '';
-    lmEl.innerHTML = '<b>Last month ('+esc(LM.month_label)+'):</b> income '
-      +money(LM.income)
-      +(LM.income_gifts ? ' ('+esc(LM.income_gifts)+' gifts)' : '')
-      +' · spend '+money(LM.spend)
-      +' · net '+money(LM.net)
-      +(LM.spend > LM.spend_booked
-          ? ' — ledger has '+money(LM.spend_booked)+' booked; the rest is '
-            +'payroll debited but not yet imported'
-          : '');
+  var HIST = MS.history || [];
+  var sel = $('msMonth');
+  sel.innerHTML = '<option value="current">'+esc(MS.month_label)+' (so far)</option>'
+    + HIST.map(function(h){
+        return '<option value="'+esc(h.month)+'">'+esc(h.label)+'</option>';
+      }).join('');
+
+  function drawTiles(tiles){
+    $('msKpis').innerHTML = tiles.map(function(k){
+      return '<div class="kpi"><div class="l">'+esc(k.l)+'</div><div class="v">'
+        +esc(k.v)+'</div>'+(k.d?'<div class="d">'+esc(k.d)+'</div>':'')+'</div>';
+    }).join('');
   }
-  var rows = [
-    ['Booked in Aplos', MS.spend_booked],
-    ['Payroll debited (Gusto)', MS.staffing_paid],
-    [' of which already booked', MS.staffing_booked],
-    ['Contractors paid', MS.contractor_paid],
-    ['Unposted total added to Spend',
-     (MS.staffing_unbooked||0)+(MS.contractor_unbooked||0)]
-  ];
-  (MS.one_time_gifts||[]).forEach(function(g){
-    rows.push(['One-time gift in Income ('+fmtDateShort(g.date)+', '
-               +(g.method||'')+')', g.amount]);
-  });
-  $('msDetail').querySelector('tbody').innerHTML = rows.map(function(r){
-    return '<tr><td>'+esc(r[0])+'</td><td class="num">'+money(r[1])+'</td></tr>';
-  }).join('');
-  var up = (MS.upcoming||[]).map(function(u){
-    return u.what+' '+money(u.amount)+(u.estimate?' (est.)':'');
-  }).join(' · ');
-  $('msUpcoming').textContent = up ? 'Still to come this month: '+up : '';
-  $('msNote').textContent = MS.note || '';
+
+  function renderCurrent(){
+    $('msThrough').textContent = MS.month_label+' 1 – '+MS.through
+      +' · updated '+fmtDate(MS.as_of);
+    var m = MS.income_methods || {};
+    drawTiles([
+      {l:'Income (gross, PCO)', v:money(MS.income),
+       d:MS.income_gifts+' gifts · digital '+money(m.digital||0)
+         +' · checks/cash '+money(m.physical||0)},
+      {l:'Spend (real)', v:money(MS.spend),
+       d:'ledger '+money(MS.spend_booked)+' + unposted '
+         +money(MS.spend - MS.spend_booked)},
+      {l:'Net so far', v:money(MS.net), d:''},
+      {l:'Projected month spend', v:money(MS.projected_spend),
+       d:'incl. what’s still to come'}
+    ]);
+    /* last full month — keeps the closed month visible after the 1st */
+    var LM = MS.last_month, lmEl = $('msLast');
+    if (LM){
+      lmEl.style.display = '';
+      lmEl.innerHTML = '<b>Last month ('+esc(LM.month_label)+'):</b> income '
+        +money(LM.income)
+        +(LM.income_gifts ? ' ('+esc(LM.income_gifts)+' gifts)' : '')
+        +' · spend '+money(LM.spend)
+        +' · net '+money(LM.net)
+        +(LM.spend > LM.spend_booked
+            ? ' — ledger has '+money(LM.spend_booked)+' booked; the rest is '
+              +'payroll debited but not yet imported'
+            : '');
+    } else { lmEl.style.display = 'none'; }
+    var rows = [
+      ['Booked in Aplos', MS.spend_booked],
+      ['Payroll debited (Gusto)', MS.staffing_paid],
+      [' of which already booked', MS.staffing_booked],
+      ['Contractors paid', MS.contractor_paid],
+      ['Unposted total added to Spend',
+       (MS.staffing_unbooked||0)+(MS.contractor_unbooked||0)]
+    ];
+    (MS.one_time_gifts||[]).forEach(function(g){
+      rows.push(['One-time gift in Income ('+fmtDateShort(g.date)+', '
+                 +(g.method||'')+')', g.amount]);
+    });
+    $('msDetailWrap').style.display = '';
+    $('msDetail').querySelector('tbody').innerHTML = rows.map(function(r){
+      return '<tr><td>'+esc(r[0])+'</td><td class="num">'+money(r[1])+'</td></tr>';
+    }).join('');
+    var up = (MS.upcoming||[]).map(function(u){
+      return u.what+' '+money(u.amount)+(u.estimate?' (est.)':'');
+    }).join(' · ');
+    $('msUpcoming').textContent = up ? 'Still to come this month: '+up : '';
+    $('msNote').textContent = MS.note || '';
+  }
+
+  function renderPast(h){
+    $('msThrough').textContent = h.label+' · full month';
+    var m = h.income_methods || {};
+    drawTiles([
+      {l:'Income (gross, PCO)', v:money(h.income),
+       d:(h.income_gifts!=null ? h.income_gifts+' gifts · ' : '')
+         +'digital '+money(m.digital||0)+' · checks/cash '+money(m.physical||0)},
+      {l:'Spend', v:money(h.spend),
+       d:(h.spend > h.spend_booked
+           ? 'ledger '+money(h.spend_booked)+' + unposted '
+             +money(h.spend - h.spend_booked)
+           : 'from the ledger')},
+      {l:'Net', v:money(h.net), d:''}
+    ]);
+    $('msLast').style.display = 'none';
+    $('msDetailWrap').style.display = 'none';
+    $('msUpcoming').textContent = (h.one_time_gifts||[]).length
+      ? 'Includes '+h.one_time_gifts.map(function(g){
+          return 'a '+money(g.amount)+' '+(g.method||'')+' gift ('
+            +fmtDateShort(g.date)+')'; }).join(' and ')+' — one-time gifts.'
+      : '';
+    $('msNote').textContent = (h.spend > h.spend_booked
+      ? 'This month is still being imported into the ledger — Spend includes '
+        +'payroll debited but not yet posted, and firms up as imports land.'
+      : 'Income = gross giving recorded in Planning Center. Spend = what the '
+        +'ledger shows paid out that month.');
+  }
+
+  function render(){
+    if (sel.value === 'current') return renderCurrent();
+    var h = HIST.filter(function(x){ return x.month === sel.value; })[0];
+    if (h) renderPast(h);
+  }
+  sel.onchange = render;
+  render();
 })();
 
 /* ── payroll tiles ── */
