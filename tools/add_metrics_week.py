@@ -27,7 +27,7 @@ add them — always pass the third field for giving rows, even when it's blank.
 Prints a report of any label that is not already in the catalog (a new metric, or
 a typo/label drift that needs an ALIASES entry in tools/metrics_common.py).
 """
-import argparse, json, os, sys
+import argparse, datetime, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from metrics_common import clean, key_for, GIVING_KEYS
 
@@ -43,6 +43,8 @@ def main():
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--force', action='store_true',
                     help='override the stale-column guard (see below)')
+    ap.add_argument('--allow-repeat-gift', action='store_true',
+                    help='override the duplicate Special Gifts guard (see below)')
     a = ap.parse_args()
 
     m = json.load(open(METRICS))
@@ -97,6 +99,47 @@ def main():
                   file=sys.stderr)
             if not a.force:
                 return 1
+
+    # ---- duplicate Special Gifts guard -------------------------------------
+    # The sheet keeps a gift visible in the FOLLOWING week's "Data Set" column,
+    # so the same gift can be ingested twice on consecutive weeks. On
+    # 2026-09-01 the 8/24-8/29 column still showed the $10,000 already recorded
+    # on 8/23, with EOM $ Total blank so nothing could be reconciled; Andrew
+    # confirmed it was the same gift. Writing it would have double-counted $10k
+    # on a chart the whole team reads.
+    #
+    # Scoped to a 21-DAY LOOKBACK on purpose. A round figure like $10,000 does
+    # legitimately recur — there is a real, unrelated $10,000 gift on
+    # 2026-01-11 — so matching against all history would cry wolf on genuine
+    # repeat gifts. Adjacent-column carry-forward is the failure mode, and it
+    # is always within a week or two.
+    #
+    # Also narrow to special_gifts ONLY: weekly digital/cash amounts can repeat
+    # to the dollar without anything being wrong.
+    LOOKBACK_DAYS = 21
+    new_gift = values.get('special_gifts')
+    if new_gift is not None:
+        target = datetime.date.fromisoformat(a.date)
+        for w in reversed(m['weeks']):          # most recent match first
+            if w['date'] >= a.date:
+                continue
+            if (target - datetime.date.fromisoformat(w['date'])).days > LOOKBACK_DAYS:
+                break
+            gc = w.get('giving_cols', {}).get('special_gifts') or {}
+            seen_vals = [w['values'].get('special_gifts'), gc.get('ds'), gc.get('sun')]
+            if any(v is not None and float(v) == float(new_gift) for v in seen_vals):
+                print(f'REFUSING: Special Gifts {float(new_gift):,.0f} is ALREADY '
+                      f'recorded on {w["date"]}, {(target - datetime.date.fromisoformat(w["date"])).days} '
+                      f'days back.\n'
+                      '  The sheet keeps a gift visible in the NEXT week\'s Data Set\n'
+                      '  column, so this is almost certainly the same gift carried\n'
+                      '  forward, not a new one. Writing it double-counts giving.\n'
+                      '  Confirm with Andrew. Use --allow-repeat-gift only if it is\n'
+                      '  genuinely a second gift of the same amount.',
+                      file=sys.stderr)
+                if not a.allow_repeat_gift:
+                    return 1
+                break
 
     week = {'date': a.date, 'series': a.series, 'special': a.special, 'values': values}
     if giving_cols:
