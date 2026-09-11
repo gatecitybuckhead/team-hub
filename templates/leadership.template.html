@@ -363,6 +363,21 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
     </div></div></div>
   </div>
 
+  <div class="fold" data-fold="benev" id="benevCard" style="display:none">
+    <button class="foldbtn" type="button" aria-expanded="false"><span class="chev">▶</span>
+      <span class="ft"><b>Benevolence</b> — helping a family</span><span class="fmeta" id="benevMeta"></span></button>
+    <div class="foldbody"><div class="foldinner"><div class="foldpad">
+      <div class="note" style="margin:0 0 12px">Requests come through their own confidential
+        form and are visible to Andrew and Hazen only — never the staff pages, never this
+        page's data. The two links below are where the real thing lives.</div>
+      <div class="tablewrap"><table id="benevLadder">
+        <thead><tr><th>Amount</th><th>Who approves</th></tr></thead><tbody></tbody>
+      </table></div>
+      <div class="note" style="margin:12px 0 0" id="benevRules"></div>
+      <div style="margin-top:12px" id="benevLinks"></div>
+    </div></div></div>
+  </div>
+
   <div class="fold" data-fold="declines" id="decCard" style="display:none">
     <button class="foldbtn" type="button" aria-expanded="false"><span class="chev">▶</span>
       <span class="ft"><b>Decline</b> patterns</span><span class="fmeta" id="decMeta"></span></button>
@@ -641,6 +656,28 @@ function renderRunway(){
 $('inclSavings').addEventListener('change', renderRunway);
 $('inclGift').addEventListener('change', renderRunway);
 renderRunway();
+
+/* ── 05 Benevolence — signpost, never request data ── */
+(function(){
+  var b = DATA && DATA.benevolence;
+  if (!b) return;                       // links not recorded yet: stay hidden
+  $('benevCard').style.display = '';
+  $('benevMeta').innerHTML = '<b>$250</b> · <b>$1k</b> · board';
+  var tb = $('benevLadder').querySelector('tbody');
+  (b.ladder||[]).forEach(function(row){
+    tb.insertAdjacentHTML('beforeend',
+      '<tr><td>'+esc(row[0])+'</td><td>'+esc(row[1])+'</td></tr>');
+  });
+  $('benevRules').innerHTML =
+      '<b>Per household:</b> '+esc(b.household_cap)+'<br>'
+    + '<b>How it is paid:</b> '+esc(b.payment_rule)+'<br>'
+    + '<b>Where it comes from:</b> '+esc(b.fund)
+    + (b.policy ? '<br><b>Policy:</b> '+esc(b.policy)+' — draft until the board adopts it.' : '');
+  var links = [];
+  if (b.sheet_url) links.push('<a href="'+esc(b.sheet_url)+'" target="_blank" rel="noopener">Open the requests &amp; decisions</a>');
+  if (b.form_url)  links.push('<a href="'+esc(b.form_url)+'" target="_blank" rel="noopener">The request form</a>');
+  $('benevLinks').innerHTML = links.join(' &nbsp;·&nbsp; ');
+})();
 
 /* ── 02 Aplos import prep ── */
 (function(){
