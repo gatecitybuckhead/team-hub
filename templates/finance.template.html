@@ -99,7 +99,7 @@ border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0
   <div id="giveWrap" class="cvbox"><canvas id="cGive"></canvas></div>
   <p id="giveSrc" class="note" style="margin-top:6px"></p>
   <div style="margin-top:14px" id="gpWrap">
-    <h3><b>Give</b> — % of members giving (Planning Center, rolling 90 days)</h3>
+    <h3><b>Give</b> — % of members personally giving (Planning Center list, rolling 90 days; household roll-up on the Members page)</h3>
     <div class="cvbox sm"><canvas id="cGivePct"></canvas></div>
   </div>
   <div class="lblnote">Dollars now live here — the Metrics page keeps participation %.</div>
@@ -472,7 +472,7 @@ function drawGive(){
   if (!rrows.length) rrows = readings.slice(-1);
   mkChart('cGivePct',{type:'line',
     data:{labels:rrows.map(function(r){return r.sunday.slice(5).replace('-','/');}),
-      datasets:[{label:'% of members giving (90-day)', data:rrows.map(function(r){return r.pct;}),
+      datasets:[{label:'% of members personally giving (90-day)', data:rrows.map(function(r){return r.pct;}),
         borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
         pointRadius:3, tension:.3, spanGaps:true}]},
     options:{responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},

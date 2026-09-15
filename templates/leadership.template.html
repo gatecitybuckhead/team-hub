@@ -311,12 +311,13 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
     <button class="foldbtn" type="button" aria-expanded="false"><span class="chev">▶</span>
       <span class="ft"><b>Lapsed</b> member watchlist</span><span class="fmeta" id="watchMeta"></span></button>
     <div class="foldbody"><div class="foldinner"><div class="foldpad">
-      <div class="note" style="margin-bottom:8px">Pastoral-care leads — members whose giving has gone quiet.</div>
+      <div class="note" style="margin-bottom:8px">Pastoral-care leads — member households where nobody's giving is current. Counted per Planning Center household: a spouse's gift counts for both.</div>
       <div class="tablewrap"><table id="gvWatch">
-        <thead><tr><th>Name</th><th>Last gift</th><th>First gift</th>
+        <thead><tr><th>Name</th><th>Household</th><th>Last gift</th><th>First gift</th>
         <th class="num">Gifts</th><th class="num">Months active</th></tr></thead><tbody></tbody>
       </table></div>
       <div id="gvNever" class="note" style="margin-top:12px"></div>
+      <div id="gvCovered" class="note" style="margin-top:12px"></div>
     </div></div></div>
   </div>
 
@@ -854,7 +855,15 @@ renderRunway();
   $('gvMeta').textContent = '· data through '+GPPL.generated;
   $('gvSince').textContent = '· since '+GPPL.since;
   var S = GPPL.summary || {};
-  var tiles = [
+  var HH = S.households || null;   // member-household roll-up (since 9/15/2026)
+  var tiles = HH ? [
+    {l:'Member households giving', v:(HH.members ? Math.round(HH.recent/HH.members*100) : 0)+'%',
+     d:HH.recent+' of '+HH.members+' households · last 90 days'},
+    {l:'Occasional households', v:HH.occasional||0, d:'last gift 91–180 days ago'},
+    {l:'Lapsed households', v:HH.lapsed||0, d:'nobody in the household gave in 180+ days'},
+    {l:'Households never given', v:HH.never||0, d:'no recorded gift since '+GPPL.since},
+    {l:'Total givers', v:S.total_givers||0, d:(S.recent||0)+' people gave in the last 90 days'}]
+  : [
     {l:'Recent givers', v:S.recent||0, d:'gave in the last 90 days'},
     {l:'Occasional', v:S.occasional||0, d:'last gift 91–180 days ago'},
     {l:'Lapsed', v:S.lapsed||0, d:'no gift in 180+ days'},
@@ -865,17 +874,34 @@ renderRunway();
   function nameCell(r){
     return '<b>'+esc(r.name||'(no name)')+'</b>'+(r.is_member?'<span class="mbadge">member</span>':''); }
 
-  var watch = (GPPL.people||[]).filter(function(r){ return r.is_member && r.giver_status==='lapsed'; })
+  // Household roll-up: a member is on the watchlist only when NOBODY in
+  // their household has a current gift. Members whose own giving is quiet
+  // but whose household gives are listed separately ("covered"), so the
+  // pastoral picture isn't lost — they just don't count as lapsed.
+  var hhStatus = function(r){ return r.household_status || r.giver_status; };
+  var watch = (GPPL.people||[]).filter(function(r){ return r.is_member && hhStatus(r)==='lapsed'; })
     .sort(function(a,b){ return a.last_gift < b.last_gift ? -1 : 1; });
-  var never = GPPL.never || [];
-  $('watchMeta').innerHTML = '<b>'+watch.length+'</b> lapsed member'+(watch.length===1?'':'s')+' · '+never.length+' never given';
+  var never = (GPPL.never || []).filter(function(n){ return (n.household_status||'never')==='never'; });
+  var covered = (GPPL.people||[]).filter(function(r){
+      return r.is_member && r.giver_status==='lapsed' && (hhStatus(r)==='recent' || hhStatus(r)==='occasional'); })
+    .concat((GPPL.never||[]).filter(function(n){ return n.household_status==='recent' || n.household_status==='occasional'; }));
+  var watchHH = {}; watch.forEach(function(r){ watchHH[r.household_name||r.person_id] = 1; });
+  var nWatchHH = Object.keys(watchHH).length;
+  $('watchMeta').innerHTML = '<b>'+nWatchHH+'</b> lapsed household'+(nWatchHH===1?'':'s')+' · '+never.length+' never given'
+    +(covered.length ? ' · '+covered.length+' covered by a spouse' : '');
   $('gvWatch').querySelector('tbody').innerHTML = watch.length ? watch.map(function(r){
-    return '<tr><td>'+nameCell(r)+'</td><td class="num" style="color:var(--red);font-weight:700">'+esc(fmtDateShort(r.last_gift))+'</td>'
+    return '<tr><td>'+nameCell(r)+'</td><td class="note">'+esc(r.household_name||'—')+'</td>'
+      +'<td class="num" style="color:var(--red);font-weight:700">'+esc(fmtDateShort(r.last_gift))+'</td>'
       +'<td class="num">'+esc(fmtDateShort(r.first_gift))+'</td><td class="num">'+esc(r.gift_count)+'</td>'
       +'<td class="num">'+(r.months_given||[]).length+'</td></tr>'; }).join('')
-    : '<tr><td colspan="5" class="note">No lapsed member givers — every member who gives is current.</td></tr>';
-  $('gvNever').innerHTML = '<b>Members with no recorded gift since '+esc(GPPL.since)+':</b> '
-    +(never.length ? never.map(function(n){ return esc(n.name||'(no name)'); }).join(', ') : 'none — every member has a recorded gift.');
+    : '<tr><td colspan="6" class="note">No lapsed member households — every member household that gives is current.</td></tr>';
+  $('gvNever').innerHTML = '<b>Member households with no recorded gift since '+esc(GPPL.since)+':</b> '
+    +(never.length ? never.map(function(n){ return esc(n.name||'(no name)')+(n.household_name?' <span class="note">('+esc(n.household_name)+')</span>':''); }).join(', ') : 'none — every member household has a recorded gift.');
+  $('gvCovered').innerHTML = covered.length
+    ? '<b>Counted through their household</b> (own giving quiet, but a spouse or household member gives): '
+      +covered.map(function(r){ return esc(r.name||'(no name)')+' <span class="note">(via '+esc(r.household_via||'household')
+        +(r.household_last_gift ? ', '+esc(fmtDateShort(r.household_last_gift)) : '')+')</span>'; }).join(', ')
+    : '';
 
   $('giversMeta').innerHTML = '<b>'+(GPPL.people||[]).length+'</b> people · since '+esc(GPPL.since);
   var GCOLS = [

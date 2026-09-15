@@ -210,6 +210,41 @@ def month_seq(start, end):
         y, m = (y + (m == 12), m % 12 + 1)
     return ms
 
+# ---------- households (giving is counted per HOUSEHOLD since 9/15/2026) ----
+# Andrew's rule: a spouse's or parent's gift counts for everyone in the
+# household, so "% of members giving" and the lapsed watchlist roll up to
+# Planning Center households. Anyone with no PCO household is their own
+# one-person household ('solo:<pid>'). Household membership is only ever used
+# to ROLL UP giving — the pages never display who lives with whom.
+def household_index(snap):
+    hh = snap.get('households') or {}
+    idx = {}
+    for hid, h in hh.items():
+        for pid in h.get('people', []):
+            idx.setdefault(pid, hid)
+    return hh, idx
+
+def hh_key(idx, pid):
+    return idx.get(pid) or f'solo:{pid}'
+
+STATUS_RANK = {'recent': 0, 'occasional': 1, 'lapsed': 2, 'never': 3}
+
+def household_giving(gv, idx):
+    """household key -> {status, last_gift, via, via_id, months} using the most
+    recent gift by ANYONE in the household (member or not)."""
+    out = {}
+    for pid, g in gv['people'].items():
+        if pid == 'anonymous':
+            continue
+        k = hh_key(idx, pid)
+        e = out.setdefault(k, {'status': 'never', 'last_gift': '', 'via': None,
+                               'via_id': None, 'months': set()})
+        e['months'].update(g['months_given'])
+        if g['last_gift'] > e['last_gift']:
+            e.update({'status': g['giver_status'], 'last_gift': g['last_gift'],
+                      'via': g['name'], 'via_id': pid})
+    return out
+
 def members_payload():
     snap = json.load(open(DATA/'members/members-latest.json'))
     ledger = json.load(open(DATA/'members/serving-history.json'))
@@ -295,27 +330,47 @@ def members_payload():
     # CURRENT Members (All) list applied to past months (membership history
     # isn't versioned in PCO) — a steady-denominator approximation, flagged in
     # the UI. Only counts/percentages leave this function; no per-person data.
+    # Since 9/15/2026 the unit is the member HOUSEHOLD (see household_index):
+    # numerator = households where anyone gave in the window, denominator =
+    # distinct households across the Members (All) list.
     giving_windows = None
     try:
         gv = json.load(open(DATA/'members/giving-by-person.json'))
         member_ids = {p['person_id'] for p in snap['people'] if p['is_member']}
         n_members = len(member_ids)
-        member_months = [set(g['months_given']) for pid, g in gv['people'].items()
-                         if pid in member_ids]
+        _hh, _idx = household_index(snap)
+        hg = household_giving(gv, _idx)
+        member_hh = {hh_key(_idx, pid) for pid in member_ids}
+        n_hh = len(member_hh)
+        member_months = [hg[k]['months'] if k in hg else set() for k in member_hh]
+        _today = datetime.date.today()
+        live_gave = sum(1 for k in member_hh if k in hg and
+                        (_today - datetime.date.fromisoformat(hg[k]['last_gift'])).days <= 90)
+        live_people = sum(1 for pid in member_ids if pid in gv['people'] and
+                          gv['people'][pid]['giver_status'] == 'recent')
         def _mshift(ym, back):
             y, m = int(ym[:4]), int(ym[5:7])
             m -= back
             while m <= 0:
                 y, m = y - 1, m + 12
             return f'{y:04d}-{m:02d}'
-        giving_windows = {'members': n_members, 'windows': {}}
+        giving_windows = {'members': n_members, 'households': n_hh,
+                          'unit': 'households',
+                          # live 90-day figure by household (and the old
+                          # per-person one beside it, for the caption)
+                          'live': {'gave': live_gave, 'households': n_hh,
+                                   'pct': round(live_gave / n_hh * 100, 1) if n_hh else None,
+                                   'people_gave': live_people, 'members': n_members,
+                                   'people_pct': round(live_people / n_members * 100, 1) if n_members else None,
+                                   'asof': gv['generated_at'][:10]},
+                          'windows': {}}
         for w in (1, 3, 6, 12):
             series = []
             for ym in months:
                 span = {_mshift(ym, b) for b in range(w)}
                 gave = sum(1 for mm in member_months if mm & span)
                 series.append({'month': ym, 'gave': gave,
-                               'pct': round(gave / n_members * 100, 1) if n_members else None})
+                               'pct': round(gave / n_hh * 100, 1) if n_hh else None})
             giving_windows['windows'][str(w)] = series
     except FileNotFoundError:
         pass
@@ -389,6 +444,23 @@ def leadership_giving():
     gv = json.load(open(DATA/'members/giving-by-person.json'))
     snap = json.load(open(DATA/'members/members-latest.json'))
     by_id = {p['person_id']: p for p in snap['people']}
+    hh, idx = household_index(snap)
+    hg = household_giving(gv, idx)
+
+    def hh_fields(pid):
+        """Household roll-up for one person: the household's status and, when
+        the household's latest gift came from someone else, who that was."""
+        k = hh_key(idx, pid)
+        e = hg.get(k)
+        name = hh.get(k, {}).get('name') if k in hh else None
+        if not e:
+            return {'household_status': 'never', 'household_last_gift': None,
+                    'household_via': None, 'household_name': name}
+        via = e['via'] or by_id.get(e['via_id'], {}).get('name')
+        return {'household_status': e['status'], 'household_last_gift': e['last_gift'],
+                'household_via': via if e['via_id'] != pid else None,
+                'household_name': name}
+
     rows = []
     for pid, g in gv['people'].items():
         m = by_id.get(pid, {})
@@ -398,17 +470,24 @@ def leadership_giving():
                      'first_gift': g['first_gift'], 'last_gift': g['last_gift'],
                      'gift_count': g['gift_count'],
                      'months_given': g['months_given'],
-                     'total_cents': g['total_cents']})
+                     'total_cents': g['total_cents'],
+                     **hh_fields(pid)})
     rows.sort(key=lambda r: r['last_gift'], reverse=True)
-    never = [{'person_id': p['person_id'], 'name': p['name']}
+    never = [{'person_id': p['person_id'], 'name': p['name'], **hh_fields(p['person_id'])}
              for p in snap['people']
              if p['is_member'] and p['person_id'] not in gv['people']]
     st = {}
     for r in rows:
         st[r['giver_status']] = st.get(r['giver_status'], 0) + 1
+    # member HOUSEHOLD counts — the numbers the leadership tiles now lead with
+    member_hh = {hh_key(idx, p['person_id']) for p in snap['people'] if p['is_member']}
+    hh_st = {'members': len(member_hh), 'recent': 0, 'occasional': 0, 'lapsed': 0, 'never': 0}
+    for k in member_hh:
+        hh_st[hg[k]['status'] if k in hg else 'never'] += 1
     return {'generated': gv['generated_at'][:10], 'since': gv['since'],
+            'unit': 'households',
             'summary': {**st, 'never_members': len(never),
-                        'total_givers': len(rows)},
+                        'total_givers': len(rows), 'households': hh_st},
             'people': rows, 'never': sorted(never, key=lambda n: (n['name'] or '').lower())}
 
 OFF_TEAM_RE = re.compile(
@@ -428,15 +507,21 @@ def leadership_insights():
     people = [p for p in snap['people'] if (p['name'] or '').lower() not in NONPERSONS]
     by_id = {p['person_id']: p for p in people}
     last_gift = {pid: g['last_gift'] for pid, g in gv['people'].items()}
+    # household roll-up (9/15/2026): a server whose spouse gives is not
+    # "serving but not giving".
+    _hh, _idx = household_index(snap)
+    hg = household_giving(gv, _idx)
 
     serving_not_giving, giving_not_serving = [], []
     for p in people:
         active_server = p['last_served'] and days(p['last_served']) <= 60
         lg = last_gift.get(p['person_id'])
-        if active_server and (lg is None or days(lg) > 180):
+        hhg = hg.get(hh_key(_idx, p['person_id']))
+        hlg = hhg['last_gift'] if hhg else None
+        if active_server and (hlg is None or days(hlg) > 180):
             serving_not_giving.append({'name': p['name'], 'is_member': p['is_member'],
                                        'teams': p['teams'], 'last_served': p['last_served'],
-                                       'last_gift': lg})
+                                       'last_gift': lg, 'household_last_gift': hlg})
         if lg is not None and days(lg) <= 90 and \
            (not p['last_served'] or days(p['last_served']) > 183):
             giving_not_serving.append({'name': p['name'], 'is_member': p['is_member'],

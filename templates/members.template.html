@@ -209,7 +209,14 @@ function fmtMonY(ym){ var p=String(ym).split('-'); return MON[+p[1]-1]+' '+p[0].
       if (w12[i] && w12[i].pct != null){ hint12 = '12-mo: '+Math.round(w12[i].pct)+'%'; break; }
     }
   }
-  items.push(last
+  // Since 9/15/2026 the headline is per member HOUSEHOLD (a spouse's gift
+  // counts for both). The per-person PCO-list reading stays as the sub-line.
+  var LIVE = GW && GW.live;
+  items.push(LIVE && LIVE.pct != null
+    ? {l:'% of member households giving (90-day)', v:Math.round(LIVE.pct)+'%',
+       d:LIVE.gave+' of '+LIVE.households+' households · '
+         +(last ? Math.round(last.pct)+'% of members personally' : (hint12||''))}
+    : last
     ? {l:'% of members giving (90-day)', v:Math.round(last.pct)+'%',
        d:hint12 ? '90-day list · '+hint12
                 : last.giving+' of '+last.members+' · '+fmtDate(last.sunday)}
@@ -405,7 +412,7 @@ function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No dat
   function drawLive(){
     mkChart('cPart',{type:'line',
       data:{labels:readings.map(function(r){return r.sunday.slice(5).replace('-','/');}),
-        datasets:[{label:'% of members giving (90-day)', data:readings.map(function(r){return r.pct;}),
+        datasets:[{label:'% of members personally giving (90-day PCO list)', data:readings.map(function(r){return r.pct;}),
           borderColor:'#5aa2e0', backgroundColor:'#5aa2e055', borderWidth:3,
           pointRadius:3, tension:.3, spanGaps:true}]},
       options:{responsive:true, maintainAspectRatio:false, animation:false,
@@ -427,7 +434,7 @@ function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No dat
     var series = GW.windows[k] || [];
     mkChart('cPart',{type:'line',
       data:{labels:series.map(function(r){return fmtMonY(r.month);}),
-        datasets:[{label:'% of members giving ('+k+'-mo window)',
+        datasets:[{label:'% of member households giving ('+k+'-mo window)',
           data:series.map(function(r){return r.pct==null ? null : r.pct;}),
           borderColor:'#57c98a', backgroundColor:'#57c98a55', borderWidth:3,
           pointRadius:3, tension:.25, spanGaps:false}]},
@@ -438,7 +445,7 @@ function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No dat
           tooltip:{callbacks:{label:function(i){
             var r = series[i.dataIndex];
             if (!r || r.pct==null) return '';
-            return r.pct+'% — '+r.gave+' of '+GW.members+' members'; }}}},
+            return r.pct+'% — '+r.gave+' of '+(GW.households||GW.members)+' member households'; }}}},
         scales:pctScales()}});
   }
   var modes = [{k:'1',l:'1 mo'},{k:'3',l:'3 mo'},{k:'6',l:'6 mo'},{k:'12',l:'12 mo'}];
@@ -457,12 +464,13 @@ function noData(el, msg){ el.innerHTML = '<div class="nodata">'+esc(msg||'No dat
   }
   function draw(){
     if (cur==='live') drawLive(); else drawWindow(cur);
-    $('partHead').innerHTML = '<b>Giving participation</b> — % of members giving ('
-      +(cur==='live' ? 'rolling 90 days, live list' : cur+'-month window')+')';
+    $('partHead').innerHTML = '<b>Giving participation</b> — % of member '
+      +(cur==='live' ? 's personally giving (rolling 90 days, live list)' : 'households giving ('+cur+'-month window)')
+      +'';
   }
-  $('gwCaption').textContent = '1/3/6/12-month curves are computed from actual donation history (PCO Giving) '
-    +'against the CURRENT members list — solid for trends, approximate for early months. '
-    +'The 90-day line is the live Planning Center list reading, captured weekly.';
+  $('gwCaption').textContent = '1/3/6/12-month curves count member HOUSEHOLDS (Planning Center households; a spouse\'s gift counts for both) '
+    +'from actual donation history (PCO Giving) against the CURRENT members list — solid for trends, approximate for early months. '
+    +'The 90-day (live) line is the per-person Planning Center list reading, captured weekly.';
   renderPills(); draw();
 })();
 
