@@ -223,7 +223,7 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
 <!-- ═══════════════ 02 RUNWAY & PAYMENTS ═══════════════ -->
 <section class="sec" id="runway">
   <div class="sech"><span class="n">02</span><h2>Runway &amp; payments</h2><span class="rule"></span>
-    <span class="hint">next 45 days, in date order</span></div>
+    <span class="hint">rest of the year (through 12/31), in date order</span></div>
 
   <div class="card">
     <h3><b>Runway</b> — what comes in and goes out of Chase</h3>
@@ -643,7 +643,7 @@ function renderRunway(){
       +' (payroll '+money(payrollRow.amount)+(useGift?', gift counted':', gift excluded')+')';
   } else {
     $('afterPayroll').textContent = bal===null ? 'no bank data' : money(bal);
-    $('afterPayrollHint').textContent = 'no payroll in the next 45 days';
+    $('afterPayrollHint').textContent = 'no payroll in the rest of the year (through 12/31)';
   }
   var w = $('runwayWarn'); w.innerHTML = '';
   if (bal !== null && firstNeg){
@@ -720,7 +720,7 @@ renderRunway();
     + (next ? '<b>'+money(next.amount)+'</b> '+(next.date===TODAY?'<b>today</b>':fmtDate(next.date))+' — you move it in PEX' : 'nothing planned in the window')
     + '. Standing plan: '+(plan ? esc(plan) : 'none')+' ('+money(x.monthly_plan)+'/mo; known subscriptions on PEX ≈ '+money(x.subs_monthly)+'/mo).</div>';
   var t = '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Transfer</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody>';
-  if (!x.planned.length) t += '<tr><td colspan="4" class="note">No planned transfers in the next 45 days.</td></tr>';
+  if (!x.planned.length) t += '<tr><td colspan="4" class="note">No planned transfers in the rest of the year (through 12/31).</td></tr>';
   x.planned.forEach(function(p){
     var st = p.landed ? '<span class="pill ok">✓ landed in PEX '+esc(fmtDateShort(p.landed))+'</span>'
       : p.date < TODAY ? '<span class="pill neg">planned, not seen in PEX</span>'
