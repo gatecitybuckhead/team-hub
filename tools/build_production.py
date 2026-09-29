@@ -28,7 +28,7 @@ except ImportError:
 if len(sys.argv) < 2:
     sys.exit('usage: build_production.py "<production password>"')
 password = sys.argv[1]
-ITER = 200_000
+ITER = 600_000   # donor-audit floor (9/29/2026), same as encrypt.py
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / 'data' / 'production.json'
