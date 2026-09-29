@@ -124,15 +124,18 @@ def check_js(out_name):
                          f'(most often an unescaped apostrophe inside a single-quoted string)')
 
 
-# HARD RULE (9/29/2026 donor audit): per-person giving never goes in the
-# team-hub repo, not even encrypted — ciphertext in a public repo can be
-# downloaded and guessed offline forever. Every page EXCEPT the Mini-only ones
-# is scanned for per-person giving keys; a hit aborts the build.
+# HARD RULE (9/29/2026 donor audit): per-person giving — and the declines list
+# (names + people's own reasons) — never go in the team-hub repo, not even
+# encrypted: ciphertext in a public repo can be downloaded and guessed offline
+# forever. Every page EXCEPT the Mini-only ones is scanned for these keys; a
+# hit aborts the build. (Contractor/payee names MAY ship, behind the long
+# leadership passphrase — Andrew's call 9/29.)
 MINI_ONLY = {'leadership-full.html'}     # never in encrypt.py's allowlist
 PERSON_GIVING_KEYS = ('total_cents', 'giver_status', 'first_gift', 'last_gift',
                       'gift_count', 'months_given', 'household_status',
                       'household_last_gift', 'household_via',
-                      'serving_not_giving', 'giving_not_serving')
+                      'serving_not_giving', 'giving_not_serving',
+                      'decliners', 'recent_reasons', 'off_team_language')
 _PG_RE = re.compile(r'"(%s)"\s*:' % '|'.join(PERSON_GIVING_KEYS))
 def assert_no_person_giving(payload, name):
     hits = sorted(set(_PG_RE.findall(json.dumps(payload))))
@@ -603,7 +606,10 @@ try:
                                 'unit': g['unit'], 'summary': g['summary'],
                                 'names_on_mini': MINI_URL}
     if full.get('insights'):
-        pub['insights'] = {'decliners': full['insights']['decliners'],
+        dec = full['insights']['decliners']
+        pub['insights'] = {'decline_counts': {
+                               'people': len(dec),
+                               'off_team': sum(1 for d in dec if d['off_team_language'])},
                            'sxg_on_mini': MINI_URL}
     inject('leadership.template.html', 'leadership.html', pub)
     inject('leadership.template.html', 'leadership-full.html', full)

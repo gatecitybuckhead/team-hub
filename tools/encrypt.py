@@ -22,8 +22,8 @@ QR sheets, ...) can never leak onto the staff site (lesson of 2026-07-28).
 
 HARD RULES since the 9/29/2026 donor audit (the repo is PUBLIC, so every
 ciphertext it ever held can be downloaded and guessed offline forever):
-  - per-person giving is NEVER encrypted into docs/ — it lives only on the
-    Mini (gcb-leadership.html). The plaintext guard below refuses any page
+  - per-person giving and the declines list are NEVER encrypted into docs/ —
+    they live only on the Mini (gcb-leadership.html). The plaintext guard below refuses any page
     carrying per-person giving keys, whatever build step produced it.
   - PBKDF2 >= 600,000 iterations; leadership password >= 20 characters.
 
@@ -72,7 +72,7 @@ else:
 
 ITER = 600_000                   # OWASP 2023 floor for PBKDF2-SHA256
 MIN_ITER = 600_000
-MIN_PW = {'leadership': 20}      # staff pw stays as-is (8/18); no per-person giving there
+MIN_PW = {'leadership': 20}      # 5 random words (9/29); staff pw stays as-is (8/18)
 if ITER < MIN_ITER:
     sys.exit(f'ITER {ITER} is below the {MIN_ITER} floor — refusing to encrypt.')
 for tier, n in MIN_PW.items():
@@ -86,7 +86,8 @@ for tier, n in MIN_PW.items():
 import re
 PERSON_GIVING_RE = re.compile(rb'"(total_cents|giver_status|first_gift|last_gift|gift_count|'
                               rb'months_given|household_status|household_last_gift|'
-                              rb'household_via|serving_not_giving|giving_not_serving)"\s*:')
+                              rb'household_via|serving_not_giving|giving_not_serving|decliners|'
+                              rb'recent_reasons|off_team_language)"\s*:')
 
 SHELL = '''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">

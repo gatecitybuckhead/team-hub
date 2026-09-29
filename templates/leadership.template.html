@@ -969,7 +969,10 @@ renderRunway();
   var INS = (DATA && DATA.insights) || null;
   if (!INS) return;
   if (INS.sxg_on_mini){
-    $('sxgMini').innerHTML = '<b>Serving × giving</b> lists: '+MINI_NOTE(INS.sxg_on_mini).charAt(0).toLowerCase()+MINI_NOTE(INS.sxg_on_mini).slice(1);
+    var DC = INS.decline_counts || null;
+    $('sxgMini').innerHTML = (DC ? '<b>Declines:</b> '+DC.people+' people with repeated declines'
+        +(DC.off_team ? ' · <span class="warn">'+DC.off_team+' say they’re off the team</span>' : '')+'.<br>' : '')
+      +'<b>Serving × giving</b> and <b>declines</b> lists: '+MINI_NOTE(INS.sxg_on_mini).charAt(0).toLowerCase()+MINI_NOTE(INS.sxg_on_mini).slice(1);
     $('sxgMini').style.display = '';
   }
   function nameCell(r){
