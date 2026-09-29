@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Family Fun Day — Live Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#c8102e; --red-dark:#8f0b20; --cream:#f9edbe; --cream-lt:#fdf6d8;
+    --blue:#cfe8f7; --blue-line:#7db6d9; --gold:#ffc93c; --silver:#d7dde3; --bronze:#e0995e;
+    --ink:#5a1010;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Fredoka',sans-serif; color:var(--ink); overflow:hidden;
+    background:var(--red-dark);
+  }
+  /* rotating sunburst */
+  #rays{position:fixed;left:50%;top:50%;width:260vmax;height:260vmax;transform:translate(-50%,-50%);
+    background:repeating-conic-gradient(var(--red) 0deg 9deg, var(--red-dark) 9deg 18deg);
+    animation:spin 90s linear infinite; z-index:0;}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  #stage{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:1.2vh 1.2vw;gap:1.2vh}
+
+  /* ticket frame */
+  .ticket{background:var(--cream);border-radius:18px;box-shadow:0 6px 24px rgba(0,0,0,.35);
+    border:4px solid var(--cream); outline:3px dashed rgba(200,16,46,.55); outline-offset:-14px;}
+
+  /* header */
+  #hdr{display:flex;align-items:center;justify-content:space-between;padding:1.4vh 2vw;gap:1vw}
+  #hdr .title{font-family:'Rye',serif;color:var(--red);font-size:5.2vh;letter-spacing:.5vh;line-height:1;
+    text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,.12)}
+  #hdr .sub{font-weight:700;color:#8a6d1a;font-size:1.9vh;letter-spacing:.35vh;text-transform:uppercase}
+  .bulbs{display:flex;gap:.6vw}
+  .bulb{width:1.6vh;height:1.6vh;border-radius:50%;background:var(--gold);box-shadow:0 0 8px 2px rgba(255,201,60,.8);animation:blink 1.2s infinite}
+  .bulb:nth-child(2n){animation-delay:.6s}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25;box-shadow:none}}
+  #live{display:flex;align-items:center;gap:.5vw;background:var(--red);color:#fff;font-weight:700;
+    padding:.8vh 1.2vw;border-radius:999px;font-size:2vh;letter-spacing:.2vh}
+  #live .dot{width:1.2vh;height:1.2vh;border-radius:50%;background:#fff;animation:blink 1s infinite}
+  #stats{display:flex;gap:.8vw}
+  .chip{background:var(--blue);border:2px solid var(--blue-line);border-radius:999px;padding:.7vh 1.2vw;
+    font-weight:700;font-size:1.9vh;color:#1d4e6b;white-space:nowrap}
+
+  /* main area */
+  #main{flex:1;display:flex;gap:1.2vw;min-height:0}
+  #podium{flex:1.35;display:flex;align-items:flex-end;justify-content:center;gap:1.6vw;padding:2.5vh 1.5vw 2vh}
+  .pcard{flex:1;max-width:20vw;display:flex;flex-direction:column;align-items:center;gap:1vh;
+    border-radius:16px;padding:2.2vh 1vw 1.6vh;background:var(--cream-lt);
+    border:4px solid var(--gold);box-shadow:0 8px 20px rgba(0,0,0,.18);
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .pcard.pop{animation:pop .6s}
+  @keyframes pop{40%{transform:scale(1.08)}}
+  .pcard .medal{font-size:5.5vh;line-height:1}
+  .pcard .crown{font-size:6.5vh;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-1vh) rotate(-6deg)}}
+  .pcard .pname{font-family:'Rye',serif;font-size:3.4vh;color:var(--red);text-align:center;line-height:1.1;word-break:break-word}
+  .pcard .ppts{font-size:4.6vh;font-weight:700;color:var(--ink)}
+  .pcard .plabel{font-size:1.7vh;font-weight:700;letter-spacing:.3vh;color:#8a6d1a;text-transform:uppercase}
+  .pcard.first{transform:scale(1.14);border-color:var(--gold);background:#fff8dc;z-index:2}
+  .pcard.second{border-color:var(--silver)}
+  .pcard.third{border-color:var(--bronze)}
+  .pcard.empty{opacity:.45;border-style:dashed}
+
+  /* chase list */
+  #chaseWrap{flex:1;display:flex;flex-direction:column;padding:1.6vh 1.4vw;min-height:0}
+  #chaseTitle{font-family:'Rye',serif;color:var(--red);font-size:2.8vh;letter-spacing:.3vh;margin-bottom:1vh;text-align:center}
+  #chase{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:.8vh}
+  .row{display:flex;align-items:center;gap:1vw;background:var(--cream-lt);border:2px solid #e6d391;
+    border-radius:12px;padding:1vh 1.2vw;transition:transform .6s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .row .rank{font-family:'Rye',serif;font-size:2.6vh;color:var(--red);width:3.2vw;text-align:center}
+  .row .name{flex:1;font-weight:600;font-size:2.6vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .pts{font-weight:700;font-size:2.6vh;color:var(--red)}
+  .row.up{animation:flashUp 1.2s}
+  @keyframes flashUp{0%{background:#d9f2d9;border-color:#7cc47c}100%{}}
+  .gain{position:absolute;right:1vw;top:-2.4vh;font-weight:700;color:#1d7a1d;font-size:2.4vh;
+    animation:floatUp 1.6s forwards;pointer-events:none}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(1vh)}25%{opacity:1}100%{opacity:0;transform:translateY(-3vh)}}
+
+  /* barker banner */
+  #barker{padding:1.2vh 2vw;text-align:center;font-family:'Rye',serif;font-size:3vh;color:#fff;
+    background:var(--red);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.3);
+    letter-spacing:.15vh;min-height:5.6vh;display:flex;align-items:center;justify-content:center}
+  #barker span{animation:barkIn .5s}
+  @keyframes barkIn{from{opacity:0;transform:translateY(1.5vh)}to{opacity:1}}
+
+  /* ticker */
+  #tickerWrap{overflow:hidden;padding:1vh 0;white-space:nowrap}
+  #ticker{display:inline-block;padding-left:100%;animation:scroll 30s linear infinite;
+    font-weight:600;font-size:2.3vh;color:var(--ink)}
+  @keyframes scroll{to{transform:translateX(-100%)}}
+  #ticker b{color:var(--red)}
+  #ticker .sep{color:#b39b3f;margin:0 1.4vw}
+
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+  #demoTag{position:fixed;top:1vh;right:1vw;z-index:60;background:#222;color:#ffc93c;font-weight:700;
+    padding:.6vh 1vw;border-radius:8px;font-size:1.8vh;opacity:.85;display:none}
+  #empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
+  #empty .big{font-family:'Rye',serif;font-size:6vh;color:var(--red);text-align:center}
+  #empty .small{font-size:2.6vh;font-weight:600;color:#8a6d1a}
+
+  /* phone / portrait: stack everything and allow scrolling */
+  @media (max-width:820px), (orientation:portrait){
+    body{overflow:auto}
+    #stage{height:auto;min-height:100vh}
+    #hdr{flex-direction:column;text-align:center;gap:1vh;padding:1.6vh 3vw}
+    .bulbs{display:none}
+    #hdr .title{font-size:3.6vh;letter-spacing:.3vh}
+    #hdr>div:last-of-type{align-items:center !important}
+    #main{flex-direction:column;min-height:unset}
+    #podium{align-items:stretch;gap:2vw;padding:2vh 2vw}
+    .pcard{max-width:none;padding:1.6vh 1vw 1.2vh}
+    .pcard.first{transform:scale(1.06)}
+    .pcard .pname{font-size:2.2vh}
+    .pcard .ppts{font-size:2.8vh}
+    .pcard .crown{font-size:4.5vh}
+    .pcard .medal{font-size:3.8vh}
+    .pcard .plabel{font-size:1.3vh}
+    #chaseWrap{min-height:unset}
+    #chase{overflow:visible}
+    .row .rank{width:12vw}
+    #barker{font-size:2.2vh}
+  }
+</style>
+</head>
+<body>
+<div id="rays"></div>
+<canvas id="confetti"></canvas>
+<div id="demoTag">DEMO MODE — no Firebase config yet</div>
+
+<div id="stage">
+  <div id="hdr" class="ticket">
+    <div class="bulbs" id="bulbsL"></div>
+    <div style="text-align:center">
+      <div class="sub">GateCity Buckhead presents</div>
+      <div class="title" id="eventTitle">FAMILY FUN DAY</div>
+      <div class="sub">★ Live Leaderboard ★</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1vh">
+      <div id="live"><div class="dot"></div>LIVE</div>
+      <div id="stats">
+        <div class="chip" id="chipPlayers">0 players</div>
+        <div class="chip" id="chipScores">0 plays</div>
+      </div>
+    </div>
+    <div class="bulbs" id="bulbsR"></div>
+  </div>
+
+  <div id="main">
+    <div id="podium" class="ticket"></div>
+    <div id="chaseWrap" class="ticket">
+      <div id="chaseTitle">🎪 THE CHASE PACK 🎪</div>
+      <div id="chase"></div>
+    </div>
+  </div>
+
+  <div id="barker"><span>🎟️ Step right up! Scores update live as you play!</span></div>
+  <div id="tickerWrap" class="ticket"><div id="ticker">Waiting for the first scores of the day…</div></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="funday-config.js?v=4"></script>
+<script>
+(function(){
+  "use strict";
+  var CFG = window.FUNDAY || {};
+  document.getElementById('eventTitle').textContent = CFG.eventName || 'FAMILY FUN DAY';
+  document.title = (CFG.eventName || 'Family Fun Day') + ' — Live Leaderboard';
+
+  // marquee bulbs
+  ['bulbsL','bulbsR'].forEach(function(id){
+    var el = document.getElementById(id);
+    for (var i=0;i<4;i++){ var b=document.createElement('div'); b.className='bulb'; el.appendChild(b); }
+  });
+
+  var stationName = {};
+  (CFG.stations||[]).forEach(function(s){ stationName[s.slug] = (s.emoji?s.emoji+' ':'') + s.name; });
+  function prettyStation(slug){
+    if (stationName[slug]) return stationName[slug];
+    return (slug||'').replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+  }
+
+  // ---------- state ----------
+  var players = {};   // pid -> {name}
+  var scores  = {};   // sid -> {p, st, pts, ts}
+  var prevTotals = {}, prevRankOf = {}, prevLeader = null;
+  var renderQueued = false;
+
+  function standings(){
+    var totals = {};
+    Object.keys(scores).forEach(function(k){
+      var s = scores[k]; if(!s || !s.p) return;
+      totals[s.p] = (totals[s.p]||0) + (Number(s.pts)||0);
+    });
+    var arr = Object.keys(players).map(function(pid){
+      return { pid:pid, name:(players[pid]&&players[pid].name)||'Player', total:totals[pid]||0 };
+    // total>0 only: the roster is PRELOADED (119 names), so zero-point players
+    // must stay off the public board until they actually score.
+    }).filter(function(e){ return e.total>0; });
+    arr.sort(function(a,b){ return b.total-a.total || a.name.localeCompare(b.name); });
+    return arr;
+  }
+
+  // ---------- rendering ----------
+  var podiumEl=document.getElementById('podium'), chaseEl=document.getElementById('chase');
+  var MEDALS=['🥇','🥈','🥉'], LABELS=['CHAMPION','2ND PLACE','3RD PLACE'], CLASSES=['first','second','third'];
+
+  function render(){
+    renderQueued=false;
+    var arr = standings();
+    document.getElementById('chipPlayers').textContent = Object.keys(players).length + ' players';
+    document.getElementById('chipScores').textContent  = Object.keys(scores).length + ' plays';
+
+    // podium (visual order: 2nd, 1st, 3rd)
+    podiumEl.innerHTML='';
+    var order=[1,0,2];
+    order.forEach(function(i){
+      var e=arr[i], d=document.createElement('div');
+      d.className='pcard '+CLASSES[i]+(e?'':' empty');
+      d.innerHTML = e
+        ? (i===0?'<div class="crown">👑</div>':'<div class="medal">'+MEDALS[i]+'</div>')+
+          '<div class="pname">'+esc(e.name)+'</div><div class="ppts">'+e.total+' pts</div>'+
+          '<div class="plabel">'+LABELS[i]+'</div>'
+        : '<div class="medal">'+MEDALS[i]+'</div><div class="pname" style="opacity:.5">Up for grabs!</div>'+
+          '<div class="plabel">'+LABELS[i]+'</div>';
+      if (e && prevTotals[e.pid]!==undefined && e.total>prevTotals[e.pid]) d.classList.add('pop');
+      podiumEl.appendChild(d);
+    });
+
+    // leader change → confetti
+    var leader = arr[0] ? arr[0].pid : null;
+    if (leader && prevLeader && leader!==prevLeader) confettiBurst();
+    if (leader) prevLeader = leader;
+
+    // chase pack (4th onward)
+    chaseEl.innerHTML='';
+    var rest = arr.slice(3, 3+12);
+    if (!arr.length){
+      chaseEl.innerHTML='<div id="empty"><div class="big">🎪 STEP RIGHT UP! 🎪</div>'+
+        '<div class="small">The midway is open — first score takes the lead!</div></div>';
+    }
+    rest.forEach(function(e,idx){
+      var rank = idx+4, r=document.createElement('div'); r.className='row';
+      r.innerHTML='<div class="rank">#'+rank+'</div><div class="name">'+esc(e.name)+'</div><div class="pts">'+e.total+' pts</div>';
+      var pr = prevRankOf[e.pid];
+      if (pr!==undefined && rank<pr) r.classList.add('up');
+      if (prevTotals[e.pid]!==undefined && e.total>prevTotals[e.pid]){
+        var g=document.createElement('div'); g.className='gain'; g.textContent='+'+(e.total-prevTotals[e.pid]);
+        r.appendChild(g);
+      }
+      chaseEl.appendChild(r);
+    });
+
+    prevTotals={}; prevRankOf={};
+    arr.forEach(function(e,i){ prevTotals[e.pid]=e.total; prevRankOf[e.pid]=i+1; });
+    renderTicker(); updateBarkerContext(arr);
+  }
+  function queueRender(){ if(!renderQueued){ renderQueued=true; setTimeout(render,150); } }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // ---------- ticker ----------
+  function renderTicker(){
+    var recent = Object.keys(scores).map(function(k){return scores[k];})
+      .filter(function(s){return s&&s.p;})
+      .sort(function(a,b){return (b.ts||0)-(a.ts||0);}).slice(0,8);
+    if(!recent.length) return;
+    var html = recent.map(function(s){
+      var nm=(players[s.p]&&players[s.p].name)||'Someone';
+      return '🎯 <b>'+esc(nm)+'</b> scored <b>'+s.pts+'</b> at '+esc(prettyStation(s.st))+'!';
+    }).join('<span class="sep">★</span>');
+    document.getElementById('ticker').innerHTML=html;
+  }
+
+  // ---------- barker ----------
+  var genericBarks=[
+    "🎟️ Step right up — every game counts!",
+    "🎪 Ladies and gentlemen, the midway is HOT today!",
+    "🍿 Grab a treat, then grab some POINTS!",
+    "🥁 Anyone can take the crown — keep playing!",
+    "🎡 Round and round the leaderboard goes!"
+  ];
+  // station-specific hype, built from the configured games so it always matches
+  (CFG.stations||[]).forEach(function(s){
+    var e=s.emoji||'⭐', n=s.name;
+    genericBarks.push(e+" Points are waiting at "+n+" — go get 'em!");
+    genericBarks.push(e+" Feeling lucky? "+n+" says prove it!");
+  });
+  var contextBarks=[];
+  function updateBarkerContext(arr){
+    contextBarks=[];
+    if(arr.length>=2){
+      var gap=arr[0].total-arr[1].total;
+      if(gap===0) contextBarks.push("😱 IT'S A TIE AT THE TOP! "+esc(arr[0].name)+" and "+esc(arr[1].name)+" are neck and neck!");
+      else if(gap<=25) contextBarks.push("🔥 Only "+gap+" points between "+esc(arr[0].name)+" and "+esc(arr[1].name)+"! ANYONE'S GAME!");
+      else contextBarks.push("👑 "+esc(arr[0].name)+" is ON FIRE with "+arr[0].total+" points! Who can catch them?");
+    } else if(arr.length===1){
+      contextBarks.push("👑 "+esc(arr[0].name)+" holds the crown… for now!");
+    }
+    var now=Date.now(), twoMin=now-120000, hot={};
+    Object.keys(scores).forEach(function(k){var s=scores[k]; if(s&&s.ts>twoMin) hot[s.st]=(hot[s.st]||0)+1;});
+    var hottest=Object.keys(hot).sort(function(a,b){return hot[b]-hot[a];})[0];
+    if(hottest&&hot[hottest]>=3) contextBarks.push("🌶️ "+esc(prettyStation(hottest))+" is the HOTTEST game on the midway right now!");
+  }
+  var barkIdx=0;
+  setInterval(function(){
+    var pool=genericBarks.concat(contextBarks,contextBarks); // weight contextual 2x
+    barkIdx=(barkIdx+1)%pool.length;
+    var el=document.getElementById('barker');
+    el.innerHTML='<span>'+pool[Math.floor(Math.random()*pool.length)]+'</span>';
+  },7000);
+
+  // ---------- confetti ----------
+  var cv=document.getElementById('confetti'), ctx=cv.getContext('2d'), parts=[];
+  function sizeCanvas(){ cv.width=innerWidth; cv.height=innerHeight; }
+  addEventListener('resize',sizeCanvas); sizeCanvas();
+  var COLORS=['#c8102e','#ffc93c','#cfe8f7','#f9edbe','#1d7a1d','#ffffff'];
+  function confettiBurst(){
+    for(var i=0;i<180;i++) parts.push({
+      x:cv.width/2+(Math.random()-.5)*cv.width*.6, y:-20-Math.random()*80,
+      vx:(Math.random()-.5)*4, vy:2+Math.random()*4, rot:Math.random()*6.28,
+      vr:(Math.random()-.5)*.3, w:8+Math.random()*8, h:5+Math.random()*6,
+      c:COLORS[Math.floor(Math.random()*COLORS.length)], life:0
+    });
+  }
+  (function tick(){
+    requestAnimationFrame(tick);
+    if(!parts.length){ ctx.clearRect(0,0,cv.width,cv.height); return; }
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts=parts.filter(function(p){return p.y<cv.height+30 && p.life<600;});
+    parts.forEach(function(p){
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+    });
+  })();
+
+  // ---------- data: Firebase or demo ----------
+  function attach(db){
+    // ?ev=<name> overrides the event path (e.g. ?ev=test for dry runs) so
+    // rehearsal scores never touch the real event data.
+    var evOverride=new URLSearchParams(location.search).get('ev');
+    if(evOverride){
+      var tag=document.getElementById('demoTag');
+      tag.textContent='TEST EVENT: '+evOverride; tag.style.display='block';
+    }
+    var base=db.ref(evOverride?('events/'+evOverride):(CFG.eventPath||'events/funday'));
+    base.child('players').on('value',function(sn){ players=sn.val()||{}; queueRender(); });
+    base.child('scores').on('value',function(sn){ scores=sn.val()||{}; queueRender(); });
+  }
+
+  if (CFG.firebaseConfig && !/[?&]demo/.test(location.search)){
+    firebase.initializeApp(CFG.firebaseConfig);
+    attach(firebase.database());
+  } else {
+    // ------- DEMO MODE -------
+    document.getElementById('demoTag').style.display='block';
+    var demoNames=['Maya F.','Eli T.','Zoe K.','Noah B.','Ava S.','Liam H.','Mia C.','Jack W.','Ruby G.','Sam P.','Leah M.','Owen D.'];
+    var slugs=(CFG.stations||[]).map(function(s){return s.slug;});
+    if(!slugs.length) slugs=['kick-dart'];
+    demoNames.forEach(function(n,i){ players['p'+i]={name:n}; });
+    var sid=0;
+    function demoScore(){
+      var pid='p'+Math.floor(Math.random()*demoNames.length);
+      scores['s'+(sid++)]={p:pid, st:slugs[Math.floor(Math.random()*slugs.length)],
+        pts:[5,10,10,25,25,50][Math.floor(Math.random()*6)], ts:Date.now()};
+      queueRender();
+      setTimeout(demoScore, 1500+Math.random()*3500);
+    }
+    for(var i=0;i<10;i++){ scores['s'+(sid++)]={p:'p'+Math.floor(Math.random()*demoNames.length),
+      st:slugs[Math.floor(Math.random()*slugs.length)], pts:[5,10,25,50][Math.floor(Math.random()*4)], ts:Date.now()-i*9000}; }
+    queueRender(); setTimeout(demoScore,2000);
+  }
+})();
+</script>
+</body>
+</html>

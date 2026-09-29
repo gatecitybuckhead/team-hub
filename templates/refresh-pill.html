@@ -1,0 +1,142 @@
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GCB refresh pill — SINGLE SOURCE. Injected into every dashboard at the
+     __REFRESH__ marker by tools/build.py and tools/build_production.py.
+     (Written without comment delimiters here on purpose: HTML comments do not
+     nest, so a literal marker inside this block would close it early and dump
+     the rest of these notes onto the page as visible text.)
+     Never copy this markup into a template: six drifting copies is exactly
+     what this file exists to prevent.
+
+     What it honestly does: these pages are STATIC files on GitHub Pages, so
+     there is no server for a button to ask for new numbers. Refresh re-fetches
+     the page past the browser cache and reports whether a newer PUBLISHED copy
+     arrived — which is what "the numbers look old" almost always turns out to
+     be. Re-running the data pull on the Mac mini is a separate (Layer 2) job;
+     don't let the copy here imply it already happens.
+
+     The reload keeps you signed in: the password lives in sessionStorage
+     (encrypt.py's gate) and survives a same-tab reload, so nobody re-types it.
+     ───────────────────────────────────────────────────────────────────────── -->
+<style>
+body{padding-bottom:96px}
+#gcbrf{position:fixed;right:12px;bottom:12px;z-index:9999;display:flex;align-items:center;gap:9px;
+  background:var(--card,#181b24);border:1px solid var(--line,#272c3a);border-radius:999px;
+  padding:6px 6px 6px 14px;box-shadow:0 6px 22px rgba(0,0,0,.45);color:var(--dim,#8a90a5);
+  font:13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  max-width:calc(100vw - 24px)}
+#gcbrf.stale{border-color:var(--gold,#e0b34c)}
+#gcbrf .gcbas{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gcbrf .gcbas b{color:var(--ink,#e8eaf2);font-weight:600}
+#gcbrf button{background:var(--gold,#e0b34c);border:0;color:#161616;font-weight:700;
+  border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;
+  font-family:inherit}
+#gcbrf button:disabled{opacity:.55;cursor:default}
+#gcbtoast{position:fixed;right:12px;bottom:70px;z-index:10000;background:var(--card2,#1e2230);
+  border:1px solid var(--line,#272c3a);border-radius:12px;padding:12px 15px;
+  max-width:min(400px,calc(100vw - 24px));color:var(--ink,#e8eaf2);cursor:pointer;
+  font:13.5px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  box-shadow:0 8px 26px rgba(0,0,0,.5)}
+#gcbtoast b{color:var(--gold,#e0b34c)}
+#gcbtoast .gcbx{color:var(--dim,#8a90a5);font-size:12px;margin-top:6px}
+/* Phones: the word "Numbers" is the first thing to go — without it the
+   whole stamp fits next to the button instead of being ellipsised. */
+@media (max-width:430px){
+  #gcbrf{font-size:12.5px;padding-left:11px;gap:7px}
+  #gcbrf .gcblbl{display:none}
+  #gcbrf button{padding:8px 12px}
+}
+@media print{#gcbrf,#gcbtoast{display:none}}
+</style>
+<div id="gcbrf" hidden>
+  <span class="gcbas" id="gcbrfas"></span>
+  <button type="button" id="gcbrfgo" title="Check GitHub for a newer published copy of this page">&#8635; Refresh</button>
+</div>
+<script>
+(function(){
+  var BUILT_AT = "__BUILT_AT__";              /* when this copy was published */
+  var KEY = 'gcb_refresh_from';
+  var STALE_HOURS = 30;                       /* every page publishes daily ~7:20am */
+  var pill = document.getElementById('gcbrf'),
+      asEl = document.getElementById('gcbrfas'),
+      btn  = document.getElementById('gcbrfgo');
+  if (!pill || !btn) return;
+
+  var built = new Date(BUILT_AT);
+  if (isNaN(+built)) built = null;
+
+  /* "today 8:22 AM" / "yesterday 4:20 PM" / "Tue Aug 19 8:22 AM".
+     BUILT_AT carries a UTC offset, so this reads correctly in the viewer's
+     own clock rather than assuming Eastern. */
+  function fmt(d){
+    var time = d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+    var now = new Date(), y = new Date(now.getTime() - 864e5);
+    if (d.toDateString() === now.toDateString()) return 'today ' + time;
+    if (d.toDateString() === y.toDateString()) return 'yesterday ' + time;
+    return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}) + ' ' + time;
+  }
+
+  function toast(html, sub){
+    var old = document.getElementById('gcbtoast');
+    if (old) old.remove();
+    var t = document.createElement('div');
+    t.id = 'gcbtoast';
+    t.innerHTML = html + (sub ? '<div class="gcbx">' + sub + '</div>' : '');
+    t.title = 'Tap to dismiss';
+    t.addEventListener('click', function(){ t.remove(); });
+    document.body.appendChild(t);
+    setTimeout(function(){ if (t.parentNode) t.remove(); }, 11000);
+  }
+
+  /* Render the stamp. */
+  if (built){
+    var ageH = (Date.now() - built) / 36e5;
+    asEl.innerHTML = '<span class="gcblbl">Numbers </span>as of <b>' + fmt(built) + '</b>';
+    if (ageH > STALE_HOURS){
+      pill.className = 'stale';
+      asEl.innerHTML = '&#9888; ' + asEl.innerHTML;
+    }
+  } else {
+    asEl.innerHTML = '<span class="gcblbl">Numbers </span>as of —';
+  }
+  pill.hidden = false;
+
+  /* Did we just come back from a Refresh? Compare this copy's stamp with the
+     one the page carried before the reload. */
+  var prev = null;
+  try { prev = sessionStorage.getItem(KEY); sessionStorage.removeItem(KEY); } catch(e){}
+  if (prev){
+    if (prev !== BUILT_AT){
+      toast('Updated — this page now shows the numbers published <b>' +
+            (built ? fmt(built) : 'just now') + '</b>.');
+    } else {
+      toast('You already have the newest published numbers (<b>' +
+            (built ? fmt(built) : BUILT_AT) + '</b>).',
+            'Fresh numbers are published every weekday morning and again in the ' +
+            'afternoon. Refresh fetches the latest published copy — it does not ' +
+            're-run the data pull.');
+    }
+  }
+
+  /* Drop the cache-busting ?r= out of the address bar so nobody bookmarks or
+     shares a busted URL. Only 'r' is removed — production.html's ?ev= stays. */
+  try {
+    if (window.history && history.replaceState && /[?&]r=\d+/.test(location.search)){
+      var u = new URL(location.href);
+      u.searchParams.delete('r');
+      history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+    }
+  } catch(e){}
+
+  btn.addEventListener('click', function(){
+    btn.disabled = true;
+    btn.innerHTML = 'Checking…';
+    try { sessionStorage.setItem(KEY, BUILT_AT); } catch(e){}
+    /* A new query string is a new URL to the browser, which is what forces a
+       real network fetch instead of the cached copy. location.replace keeps
+       the back button clean. */
+    var u = new URL(location.href);
+    u.searchParams.set('r', String(Date.now()));
+    location.replace(u.toString());
+  });
+})();
+</script>
