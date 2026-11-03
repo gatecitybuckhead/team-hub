@@ -149,6 +149,19 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
 @media(max-width:480px){table{font-size:12px}th,td{padding:7px 5px}.kpi .v{font-size:20px}
   .foldbtn .fmeta{display:none}.secnav a{padding:5px 8px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+/* ── 06 monthly P&L (rendered from reports/YYYY-MM-PNL-HAZEN.md) ── */
+.pnlhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.pnlhead select{background:#1a1e28;color:#e8eaf2;border:1px solid #2a2f3d;border-radius:6px;padding:4px 8px;font-size:13px}
+.pnlst{font-size:11px;font-weight:800;letter-spacing:.08em;border-radius:999px;padding:2px 10px}
+.pnlst.final{color:#bfe8cf;background:#13261b;border:1px solid #2c5a3d}
+.pnlst.draft{color:#f2dfb0;background:#2a2312;border:1px solid #5c4a1d}
+.pnl p{margin:8px 0;font-size:14px}
+.pnl h4{font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin:22px 0 8px}
+.pnl h5{font-size:13.5px;color:var(--ink);margin:16px 0 6px}
+.pnl ul,.pnl ol{margin:6px 0 10px 22px;font-size:14px}
+.pnl li{margin:3px 0}
+.pnl table{margin:6px 0 10px}
+.pnl td b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -166,6 +179,7 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
   <a href="#payroll" data-sec="payroll">Payroll</a>
   <a href="#giving" data-sec="giving">Giving</a>
   <a href="#serving" data-sec="serving">Serving &amp; care</a>
+  <a href="#pnl" data-sec="pnl">Monthly P&amp;L</a>
   <span class="spacer"></span>
   <button type="button" id="openAll">Open all</button>
   <button type="button" id="closeAll">Close all</button>
@@ -393,6 +407,17 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
       </table></div>
       <button class="morebtn" id="decMore" style="display:none" type="button"></button>
     </div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 06 MONTHLY P&L ═══════════════ -->
+<section class="sec" id="pnl">
+  <div class="sech"><span class="n">06</span><h2>Monthly P&amp;L</h2><span class="rule"></span>
+    <span class="hint">the month-end report for Hazen</span></div>
+  <div class="card">
+    <div class="pnlhead"><select id="pnlMonth" aria-label="Month"></select><span class="pnlst" id="pnlStatus"></span>
+      <span class="note" id="pnlNote"></span></div>
+    <div class="pnl" id="pnlBody"><div class="nodata">No P&amp;L reports yet.</div></div>
   </div>
 </section>
 
@@ -665,6 +690,25 @@ function renderRunway(){
 $('inclSavings').addEventListener('change', renderRunway);
 $('inclGift').addEventListener('change', renderRunway);
 renderRunway();
+
+/* ── 06 Monthly P&L — HTML is rendered + escaped by Finance Agent's pnl_reports.py ── */
+(function(){
+  var R = (DATA && DATA.pnl_reports) || [], sel = $('pnlMonth');
+  if (!R.length) { sel.style.display = 'none'; return; }
+  function show(i){
+    var r = R[i], st = $('pnlStatus');
+    st.textContent = r.status; st.className = 'pnlst ' + r.status.toLowerCase();
+    $('pnlNote').textContent = r.status === 'DRAFT'
+      ? 'numbers can still move until every register is reconciled' : 'every register reconciled';
+    $('pnlBody').innerHTML = r.html;
+  }
+  R.forEach(function(r, i){
+    var o = document.createElement('option'); o.value = i;
+    o.textContent = r.label + (r.status === 'DRAFT' ? ' (draft)' : ''); sel.appendChild(o);
+  });
+  sel.addEventListener('change', function(){ show(+sel.value); });
+  show(0);
+})();
 
 /* ── 05 Benevolence — signpost, never request data ── */
 (function(){
