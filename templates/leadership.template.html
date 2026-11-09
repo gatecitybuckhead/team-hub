@@ -907,7 +907,7 @@ renderRunway();
       lmEl.style.display = '';
       lmEl.innerHTML = '<b>Last month ('+esc(LM.month_label)+'):</b> income '+money(LM.income)
         +(LM.income_gifts ? ' ('+esc(LM.income_gifts)+' gifts)' : '')+' · spend '+money(LM.spend)+' · net '+money(LM.net)
-        +(LM.spend > LM.spend_booked ? ' — ledger has '+money(LM.spend_booked)+' booked; the rest is payroll debited but not yet imported' : '');
+        +(LM.spend > LM.spend_booked ? ' — ledger has '+money(LM.spend_booked)+' booked; the rest left the bank but is not in Aplos yet' : '');
     } else { lmEl.style.display = 'none'; }
     var rows = [
       ['Booked in Aplos', MS.spend_booked],
