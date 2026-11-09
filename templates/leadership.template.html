@@ -1128,7 +1128,8 @@ if (DATA && DATA.where === 'mini') (function(){
   var PUB = 'https://gatecitybuckhead.github.io/team-hub/staff/';
   Array.prototype.forEach.call(document.querySelectorAll('.backbtn, .topnav a'), function(a){
     var h = a.getAttribute('href');
-    if (h === 'budget.html') a.setAttribute('href', 'gcb-budget.html');
+    // 11/9/2026 (Andrew): link the current month's own page, not the alias
+    if (h === 'budget.html') a.setAttribute('href', 'gcb-budget-' + TODAY.slice(0, 7) + '.html');
     else if (h === '../index.html') a.setAttribute('href', PUB.replace('staff/', ''));
     else if (h && !/^[a-z]+:/i.test(h)) a.setAttribute('href', PUB + h);
   });
