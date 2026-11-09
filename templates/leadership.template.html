@@ -180,6 +180,7 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
   <a href="#giving" data-sec="giving">Giving</a>
   <a href="#serving" data-sec="serving">Serving &amp; care</a>
   <a href="#pnl" data-sec="pnl">Monthly P&amp;L</a>
+  <a href="#catalyst" data-sec="catalyst">Catalyst</a>
   <span class="spacer"></span>
   <button type="button" id="openAll">Open all</button>
   <button type="button" id="closeAll">Close all</button>
@@ -418,6 +419,17 @@ footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-he
     <div class="pnlhead"><select id="pnlMonth" aria-label="Month"></select><span class="pnlst" id="pnlStatus"></span>
       <span class="note" id="pnlNote"></span></div>
     <div class="pnl" id="pnlBody"><div class="nodata">No P&amp;L reports yet.</div></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 07 CATALYST (11/9/2026) ═══════════════ -->
+<section class="sec" id="catalyst">
+  <div class="sech"><span class="n">07</span><h2>Catalyst</h2><span class="rule"></span>
+    <span class="hint">Victory in vs Catalyst costs out</span></div>
+  <div class="fold" data-fold="catalyst" id="catCard">
+    <button class="foldbtn" type="button" aria-expanded="false"><span class="chev">▶</span>
+      <span class="ft"><b>Catalyst</b> — year to date</span><span class="fmeta" id="catMeta"></span></button>
+    <div class="foldbody"><div class="foldinner"><div class="foldpad" id="catBlock"></div></div></div>
   </div>
 </section>
 
@@ -708,6 +720,42 @@ renderRunway();
   });
   sel.addEventListener('change', function(){ show(+sel.value); });
   show(0);
+})();
+
+/* ── 07 Catalyst — Victory in vs 7000 out, by month (11/9/2026) ── */
+(function(){
+  var c = DATA && DATA.catalyst, el = $('catBlock');
+  if (!c){
+    $('catMeta').innerHTML = '<span class="warn">unavailable</span>';
+    el.innerHTML = '<div class="note">Catalyst figures were unavailable this build — they come back on the next hourly refresh.</div>';
+    return;
+  }
+  function sgn(n){ return (n < 0 ? '<span class="warn">' : '<b>') + money(n) + (n < 0 ? '</span>' : '</b>'); }
+  $('catMeta').innerHTML = 'in <b>'+money0(c['in'])+'</b> · out <b>'+money0(c.out)+'</b> · net '+sgn(c.net);
+  var MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var h = '<div class="note" style="margin:0 0 10px">'
+    + '<b>In</b> = Victory World Church’s ACH (Aplos has one fund, so it’s booked inside giving). '
+    + '<b>Out</b> = Aplos 7000 Catalyst Monthly Costs. Aplos bank rows are imported through <b>'
+    + esc(c.bank_through ? fmtDateShort(c.bank_through) : '?') + '</b>; later bank rows are added from the budget page.</div>';
+  h += '<div class="tablewrap"><table><thead><tr><th>Month</th><th class="num">Victory in</th><th class="num">Catalyst costs</th>'
+    + '<th class="num">Net</th><th class="num">Running</th></tr></thead><tbody>';
+  c.months.forEach(function(m){
+    var mo = MN[+m.month.slice(5) - 1], extra = [];
+    if (m.pending) extra.push(money(Math.abs(m.pending))+' from the bank, not in Aplos yet');
+    if (m.expected) extra.push('Victory '+money0(m.expected)+' expected (usually after the 23rd), not counted');
+    h += '<tr><td>'+mo+(extra.length ? '<div class="note">'+esc(extra.join(' · '))+'</div>' : '')+'</td>'
+      + '<td class="num">'+(m['in'] ? money(m['in']) : '—')+'</td>'
+      + '<td class="num">'+(m.out ? money(m.out) : '—')+'</td>'
+      + '<td class="num">'+sgn(m.net)+'</td><td class="num">'+sgn(m.running)+'</td></tr>';
+  });
+  h += '<tr><td><b>'+c.year+' to date</b></td><td class="num"><b>'+money(c['in'])+'</b></td><td class="num"><b>'+money(c.out)
+    + '</b></td><td class="num">'+sgn(c.net)+'</td><td></td></tr></tbody></table></div>';
+  if (c.victory_since){
+    h += '<div class="note" style="margin-top:10px">Before Victory’s money started ('+MN[+c.victory_since.slice(5)-1]
+      + '), GCB covered <b>'+money(c.before_out)+'</b> of Catalyst costs on its own. Since then: <b>'+money(c.since_in)
+      + '</b> in vs <b>'+money(c.since_out)+'</b> out = '+sgn(c.since_in - c.since_out)+'.</div>';
+  }
+  el.innerHTML = h;
 })();
 
 /* ── 05 Benevolence — signpost, never request data ── */
