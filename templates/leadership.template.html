@@ -895,8 +895,10 @@ renderRunway();
     $('msThrough').textContent = MS.month_label+' 1 – '+MS.through+' · updated '+fmtDate(MS.as_of);
     var m = MS.income_methods || {};
     drawTiles([
-      {l:'Income (gross, PCO)', v:money(MS.income), d:MS.income_gifts+' gifts · digital '+money(m.digital||0)+' · checks/cash '+money(m.physical||0)},
-      {l:'Spend (real)', v:money(MS.spend), d:'ledger '+money(MS.spend_booked)+' + unposted '+money(MS.spend - MS.spend_booked)},
+      {l:'Money in', v:money(MS.income), d:(MS.synced
+          ? 'bank '+money(MS.income_bank)+' + PCO not deposited yet '+money(MS.income_pending)+' · PCO gross '+money(MS.pco_gross)+' ('+MS.income_gifts+' gifts)'
+          : MS.income_gifts+' gifts · digital '+money(m.digital||0)+' · checks/cash '+money(m.physical||0))},
+      {l:'Money out', v:money(MS.spend), d:'ledger '+money(MS.spend_booked)+' + not in Aplos yet '+money(MS.spend - MS.spend_booked)},
       {l:'Net so far', v:money(MS.net), d:''},
       {l:'Projected month spend', v:money(MS.projected_spend), d:'incl. what’s still to come'}
     ]);
