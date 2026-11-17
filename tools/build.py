@@ -130,7 +130,7 @@ def check_js(out_name):
 # forever. Every page EXCEPT the Mini-only ones is scanned for these keys; a
 # hit aborts the build. (Contractor/payee names MAY ship, behind the long
 # leadership passphrase — Andrew's call 9/29.)
-MINI_ONLY = {'leadership-full.html'}     # never in encrypt.py's allowlist
+MINI_ONLY = {'leadership-full.html', 'serving-full.html'}     # never in encrypt.py's allowlist
 PERSON_GIVING_KEYS = ('total_cents', 'giver_status', 'first_gift', 'last_gift',
                       'gift_count', 'months_given', 'household_status',
                       'household_last_gift', 'household_via',
@@ -592,7 +592,17 @@ try:
     import serving_review
     sp = serving_review.payload(DATA)
     assert_staff_safe(sp, 'serving.html')
+    if any('give' in p for p in sp['people']):
+        raise SystemExit('GIVING GUARD: serving.html payload carries per-person giving — aborted.')
     inject('serving.template.html', 'serving.html', sp)
+    # Full copy WITH yes/no giving by month → the Mini only (gated gcb-*.html,
+    # Andrew + Hazen; Andrew's call 11/17/2026). Never in encrypt.py's allowlist.
+    full_sp = serving_review.add_person_giving(json.loads(json.dumps(sp)), DATA)
+    inject('serving.template.html', 'serving-full.html', full_sp)
+    SERVING_MINI = ROOT.parent.parent/'Personal Agents'/'FamilyDashboard'/'dashboard'/'gcb-people.html'
+    if SERVING_MINI.parent.exists():
+        SERVING_MINI.write_text((OUT/'serving-full.html').read_text())
+        print('mini   gcb-people.html (gated, never committed)')
 except FileNotFoundError as e:
     print(f'skip serving.html ({e.filename or e})')
 

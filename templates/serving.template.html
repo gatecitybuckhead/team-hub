@@ -4,300 +4,566 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>GCB Serving Teams</title>
+<title>GCB People &amp; Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f1117;--card:#181b24;--card2:#1e2230;--ink:#e8eaf2;--dim:#8a90a5;
---gold:#e0b34c;--green:#57c98a;--red:#e06767;--blue:#5aa2e0;--purple:#a98ae0;--orange:#e0915a;--line:#272c3a}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px 16px 70px;max-width:1180px;margin:0 auto}
-body.big{font-size:18px}
-h1{font-size:22px;letter-spacing:.4px} h1 span{color:var(--gold)}
-h2{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:28px 0 10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-h2 b{color:var(--gold)} h2 .hint{text-transform:none;letter-spacing:0;font-weight:400;font-size:12.5px}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
-.sub{color:var(--dim);font-size:13px}
-.topnav{font-size:12.5px;color:var(--dim);margin-bottom:12px}
-.topnav a{color:var(--dim);text-decoration:none;padding:2px 4px}
-.topnav a:hover{color:var(--ink)}
-.topnav .cur{color:var(--gold);font-weight:700;padding:2px 4px}
-.backbtn{display:inline-block;color:#e0b34c;font-weight:700;font-size:12.5px;text-decoration:none;
-border:1px solid #272c3a;border-radius:8px;padding:4px 11px;margin:0 10px 10px 0}
-.backbtn:hover{background:#1e2230;border-color:#e0b34c}
-.btn{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer}
-.btn:hover{border-color:var(--gold)}
-.jump{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
-.jump a{font-size:12px;color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
-.jump a:hover{color:var(--gold);border-color:#4a3d1d}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.kpi .v{font-size:26px;font-weight:700;margin:2px 0}
-.kpi .l{color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.6px}
-.kpi .d{font-size:12px;color:var(--dim)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.note{color:var(--dim);font-size:12.5px}
-.timeline{display:flex;gap:0;overflow-x:auto;padding-bottom:4px}
-.tl{flex:1 0 92px;border-left:2px solid var(--line);padding:2px 8px 2px 8px}
-.tl .t{font-weight:700;font-variant-numeric:tabular-nums}
-.tl .n{font-size:11.5px;color:var(--dim);line-height:1.3}
-.tl.prod{border-left-color:var(--blue)} .tl.wor{border-left-color:var(--purple)} .tl.svc{border-left-color:var(--gold)}
-/* questions */
-.qs{display:grid;gap:8px}
-.q{background:var(--card);border:1px solid #4a3d1d;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start}
-.q .n{color:var(--gold);font-weight:800}
-/* team cards */
-.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-@media(max-width:400px){.teams{grid-template-columns:1fr}}
-.team{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
-.team .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.team .tn{font-weight:800;font-size:16px}
-.team .ld{font-size:12px;color:var(--dim)}
-.badge{font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap;border:1px solid}
-.b-ok{color:var(--green);border-color:#1d4a2e;background:#102217}
-.b-thin{color:var(--orange);border-color:#5a3d1d;background:#2a1d10}
-.b-crit{color:var(--red);border-color:#5a2b2b;background:#2a1616}
-.b-pause{color:var(--dim);border-color:var(--line);background:#232838}
+/* Layout + look adapted from Halima's Membership Dashboard (11/17/2026). */
+:root{--bg:#f7f6f3;--card:#fff;--ink:#1d1d1f;--mute:#6b6b70;--line:#e7e5e0;--accent:#2f5d50;--accent2:#e9f1ee;
+--att:#3b6ea8;--form:#7a5bb5;--give:#2f8a5f;--serve:#c7772a;--pray:#b5476b;--reach:#8a8a8a;--warn:#b54848;--soft:#f1efea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,sans-serif}
+body.big{font-size:17px}
+.wrap{max-width:1240px;margin:0 auto;padding:16px 16px 70px}
+.topbar{font-size:12.5px;color:var(--mute);margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.topbar a{color:var(--mute);text-decoration:none;padding:2px 4px}.topbar a:hover{color:var(--ink)}
+.topbar .cur{color:var(--accent);font-weight:700;padding:2px 4px}
+.topbar .back{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 10px;color:var(--accent);font-weight:600}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--mute);font-size:13px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:7px;font:inherit;color:var(--mute);cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 11px;font:inherit;color:var(--mute);cursor:pointer}
+input[type=search],select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);min-width:0;color:var(--ink)}
+nav.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:6px 0 18px;overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:10px 13px;font:inherit;font-weight:500;color:var(--mute);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button.on{color:var(--ink);border-color:var(--accent)}
+nav.tabs .cnt{font-size:11px;background:var(--soft);border-radius:9px;padding:0 6px;margin-left:4px;color:var(--mute)}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi .lbl{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.kpi .big{font-size:28px;font-weight:700;margin:6px 0 2px;letter-spacing:-.02em}
+.kpi .big small{font-size:14px;color:var(--mute);font-weight:500}
+.bar{height:6px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:4px}
+.kpi .def{color:var(--mute);font-size:12px;margin-top:6px}
+h2{font-size:16px;margin:26px 0 10px}
+h2 .sub{font-weight:400;margin-left:6px}
+h3{font-size:14px;margin:0 0 6px}
+.focus{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.focus .card{display:flex;flex-direction:column;gap:6px}
+.focus .n{font-size:22px;font-weight:700}
+.why{color:var(--mute);font-size:12.5px}
+.names{font-size:12.5px;max-height:120px;overflow:auto}
+button.link{align-self:flex-start;border:0;background:var(--accent2);color:var(--accent);padding:5px 10px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);font-weight:600;background:#fbfaf8;position:sticky;top:0;white-space:nowrap}
+th[data-sort]{cursor:pointer}
+#mt tbody tr,#gt tbody tr{cursor:pointer}
+tbody tr:hover{background:#fafaf7}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.c-on{background:#e6f2ec;color:#21613f}.c-some{background:#fdf3e2;color:#8a5a12}.c-off{background:var(--soft);color:#8b8b90}.c-warn{background:#f9e7e7;color:#963535}.c-na{background:#f3f3f3;color:#aaa}
+.tag{font-size:10.5px;padding:1px 6px;border-radius:5px;background:var(--soft);color:var(--mute);margin-left:6px;font-weight:600}
+.tag.new{background:#e6f2ec;color:#21613f}.tag.staff{background:#e8eef7;color:#2d5486}.tag.lead{background:#efe9f8;color:#5b3f91}
+.attcell{display:flex;align-items:center;gap:8px;min-width:120px}
+.attcell .bar{flex:1;margin:0;max-width:80px}
+.next{font-size:12.5px;color:#333;min-width:260px;max-width:420px}
+.muted{color:var(--mute)}
+.months{display:flex;gap:3px}
+.m{width:14px;height:14px;border-radius:4px;background:var(--soft);display:inline-block}
+.m.y{background:var(--give)}.m.h{background:#9ccfb4}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--mute);margin:8px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.behav{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.behav ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;max-height:260px;overflow:auto}
+.behav li{margin:2px 0}
+.chart{display:flex;align-items:flex-end;gap:6px;height:170px;padding:10px 0 0}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute);min-width:0}
+.col .b{width:100%;max-width:42px;background:var(--att);border-radius:5px 5px 0 0}
+.col .b.skip{background:repeating-linear-gradient(45deg,#ddd,#ddd 4px,#eee 4px,#eee 8px);height:8px}
+.col .v{font-weight:600;color:var(--ink)}
+.drawer{position:fixed;inset:0;background:rgba(20,20,20,.35);display:none;justify-content:flex-end;z-index:20}
+.drawer.open{display:flex}
+.panel{background:var(--card);width:min(480px,100%);height:100%;overflow:auto;padding:22px}
+.panel .close{float:right;border:0;background:var(--soft);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
+.row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.row b{font-weight:600;text-align:right}
+.actions li{margin:6px 0}
+.notes{font-size:13px;color:#333}
+.hide{display:none}
+/* teams (from the first version, re-skinned) */
+.teamstrip{display:flex;flex-wrap:wrap;gap:8px}
+.tchip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 11px;cursor:pointer;font-size:13px;font-weight:600}
+.tchip:hover{border-color:var(--accent)}
+.tchip small{font-weight:500;color:var(--mute)}
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+@media(max-width:420px){.teams{grid-template-columns:1fr}}
+.team{display:flex;flex-direction:column;gap:9px;scroll-margin-top:12px}
+.team.flash{box-shadow:0 0 0 3px var(--accent)}
+.team .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.team .tn{font-weight:700;font-size:16px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.stat{background:var(--card2);border-radius:8px;padding:6px 8px;text-align:center}
-.stat .v{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
-.stat .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;line-height:1.2}
+.stat{background:var(--soft);border-radius:9px;padding:6px 8px;text-align:center}
+.stat .v{font-weight:700;font-size:17px}
+.stat .l{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;line-height:1.2}
 .spark{display:flex;gap:2px;align-items:flex-end;height:26px}
-.spark i{flex:1;background:var(--gold);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
-.tnote{font-size:13px;color:#c9cdda;line-height:1.45}
+.spark i{flex:1;background:var(--serve);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
+.tnote{font-size:13px;color:#333}
 .ppl{display:flex;flex-wrap:wrap;gap:5px}
-.pp{font-size:12px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
-.pp b{color:var(--gold);font-variant-numeric:tabular-nums}
-.pp.hot{border-color:#5a2b2b} .pp.hot b{color:var(--red)}
-.pp.notr{border-style:dashed}
-.pp.idle{color:var(--dim)}
-.pp .tg{font-size:9.5px;color:var(--dim);margin-left:3px;text-transform:uppercase}
+.pp{font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap;cursor:pointer}
+.pp b{color:var(--serve)}
+.pp.hot{background:#f9e7e7;border-color:#efc9c9}.pp.hot b{color:var(--warn)}
+.pp.notr{border-style:dashed;background:#fff}
+.pp.idle{color:var(--mute);background:#fff}
 details{border-top:1px solid var(--line);padding-top:7px}
-summary{cursor:pointer;font-size:12.5px;color:var(--dim);user-select:none}
-summary:hover{color:var(--ink)}
+summary{cursor:pointer;font-size:12.5px;color:var(--mute)}
 details[open] summary{margin-bottom:6px}
-.olist{font-size:12.5px;color:#c9cdda}
-.olist div{padding:1px 0}
-.olist .d{color:var(--dim);display:inline-block;min-width:52px}
-/* matrix */
-.tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;color:var(--dim);font-weight:600;font-size:11.5px;padding:7px 9px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
-td{padding:7px 9px;border-bottom:1px solid #20242f;vertical-align:top}
-tr:last-child td{border-bottom:none}
-td.c{text-align:center;font-variant-numeric:tabular-nums;font-weight:700}
-.m0{color:#3d4354} .m1{background:#2a1d10;color:var(--orange)} .m2{background:#2a1616;color:var(--red)}
-.mt{font-size:10.5px;font-weight:400;color:var(--dim);display:block;line-height:1.2}
-/* two-col */
+.olist{font-size:12.5px}.olist .d{color:var(--mute);display:inline-block;min-width:52px}
+td.c{text-align:center;font-weight:700}
+.m0{color:#c5c3bd}.m1{background:#fdf3e2;color:#8a5a12}.m2{background:#f9e7e7;color:#963535}
+.mt{font-size:10.5px;font-weight:400;color:var(--mute);display:block;line-height:1.2}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:820px){.two{grid-template-columns:1fr}}
-.rowlist>div{padding:8px 0;border-bottom:1px solid #20242f}
-.rowlist>div:last-child{border-bottom:none}
-.rowlist .nm{font-weight:700}
-.rowlist .wh{font-size:11.5px;color:var(--dim);margin-left:6px}
-.rowlist .tx{font-size:13px;color:#c9cdda}
-.rowlist .tm{font-size:11.5px;color:var(--gold)}
-.chip{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:0 7px;margin-left:5px;vertical-align:1px;border:1px solid var(--line);color:var(--dim)}
-.chip.new{color:var(--green);border-color:#1d4a2e;background:#102217}
-.chip.staff{color:var(--blue);border-color:#1d3a5a;background:#101c2a}
-.chip.lead{color:var(--purple);border-color:#3a2d5a;background:#1a1426}
-.bar{height:8px;background:#232838;border-radius:4px;overflow:hidden;margin-top:3px}
-.bar i{display:block;height:100%;background:var(--gold)}
-.bar i.hot{background:var(--red)}
-/* observations */
+.rl>div{padding:8px 0;border-bottom:1px solid var(--line)}
+.rl>div:last-child{border-bottom:none}
+.rl .nm{font-weight:600}.rl .wh{font-size:11.5px;color:var(--mute);margin-left:6px}
+.rl .tx{font-size:13px;color:#333}.rl .tm{font-size:11.5px;color:var(--serve);font-weight:600}
 .obs{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-.ob{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:12px 15px}
-.ob .k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px}
-.ob .h{font-weight:800;font-size:15px;margin:2px 0 5px}
-.ob .b{font-size:13.5px;color:#c9cdda;line-height:1.5}
-.k-split{border-left-color:var(--blue)} .k-split .k{color:var(--blue)}
-.k-combine{border-left-color:var(--purple)} .k-combine .k{color:var(--purple)}
-.k-overlap{border-left-color:var(--green)} .k-overlap .k{color:var(--green)}
-.k-gap{border-left-color:var(--red)} .k-gap .k{color:var(--red)}
-.k-cleanup{border-left-color:var(--dim)} .k-cleanup .k{color:var(--dim)}
-.k-question{border-left-color:var(--gold)} .k-question .k{color:var(--gold)}
-.hk{list-style:none}
-.hk li{padding:6px 0 6px 26px;position:relative;border-bottom:1px solid #20242f;font-size:13.5px}
+.ob{border-left:4px solid var(--accent)}
+.ob .k{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.ob .h{font-weight:700;font-size:15px;margin:2px 0 5px}
+.ob .b{font-size:13.5px;color:#333}
+.k-split{border-left-color:var(--att)}.k-split .k{color:var(--att)}
+.k-combine{border-left-color:var(--form)}.k-combine .k{color:var(--form)}
+.k-overlap{border-left-color:var(--give)}.k-overlap .k{color:var(--give)}
+.k-gap{border-left-color:var(--warn)}.k-gap .k{color:var(--warn)}
+.k-cleanup{border-left-color:var(--reach)}.k-cleanup .k{color:var(--reach)}
+.k-question{border-left-color:var(--serve)}.k-question .k{color:var(--serve)}
+.qs{display:grid;gap:8px}
+.q{display:flex;gap:10px;align-items:flex-start;border-color:#d8e6e0;background:#fbfdfc}
+.q .n{color:var(--accent);font-weight:700}
+.hk{list-style:none;margin:0;padding:0}
+.hk li{padding:7px 0 7px 26px;position:relative;border-bottom:1px solid var(--line);font-size:13.5px}
 .hk li:last-child{border-bottom:none}
-.hk li:before{content:'';position:absolute;left:2px;top:9px;width:13px;height:13px;border:1.5px solid var(--dim);border-radius:3px}
-.step{margin-bottom:10px}
-.step .sh{font-size:12px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-footer{color:var(--dim);font-size:12px;margin-top:30px;text-align:center;line-height:1.7}
-@media(max-width:480px){.kpi .v{font-size:21px}.stats{grid-template-columns:repeat(2,1fr)}}
+.hk li:before{content:'';position:absolute;left:2px;top:10px;width:13px;height:13px;border:1.5px solid var(--mute);border-radius:3px}
+.timeline{display:flex;overflow-x:auto}
+.tl{flex:1 0 88px;border-left:2px solid var(--line);padding:2px 8px}
+.tl .t{font-weight:700}.tl .n{font-size:11.5px;color:var(--mute);line-height:1.3}
+.tl.prod{border-left-color:var(--att)}.tl.wor{border-left-color:var(--form)}.tl.svc{border-left-color:var(--accent)}
+.step{margin-bottom:10px}.step .sh{font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.minibanner{background:#fdf3e2;border:1px solid #f0dcb4;color:#6b4a10;border-radius:10px;padding:8px 12px;font-size:12.5px;margin-bottom:10px}
+footer{color:var(--mute);font-size:12px;margin-top:30px;text-align:center}
+@media (max-width:640px){.hide-sm{display:none}h1{font-size:19px}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<a class="backbtn" href="../index.html">← Team Hub</a><nav class="topnav" style="display:inline-block"><a href="debrief.html">Debrief</a> · <a href="metrics.html">Metrics</a> · <a href="members.html">Members</a> · <span class="cur">Serving</span> · <a href="finance.html">Finance</a></nav>
+<div class="wrap">
+<div class="topbar" id="topbar"><a class="back" href="../index.html">← Team Hub</a><a href="debrief.html">Debrief</a>·<a href="metrics.html">Metrics</a>·<a href="members.html">Members</a>·<span class="cur">People &amp; Teams</span>·<a href="finance.html">Finance</a></div>
+<div class="minibanner hide" id="minibanner">Leadership copy on the Mini — includes giving yes/no by month for each person. Don't screen-share this one with the wider team; the staff-password copy in Team Hub has everything except per-person giving.</div>
 <header>
   <div>
-    <h1>GCB <span>Serving Teams</span> Review</h1>
-    <div class="sub" id="subline"></div>
+    <h1>GateCity Buckhead · People &amp; Teams</h1>
+    <div class="sub" id="asof"></div>
   </div>
-  <button class="btn" id="bigbtn" type="button">Larger text</button>
+  <div class="controls">
+    <div class="seg" id="segbtns">
+      <button data-seg="All" class="on">All members</button>
+      <button data-seg="Core">Core</button>
+      <button data-seg="Congregation">Congregation</button>
+    </div>
+    <input type="search" id="q" placeholder="Search a name…">
+    <button class="btn" id="bigbtn" type="button" title="Bigger text for the TV">A+</button>
+  </div>
 </header>
-<div class="jump">
-  <a href="#decide">Decide</a><a href="#teams">Teams</a><a href="#coverage">Open spots</a><a href="#load">Carrying the load</a>
-  <a href="#moves">Moved on · new</a><a href="#unplugged">Not plugged in</a><a href="#obs">Observations</a><a href="#hk">Housekeeping</a>
-</div>
 
-<div class="kpis" id="kpis"></div>
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="on">Overview</button>
+  <button data-tab="members">Members</button>
+  <button data-tab="teams">Teams</button>
+  <button data-tab="spots">Open spots</button>
+  <button data-tab="behaviors">By behavior</button>
+  <button data-tab="changes">Changes</button>
+  <button data-tab="decide">Decide</button>
+  <button data-tab="giving" class="hide" id="givetab">Giving by month</button>
+  <button data-tab="attendance">Attendance</button>
+  <button data-tab="notes">How this works</button>
+</nav>
 
-<h2>A Sunday morning <span class="hint">call times from the next plan (Eastern)</span></h2>
-<div class="card"><div class="timeline" id="timeline"></div></div>
+<section id="t-overview">
+  <div class="grid kpis" id="kpis"></div>
+  <h2>Where to focus next</h2>
+  <div class="grid focus" id="focus"></div>
+  <h2>Teams at a glance <span class="sub">tap a team for its card</span></h2>
+  <div class="teamstrip" id="teamstrip"></div>
+</section>
 
-<h2 id="decide"><b>Decide</b> in the room</h2>
-<div class="qs" id="questions"></div>
-
-<h2 id="teams"><b>Teams</b> <span class="hint">“Served” = scheduled and didn’t decline, last <span class="wn"></span> Sundays · depth = people serving ÷ people needed each Sunday (under 2 = can’t rotate)</span></h2>
-<div class="teams" id="teamcards"></div>
-
-<h2 id="coverage"><b>Open spots</b> <span class="hint">not yet filled in Planning Center, next 5 Sundays · Connections / Announcements / Offering fill the Thursday before and aren’t counted</span></h2>
-<div class="card tablewrap"><table id="matrix"></table></div>
-
-<h2 id="load"><b>Carrying the load</b> <span class="hint">served 8+ of the last <span class="wn"></span> Sundays, any team · goal for volunteers ≈ 2 a month</span></h2>
-<div class="card"><div class="rowlist" id="heavy"></div></div>
-
-<h2 id="moves"><b>Moved on · coming · new</b> <span class="hint">since mid-August</span></h2>
-<div class="two">
-  <div class="card"><div class="note" style="margin-bottom:4px">Stepped back or moved on</div><div class="rowlist" id="left"></div></div>
-  <div>
-    <div class="card" style="margin-bottom:12px;border-color:#5a3d1d"><div class="note" style="margin-bottom:4px">Coming transitions · check-ins</div><div class="rowlist" id="coming"></div></div>
-    <div class="card"><div class="note" style="margin-bottom:4px">New on a team since August</div><div class="rowlist" id="joined"></div></div>
+<section id="t-members" class="hide">
+  <div class="controls" style="margin-bottom:10px">
+    <select id="fBeh"></select>
+    <span class="sub" id="mcount"></span>
   </div>
+  <div class="tablewrap"><table id="mt">
+    <thead><tr id="mthead"></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="t-teams" class="hide">
+  <div class="sub" style="margin-bottom:10px" id="teamsintro"></div>
+  <div class="teams" id="teamcards"></div>
+  <h2>Carrying the load <span class="sub" id="loadsub"></span></h2>
+  <div class="card"><div class="rl" id="heavy"></div></div>
+  <h2>A Sunday morning <span class="sub">call times from the next plan (Eastern)</span></h2>
+  <div class="card"><div class="timeline" id="timeline"></div></div>
+</section>
+
+<section id="t-spots" class="hide">
+  <div class="sub" style="margin-bottom:10px">Positions not yet filled in Planning Center for the next 5 Sundays. Connections, Announcements and Offering are filled the Thursday before and aren't counted. Worship and Children's are scheduled later by Son and Halima, so December gaps there are partly normal.</div>
+  <div class="tablewrap"><table id="matrix"></table></div>
+</section>
+
+<section id="t-behaviors" class="hide">
+  <div class="grid behav" id="behav"></div>
+</section>
+
+<section id="t-changes" class="hide">
+  <div class="two">
+    <div class="card"><h3>Stepped back or moved on</h3><div class="sub">since mid-August</div><div class="rl" id="left"></div></div>
+    <div>
+      <div class="card" style="margin-bottom:12px;border-color:#f0dcb4"><h3>Coming transitions · check-ins</h3><div class="rl" id="coming"></div></div>
+      <div class="card"><h3>New on a team since August</h3><div class="rl" id="joined"></div></div>
+    </div>
+  </div>
+  <h2>Membership pathway <span class="sub">“I Want To Become A Member” cards still open · dashed = not on a Sunday team yet</span></h2>
+  <div class="card" id="pathway"></div>
+</section>
+
+<section id="t-decide" class="hide">
+  <h2 style="margin-top:0">Decide in the room</h2>
+  <div class="qs" id="questions"></div>
+  <h2>Observations <span class="sub">split · combine · overlap · gaps — starting points, not decisions</span></h2>
+  <div class="obs" id="observations"></div>
+  <h2>Housekeeping <span class="sub">small Planning Center fixes</span></h2>
+  <div class="card"><ul class="hk" id="housekeeping"></ul></div>
+</section>
+
+<section id="t-giving" class="hide">
+  <div class="card" style="margin-bottom:12px">
+    <div class="controls"><div class="seg" id="gview"><button data-v="month" class="on">By month</button><button data-v="quarter">By quarter</button></div></div>
+    <div class="legend"><span><i class="m y"></i>Gave</span><span><i class="m h"></i>Household gave (spouse's record)</span><span><i class="m"></i>No gift recorded</span></div>
+    <div class="sub">Yes or no only. No amounts.</div>
+  </div>
+  <div class="tablewrap"><table id="gt"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section id="t-attendance" class="hide">
+  <div class="card">
+    <h3>Adult check-ins per Sunday (last 13 weeks)</h3>
+    <div class="sub">Striped weeks had no check-ins taken and are left out of everyone's attendance %.</div>
+    <div class="chart" id="attchart"></div>
+  </div>
+  <h2>Attendance bands</h2>
+  <div class="grid kpis" id="attbands"></div>
+</section>
+
+<section id="t-notes" class="hide">
+  <div class="card notes" id="notes"></div>
+</section>
+<footer>Planning Center People, Services and Check-Ins · built __BUILT__</footer>
 </div>
 
-<h2 id="unplugged"><b>Not plugged in yet</b> <span class="hint">newest members first, then members on no team roster</span></h2>
-<div class="two">
-  <div class="card"><div class="note" style="margin-bottom:8px">Membership pathway (“I Want To Become A Member” cards still open)</div><div id="pathway"></div></div>
-  <div class="card"><div class="note" style="margin-bottom:4px">On the Members list, on no Sunday team</div><div class="rowlist" id="unpl"></div></div>
-</div>
-
-<h2 id="obs"><b>Observations</b> <span class="hint">split · combine · overlap · gaps — starting points for discussion, not decisions</span></h2>
-<div class="obs" id="observations"></div>
-
-<h2 id="hk"><b>Housekeeping</b> <span class="hint">small Planning Center fixes</span></h2>
-<div class="card"><ul class="hk" id="housekeeping"></ul></div>
-
-<footer>Planning Center rosters + serving history · built __BUILT__ · no giving data on this page</footer>
+<div class="drawer" id="drawer"><div class="panel" id="panel"></div></div>
 
 <script>
 var DATA = /*__DATA__*/null;
 (function(){
-var D = DATA;
-var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
-var $ = function(id){ return document.getElementById(id); };
-var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var md = function(iso){ if(!iso) return ''; var p = iso.split('-'); return MON[+p[1]-1] + ' ' + (+p[2]); };
-var mdy = function(iso){ if(!iso) return 'never'; var p = iso.split('-'); return MON[+p[1]-1] + ' ' + (+p[2]) + (p[0] !== D.built.slice(0,4) ? ', ' + p[0] : ''); };
-var W = D.window.sundays;
-document.querySelectorAll('.wn').forEach(function(e){ e.textContent = W; });
-$('subline').textContent = 'Serving window ' + md(D.window.from) + ' – ' + md(D.window.to) + ' (' + W + ' Sundays) · rosters as of ' + md(D.built);
+const D = DATA;
+const MINI = D.where === 'mini';
+const COLORS={att:'var(--att)',form:'var(--form)',give:'var(--give)',serve:'var(--serve)',pray:'var(--pray)',reach:'var(--reach)'};
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return MN[+m-1]+' '+(+d)+(y!==D.built.slice(0,4)?', '+y:'')};
+const mlabel=k=>{const[y,m]=k.split('-');return MN[+m-1]+(m==='01'||m==='12'?" '"+y.slice(2):'')};
+const nT=D.tracked.length, W=D.window.sundays;
+const SER=D.series, cur=SER[SER.length-1], prev=SER[SER.length-2];
+const INV=D.invite_teams.length?D.invite_teams.join(', '):'a Sunday team';
+const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e};
+const pct=(n,d)=>d?Math.round(100*n/d):0;
+const chip=(txt,cls)=>el('span','chip '+cls,txt);
+const byName={};D.people.forEach(p=>byName[p.name]=p);
 
-$('bigbtn').onclick = function(){ document.body.classList.toggle('big'); this.textContent = document.body.classList.contains('big') ? 'Normal text' : 'Larger text'; };
+if(MINI){document.getElementById('minibanner').classList.remove('hide');document.getElementById('givetab').classList.remove('hide');
+  document.getElementById('topbar').innerHTML='<span class="cur">People &amp; Teams — leadership copy (Mini)</span>';}
+document.getElementById('asof').textContent=`Planning Center as of ${fmtDate(D.built)} · ${D.people.length} members · attendance over ${nT} tracked Sundays · serving over the last ${W} Sundays (${fmtDate(D.window.from)} – ${fmtDate(D.window.to)})`;
+document.getElementById('bigbtn').onclick=()=>document.body.classList.toggle('big');
 
-// KPIs
-var K = D.kpis;
-var kp = [
-  [K.members_serving + ' / ' + K.members, 'Members serving', 'served at least once this quarter (' + Math.round(K.members_serving / K.members * 100) + '%)'],
-  [K.people_serving, 'People serving', 'members + regulars, last ' + W + ' Sundays'],
-  ['~' + K.avg_per_sunday, 'Volunteers a Sunday', 'average on a Sunday morning'],
-  [K.open_slots, 'Open spots', 'next 5 Sundays, not yet filled'],
-  [K.pathway_now, 'New members', 'at the New Members Lunch step'],
-  [K.members_unplugged, 'Members on no team', 'on the Members list, no Sunday roster']
-];
-$('kpis').innerHTML = kp.map(function(k){ return '<div class="kpi"><div class="l">' + esc(k[1]) + '</div><div class="v">' + esc(k[0]) + '</div><div class="d">' + esc(k[2]) + '</div></div>'; }).join('');
+// ----- derive statuses + next steps
+const L=MINI?D.months.length:0;
+D.people.forEach(m=>{
+  m.attBand=m.att===0?'Not seen':m.att_pct>=70?'70% and over':m.att_pct>=50?'50–69%':'1–49%';
+  m.formStatus=m.forming.includes(cur)?'Current series':m.forming.includes(prev)?'Last series':m.forming.length?'Earlier in 2026':'Not yet';
+  m.formActive=m.formStatus==='Current series'||m.formStatus==='Last series';
+  m.serveActive=m.serve>0;
+  m.rosterIdle=!m.serveActive&&m.teams.length>0;
+  m.prayActive=m.pray.length>0||m.pray_roster.length>0;
+  if(MINI){const last3=m.give.slice(L-4,L-1),g3=last3.filter(x=>x>0).length,gNow=m.give[L-1]>0,any=m.give.some(x=>x>0);
+    m.giveStatus=g3===3?'Consistent':(g3>0||gNow)?'Some months':any?'Lapsed':'No record';
+    m.giveActive=m.giveStatus==='Consistent'||m.giveStatus==='Some months';
+    m.giveViaHousehold=m.give.slice(L-4).some(x=>x===1)&&!m.give.slice(L-4).some(x=>x===2);}
+  const flags=[m.formActive,m.serveActive,m.prayActive].concat(MINI?[m.giveActive]:[]);
+  m.engaged=flags.filter(Boolean).length; m.engagedAll=m.engaged===flags.length;
+  const a=[];
+  if(m.note)a.push(['Note',m.note]);
+  if(m.is_new)a.push(['Welcome',`Recently added member${m.step?' (membership step: '+m.step+')':''}. Invite them to shadow a Sunday where we're short (${INV}) and to Formation Night, and pair them with a Core member.`]);
+  else if(m.att===0)a.push(['Reconnect','No Sunday check-ins in the last 13 weeks. Personal call, text or coffee from a pastor or leader.']);
+  else if(m.att_pct<50)a.push(['Re-engage','Attending under half of tracked Sundays. Personal invite to a specific Sunday, and pair with a Core member.']);
+  if(m.heavy)a.push(['Give a rest',`Served ${m.serve} of the last ${W} Sundays. Give them a Sunday off this month and find their backup.`]);
+  if(m.serveActive&&m.att_pct<50)a.push(['Check-in reminder','Serving but rarely checked in, so attendance may be under-counted. Remind them to check in when they serve.']);
+  if(m.step==='Assign to Area Lead (Sarah)'&&(m.serveActive||m.teams.length))a.push(['Move their card','Already on a team. Advance their membership card past “Assign to Area Lead”.']);
+  if(m.rosterIdle)a.push(['Roster check',`On the ${m.teams.join(', ')} roster but not scheduled in ${W} Sundays (last served ${fmtDate(m.last_served)}). Still in, or ready for something new?`]);
+  if(!m.formActive)a.push(['Form',`Invite to the next Formation Night series${m.forming.length?' (has come before)':''}.`]);
+  if(!m.serveActive&&!m.teams.length)a.push(['Serve',`Invite to serve where we're short: ${INV}.`]);
+  if(!m.prayActive)a.push(['Pray','Invite to a virtual prayer slot (e.g. Morning Prayer).']);
+  if(MINI&&(m.giveStatus==='Lapsed'||m.giveStatus==='No record'))a.push(['Give','Gentle pastoral check-in first. Share the vision for generosity; never mention amounts.']);
+  if(m.engagedAll&&m.att_pct>=70&&!m.heavy)a.unshift(['Raise up','Here regularly and active in every behavior. Celebrate them and consider them for leading or mentoring.']);
+  if(!a.length)a.push(['Encourage','On track. Keep encouraging and thank them for how they show up.']);
+  m.actions=a;
+});
 
-// timeline
-$('timeline').innerHTML = D.call_times.map(function(t){
-  var n = t.name.toLowerCase(), cls = n.indexOf('production') > -1 ? 'prod' : (n.indexOf('band') > -1 || n.indexOf('worship') > -1) ? 'wor' : n === 'service' ? 'svc' : '';
-  return '<div class="tl ' + cls + '"><div class="t">' + esc(t.time) + '</div><div class="n">' + esc(t.name) + '</div></div>';
-}).join('');
+// ----- state
+let SEG='All',Q='',TAB='overview',SORT={k:'name',d:1},GVIEW='month',FBEH='';
+const inSeg=m=>(SEG==='All'||m.seg===SEG)&&(!Q||m.name.toLowerCase().includes(Q));
+const list=()=>D.people.filter(inSeg);
 
-// questions
-$('questions').innerHTML = D.questions.map(function(q, i){ return '<div class="q"><span class="n">' + (i + 1) + '</span><span>' + esc(q) + '</span></div>'; }).join('');
-
-// team cards
-function health(t){
-  if (!t.active.length) return ['b-pause', 'Not scheduling'];
-  if (t.depth !== null && t.depth < 2.2) return ['b-crit', 'Can’t rotate'];
-  if (t.roster <= 5 || t.open_slots >= 8 || (t.depth !== null && t.depth < 3)) return ['b-thin', 'Thin'];
-  return ['b-ok', 'Healthy'];
+function kpiCard(key,label,n,d,def){
+  const c=el('div','card kpi');const l=el('div','lbl');const dt=el('span','dot');dt.style.background=COLORS[key];l.append(dt,label);
+  const b=el('div','big');if(d==null){b.textContent='—';}else{b.textContent=pct(n,d)+'% ';b.append(el('small',null,`${n} of ${d}`));}
+  const bar=el('div','bar');const i=el('i');i.style.width=(d?pct(n,d):0)+'%';i.style.background=COLORS[key];bar.append(i);
+  c.append(l,b,bar,el('div','def',def));return c;
 }
-var TIER = {staff: 'staff', lead: 'lead'};
-$('teamcards').innerHTML = D.teams.map(function(t){
-  var h = health(t);
-  var mx = Math.max.apply(null, t.per_sunday.concat([1]));
-  var spark = t.per_sunday.map(function(v){ return '<i style="height:' + Math.max(8, v / mx * 100) + '%" title="' + v + '"></i>'; }).join('');
-  var act = t.active.map(function(a){
-    var hot = a.tier === 'vol' && a.sundays >= 8;
-    return '<span class="pp' + (hot ? ' hot' : '') + (a.rostered ? '' : ' notr') + '" title="' + esc(a.positions.join(', ')) + (a.rostered ? '' : ' — not on the roster') + '">' + esc(a.name) + ' <b>' + a.sundays + '</b>' + (TIER[a.tier] ? '<span class="tg">' + a.tier + '</span>' : '') + '</span>';
-  }).join('');
-  var idle = t.idle.map(function(a){ return '<span class="pp idle" title="' + esc(a.positions.join(', ')) + '">' + esc(a.name) + ' · ' + esc(a.last_served ? 'last ' + mdy(a.last_served) : 'never') + '</span>'; }).join('');
-  var byDate = {};
-  t.open.forEach(function(o){ (byDate[o.date] = byDate[o.date] || []).push(o); });
-  var opens = Object.keys(byDate).sort().map(function(d){
-    return '<div><span class="d">' + md(d) + '</span>' + byDate[d].map(function(o){ return esc(o.position) + (o.qty > 1 ? ' ×' + o.qty : '') + (o.thursday ? ' <span class="note">(Thu)</span>' : ''); }).join(' · ') + '</div>';
-  }).join('');
-  var pos = t.positions.map(function(p){ return esc(p[0]) + ' ' + p[1]; }).join(' · ');
-  return '<div class="team">' +
-    '<div class="top"><div><div class="tn">' + esc(t.name) + '</div><div class="ld">Leads: ' + esc(t.leaders.join(', ') || '—') + '</div></div><span class="badge ' + h[0] + '">' + h[1] + '</span></div>' +
-    '<div class="stats">' +
-      '<div class="stat"><div class="v">' + t.roster + '</div><div class="l">on roster</div></div>' +
-      '<div class="stat"><div class="v">' + t.active.length + '</div><div class="l">served</div></div>' +
-      '<div class="stat"><div class="v">' + t.avg_per_sunday + '</div><div class="l">per Sunday</div></div>' +
-      '<div class="stat"><div class="v">' + (t.depth === null ? '—' : t.depth) + '</div><div class="l">depth</div></div>' +
-    '</div>' +
-    (t.active.length ? '<div class="spark" title="people serving each Sunday, oldest → newest">' + spark + '</div>' : '') +
-    (t.note ? '<div class="tnote">' + esc(t.note) + '</div>' : '') +
-    (act ? '<div><div class="note" style="margin-bottom:4px">Served this quarter (Sundays) — dashed = serving but not on the roster</div><div class="ppl">' + act + '</div></div>' : '') +
-    '<details><summary>Open spots next 5 Sundays: <b style="color:' + (t.open_slots ? 'var(--orange)' : 'var(--green)') + '">' + t.open_slots + '</b>' + (t.open.some(function(o){ return o.thursday; }) ? ' (+ Thursday roles)' : '') + '</summary><div class="olist">' + (opens || '<span class="note">All filled.</span>') + '</div></details>' +
-    (t.idle.length ? '<details><summary>On the roster, not served on this team this quarter: ' + t.idle.length + '</summary><div class="ppl">' + idle + '</div></details>' : '') +
-    '<details><summary>Positions on the roster</summary><div class="note">' + pos + '</div></details>' +
-  '</div>';
-}).join('');
+const BEHF={
+  att0:['Not seen on Sundays (13 wks)',m=>m.att===0],attLow:['Attending 1–49%',m=>m.att>0&&m.att_pct<50],
+  noForm:['Not forming',m=>!m.formActive],noServe:['Not serving',m=>!m.serveActive],noTeam:['On no team',m=>!m.teams.length&&!m.serveActive],
+  idle:['On a roster, not scheduled',m=>m.rosterIdle],heavy:['Serving too much',m=>m.heavy],noPray:['Not praying',m=>!m.prayActive],
+  all:['Engaged in every behavior',m=>m.engagedAll],new:['Recently added members',m=>m.is_new]};
+if(MINI)BEHF.noGive=['Not giving recently',m=>!m.giveActive];
+const fsel=document.getElementById('fBeh');fsel.append(new Option('Show everyone',''));
+Object.entries(BEHF).forEach(([k,[t]])=>fsel.append(new Option(t,k)));
 
-// coverage matrix
-var dates = D.upcoming.map(function(u){ return u.date; });
-var mrows = D.teams.map(function(t){
-  var tot = 0;
-  var cells = dates.map(function(d){
-    var os = t.open.filter(function(o){ return o.date === d && !o.thursday; });
-    var n = os.reduce(function(s, o){ return s + o.qty; }, 0); tot += n;
-    var cls = n === 0 ? 'm0' : n <= 2 ? 'm1' : 'm2';
-    return '<td class="c ' + cls + '" title="' + esc(os.map(function(o){ return o.position + (o.qty > 1 ? ' ×' + o.qty : ''); }).join(', ')) + '">' + (n || '·') + (n ? '<span class="mt">' + esc(os.map(function(o){ return o.position; }).join(', ')).slice(0, 60) + '</span>' : '') + '</td>';
-  }).join('');
-  return '<tr><td style="font-weight:700;white-space:nowrap">' + esc(t.name) + '</td>' + cells + '<td class="c">' + (tot || '·') + '</td></tr>';
-}).join('');
-$('matrix').innerHTML = '<tr><th>Team</th>' + dates.map(function(d){ return '<th style="text-align:center">' + md(d) + '</th>'; }).join('') + '<th style="text-align:center">Total</th></tr>' + mrows;
+function renderOverview(){
+  const ms=list(),N=ms.length,k=document.getElementById('kpis');k.innerHTML='';
+  k.append(kpiCard('att','Attending',ms.filter(m=>m.att_pct>=70).length,N,`70% and over of ${nT} tracked Sundays. See Attendance for all groups`));
+  k.append(kpiCard('form','Forming',ms.filter(m=>m.formActive).length,N,`Signed up for the ${cur} or ${prev} Formation Night series`));
+  if(MINI)k.append(kpiCard('give','Giving',ms.filter(m=>m.giveActive).length,N,'A gift recorded in at least one of the last 3 months (household counts)'));
+  else if(D.giving_pct&&SEG==='All'&&!Q)k.append(kpiCard('give','Giving',D.giving_pct.givers,D.giving_pct.members,`Members who gave in the last 90 days (Planning Center list, ${fmtDate(D.giving_pct.date)}). Overall number only`));
+  else k.append(kpiCard('give','Giving',0,null,'Overall % shows on “All members”. Per-person giving is not on this page'));
+  k.append(kpiCard('serve','Serving',ms.filter(m=>m.serveActive).length,N,`Scheduled and didn't decline on a Sunday team in the last ${W} Sundays`));
+  k.append(kpiCard('pray','Praying',ms.filter(m=>m.prayActive).length,N,'Confirmed for a virtual prayer slot (8 wks) or on a prayer team roster'));
+  k.append(kpiCard('reach','Reaching',0,null,'Coming soon: not tracked yet'));
+  const f=document.getElementById('focus');f.innerHTML='';
+  const groups=[
+    ['Reconnect','No Sunday check-ins in 13 weeks (excluding recently added members).',m=>m.att===0&&!m.is_new],
+    ['Re-engage on Sundays',`Attending, but under half of tracked Sundays.`,m=>m.att>0&&m.att_pct<50],
+    ['Welcome new members','Recently added. Ask them to shadow a Sunday on a team that needs people.',m=>m.is_new],
+    ['Invite to serve',`Attending half or more but on no Sunday team. Short-handed: ${INV}.`,m=>m.att_pct>=50&&!m.serveActive&&!m.teams.length],
+    ['Roster check',`On a team roster but not scheduled in ${W} Sundays. Still in?`,m=>m.rosterIdle],
+    ['Give a rest',`Volunteers serving 8+ of the last ${W} Sundays (staff not counted).`,m=>m.heavy],
+    ['Invite to Formation Night','Here at least sometimes, but not signed up for the current or last series.',m=>m.att>0&&!m.formActive],
+    ['Invite to pray','Already serving, a natural next step into prayer.',m=>m.serveActive&&!m.prayActive],
+    ['Raise up','Here regularly and active in every behavior.',m=>m.engagedAll&&m.att_pct>=70&&!m.heavy],
+  ];
+  groups.forEach(([t,why,fn])=>{
+    const g=ms.filter(fn);const c=el('div','card');
+    c.append(el('h3',null,t),el('div','n',g.length),el('div','why',why));
+    const nm=el('div','names');nm.textContent=g.map(m=>m.name).join(', ')||'No one right now';c.append(nm);
+    const b=el('button','link','Open list →');b.onclick=()=>{const key='f_'+t;BEHF[key]=['Focus: '+t,fn];if(![...fsel.options].some(o=>o.value===key))fsel.append(new Option('Focus: '+t,key));fsel.value=key;FBEH=key;setTab('members')};c.append(b);
+    f.append(c);
+  });
+  const ts=document.getElementById('teamstrip');ts.innerHTML='';
+  D.teams.forEach(t=>{const h=health(t);const c=el('span','tchip');c.append(chip(h[1],h[0]),t.name,el('small',null,`${t.active.length} serving · ${t.open_slots} open`));c.onclick=()=>gotoTeam(t.name);ts.append(c)});
+}
 
-// heavy
-$('heavy').innerHTML = D.heavy.map(function(h){
-  var hot = h.tier === 'vol';
-  return '<div><span class="nm">' + esc(h.name) + '</span>' + (TIER[h.tier] ? '<span class="chip ' + h.tier + '">' + (h.tier === 'lead' ? 'area lead' : 'staff') + '</span>' : '') +
-    '<span class="wh">' + esc(h.teams.join(' · ')) + '</span><span class="wh" style="float:right;color:' + (hot ? 'var(--red)' : 'var(--dim)') + ';font-weight:700">' + h.sundays + ' of ' + W + '</span>' +
-    '<div class="bar"><i class="' + (hot ? 'hot' : '') + '" style="width:' + (h.sundays / W * 100) + '%"></i></div></div>';
-}).join('') + '<div class="note" style="padding-top:8px">Staff are expected weekly. Red = volunteers well past the ~2-a-month rhythm — care conversations, not removals.</div>';
+function stChip(kind,m){
+  if(kind==='form')return chip(m.formStatus,m.formStatus==='Current series'?'c-on':m.formStatus==='Not yet'?'c-off':'c-some');
+  if(kind==='give'){const s=m.giveStatus;return chip(s+(m.giveViaHousehold&&m.giveActive?' (household)':''),s==='Consistent'?'c-on':s==='Some months'?'c-some':s==='Lapsed'?'c-warn':'c-off')}
+  if(kind==='serve'){
+    if(m.heavy)return chip(`${m.serve} of ${W} · ${m.served_teams.join(', ')}`,'c-warn');
+    if(m.serveActive)return chip(`${m.serve}× · ${m.served_teams.join(', ')}`,'c-on');
+    if(m.rosterIdle)return chip(`On ${m.teams.join(', ')} · not scheduled`,'c-some');
+    return chip('No team','c-off');}
+  if(kind==='pray')return chip(m.prayActive?'Praying':'Not yet',m.prayActive?'c-on':'c-off');
+}
+function attCell(m){const d=el('div','attcell');const bar=el('div','bar');const i=el('i');i.style.width=m.att_pct+'%';i.style.background=m.att_pct>=70?'var(--att)':m.att_pct>=50?'#7aa0cc':m.att?'#b9cbe0':'#ddd';bar.append(i);d.append(el('span',null,m.att_pct+'%'),bar);return d}
+const nameTag=(m,n)=>{n.append(el('b',null,m.name));n.append(el('span','tag',m.seg));if(m.is_new)n.append(el('span','tag new','New'));if(m.tier==='staff')n.append(el('span','tag staff','Staff'));else if(m.tier==='lead')n.append(el('span','tag lead','Area lead'))};
+const SK={name:m=>m.name.split(' ').slice(-1)[0]+m.name,att:m=>m.att_pct,form:m=>['Not yet','Earlier in 2026','Last series','Current series'].indexOf(m.formStatus),
+  give:m=>['No record','Lapsed','Some months','Consistent'].indexOf(m.giveStatus),serve:m=>m.serve+(m.teams.length?.5:0),pray:m=>m.prayActive?1:0};
+const COLS=[['name','Member'],['att','Attendance'],['form','Forming']].concat(MINI?[['give','Giving']]:[]).concat([['serve','Serving'],['pray','Praying'],[null,'Suggested next step']]);
+document.getElementById('mthead').innerHTML=COLS.map(([k,t])=>`<th ${k?'data-sort="'+k+'"':''} ${k?'':'class="hide-sm"'}>${t}</th>`).join('');
+function renderMembers(){
+  let ms=list();if(FBEH)ms=ms.filter(BEHF[FBEH][1]);
+  ms.sort((a,b)=>{const x=SK[SORT.k](a),y=SK[SORT.k](b);return (x>y?1:x<y?-1:0)*SORT.d});
+  document.getElementById('mcount').textContent=`${ms.length} shown · tap a name for detail`;
+  const tb=document.querySelector('#mt tbody');tb.innerHTML='';
+  ms.forEach(m=>{
+    const tr=el('tr');tr.onclick=()=>openDrawer(m);
+    const n=el('td');nameTag(m,n);
+    const a=el('td');a.append(attCell(m));
+    const cells=['form'].concat(MINI?['give']:[]).concat(['serve','pray']).map(k=>{const t=el('td');t.append(stChip(k,m));return t});
+    const nx=el('td','next hide-sm');nx.append(el('b',null,m.actions[0][0]+': '),m.actions[0][1]);
+    tr.append(n,a,...cells,nx);tb.append(tr);
+  });
+}
 
-// transitions
-$('left').innerHTML = D.left.map(function(l){ return '<div><span class="nm">' + esc(l.name) + '</span><span class="wh">' + esc(l.when) + '</span><div class="tm">' + esc(l.teams) + '</div><div class="tx">' + esc(l.what) + '</div></div>'; }).join('');
-$('coming').innerHTML = D.coming.map(function(l){ return '<div><span class="nm">' + esc(l.name) + '</span><div class="tx">' + esc(l.what) + '</div></div>'; }).join('');
-$('joined').innerHTML = D.joined.map(function(j){
-  return '<div><span class="nm">' + esc(j.name) + '</span><span class="chip new">' + esc(j.teams.join(' · ')) + '</span><span class="wh">' + (j.served ? 'served ' + j.served + 'x' : 'not scheduled yet') + '</span>' + (j.note ? '<div class="tx">' + esc(j.note) + '</div>' : '') + '</div>';
-}).join('');
+function renderBehaviors(){
+  const ms=list(),b=document.getElementById('behav');b.innerHTML='';
+  const box=(key,title,active,notActive,action,detail,notLabel)=>{
+    const c=el('div','card');const h=el('div','kpi');const l=el('div','lbl');const dt=el('span','dot');dt.style.background=COLORS[key];l.append(dt,title);h.append(l);
+    const big=el('div','big');big.textContent=active.length+' ';big.append(el('small',null,`active of ${ms.length}`));h.append(big);c.append(h);
+    c.append(el('div','sub','Team action: '+action));if(detail)c.append(detail);
+    const s=el('div','sub');s.style.marginTop='10px';s.style.fontWeight='600';s.textContent=`${notLabel||'Not yet'} (${notActive.length})`;c.append(s);
+    const ul=el('ul');notActive.forEach(m=>{const li=el('li',null,m.name+(m.att===0?' · not seen Sundays':''));li.style.cursor='pointer';li.onclick=()=>openDrawer(m);ul.append(li)});c.append(ul);b.append(c);
+  };
+  {const c=el('div','card');c.style.gridColumn='1/-1';const l=el('div','kpi');const lb=el('div','lbl');const dt=el('span','dot');dt.style.background=COLORS.att;lb.append(dt,'Attending');l.append(lb);c.append(l);
+   c.append(el('div','sub',`Out of ${nT} tracked Sundays (last 13 weeks, missed weeks left out). Team action: celebrate the faithful, invite the 50–69% and 1–49% groups to a specific Sunday, and personally call anyone not seen.`));
+   const g=el('div','grid');g.style.gridTemplateColumns='repeat(auto-fit,minmax(220px,1fr))';g.style.marginTop='10px';
+   [['70% and over','7+ Sundays'],['50–69%','5–6 Sundays'],['1–49%','1–4 Sundays'],['Not seen','0 Sundays · reconnect']].forEach(([bd,dd])=>{
+     const grp=ms.filter(m=>m.attBand===bd).sort((x,y)=>y.att-x.att||SK.name(x).localeCompare(SK.name(y)));
+     const col=el('div');const h=el('div',null,`${bd} (${grp.length})`);h.style.fontWeight='600';col.append(h,el('div','sub',dd));
+     const ul=el('ul');grp.forEach(m=>{const li=el('li',null,`${m.name} · ${m.att} of ${nT}`+(m.att?` · last ${fmtDate(m.last_att)}`:''));li.style.cursor='pointer';li.onclick=()=>openDrawer(m);ul.append(li)});col.append(ul);g.append(col)});
+   c.append(g);b.append(c);}
+  box('form','Forming',ms.filter(m=>m.formActive),ms.filter(m=>!m.formActive),`Personal invites to the next Formation Night series. Current series: ${cur}.`);
+  if(MINI)box('give','Giving',ms.filter(m=>m.giveActive),ms.filter(m=>!m.giveActive),'Teach and celebrate generosity as a body; pastoral check-in for those who have stopped. Never discuss amounts.');
+  const teams={};ms.forEach(m=>m.served_teams.forEach(t=>teams[t]=(teams[t]||0)+1));
+  const td=el('div','sub',Object.entries(teams).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`${t} ${n}`).join(' · '));td.style.marginTop='6px';
+  box('serve','Serving',ms.filter(m=>m.serveActive),ms.filter(m=>!m.serveActive),`Each team lead invites two people from this list to shadow a Sunday. Most needed: ${INV}.`,td,'Not serving');
+  box('pray','Praying',ms.filter(m=>m.prayActive),ms.filter(m=>!m.prayActive),'Invite to a virtual prayer slot; start with people already serving.');
+  const r=el('div','card');r.append(el('h3',null,'Reaching'),el('div','sub','Not tracked yet. Once we decide how Reaching is recorded in Planning Center (a form, a list or a workflow), it can be added like the others.'));b.append(r);
+}
 
-// pathway + unplugged
-$('pathway').innerHTML = D.pathway.map(function(s){
-  return '<div class="step"><div class="sh">' + esc(s.step) + ' · ' + s.people.length + '</div><div class="ppl">' +
-    s.people.map(function(p){ return '<span class="pp' + (p.teams.length ? '' : ' notr') + '" title="card opened ' + esc(p.since) + '">' + esc(p.name) + (p.teams.length ? ' <span class="tg">' + esc(p.teams.join(', ').replace(' Team', '').replace(' Ministry', '')) + '</span>' : ' <span class="tg">no team</span>') + '</span>'; }).join('') +
-  '</div></div>';
-}).join('') + '<div class="note">Dashed = not on a Sunday team yet. Cards at “Assign to Area Lead” and “Follow-Up” have sat for months — several of those people are already serving.</div>';
-$('unpl').innerHTML = D.unplugged.map(function(u){
-  return '<div><span class="nm">' + esc(u.name) + '</span>' + (u.step ? '<span class="chip new">' + esc(u.step) + '</span>' : '') +
-    '<span class="wh">' + (u.served_here ? 'served ' + u.served_here + 'x this quarter (not rostered)' : u.last_served ? 'last served ' + mdy(u.last_served) : 'never scheduled') + '</span>' +
-    (u.note ? '<div class="tx">' + esc(u.note) + '</div>' : '') + '</div>';
-}).join('');
+// ----- teams (from the first version)
+function health(t){
+  if(!t.active.length)return['c-off','Not scheduling'];
+  if(t.depth!==null&&t.depth<2.2)return['c-warn','Can’t rotate'];
+  if(t.roster<=5||t.open_slots>=8||(t.depth!==null&&t.depth<3))return['c-some','Thin'];
+  return['c-on','Healthy'];
+}
+const personBtn=(name,html,cls,title)=>{const s=el('span','pp '+(cls||''));s.innerHTML=html;if(title)s.title=title;const p=byName[name];if(p)s.onclick=()=>openDrawer(p);else s.style.cursor='default';return s};
+function renderTeams(){
+  document.getElementById('teamsintro').textContent=`“Served” = scheduled and didn't decline, last ${W} Sundays. Depth = people serving ÷ people needed each Sunday (under 2 = can't rotate). Dashed = serving but not on the roster. Tap a member's name for their detail.`;
+  const box=document.getElementById('teamcards');box.innerHTML='';
+  D.teams.forEach(t=>{
+    const h=health(t),c=el('div','card team');c.id='team-'+t.id;
+    const top=el('div','top');const l=el('div');l.append(el('div','tn',t.name),el('div','sub','Leads: '+(t.leaders.join(', ')||'—')));top.append(l,chip(h[1],h[0]));c.append(top);
+    const st=el('div','stats');[[t.roster,'on roster'],[t.active.length,'served'],[t.avg_per_sunday,'per Sunday'],[t.depth===null?'—':t.depth,'depth']].forEach(([v,lb])=>{const s=el('div','stat');s.append(el('div','v',String(v)),el('div','l',lb));st.append(s)});c.append(st);
+    if(t.active.length){const mx=Math.max(...t.per_sunday,1);const sp=el('div','spark');sp.title='people serving each Sunday, oldest → newest';t.per_sunday.forEach(v=>{const i=el('i');i.style.height=Math.max(8,v/mx*100)+'%';sp.append(i)});c.append(sp)}
+    if(t.note)c.append(el('div','tnote',t.note));
+    if(t.active.length){const w=el('div');w.append(el('div','sub','Served this quarter (Sundays)'));const pl=el('div','ppl');pl.style.marginTop='4px';
+      t.active.forEach(a=>pl.append(personBtn(a.name,`${a.name} <b>${a.sundays}</b>${a.tier!=='vol'?' <span class="muted" style="font-size:9.5px">'+a.tier.toUpperCase()+'</span>':''}`,(a.tier==='vol'&&a.sundays>=8?'hot ':'')+(a.rostered?'':'notr'),a.positions.join(', '))));w.append(pl);c.append(w)}
+    const by={};t.open.forEach(o=>(by[o.date]=by[o.date]||[]).push(o));
+    const d1=el('details');d1.append(el('summary',null,`Open spots next 5 Sundays: ${t.open_slots}${t.open.some(o=>o.thursday)?' (+ Thursday roles)':''}`));
+    const ol=el('div','olist');Object.keys(by).sort().forEach(d=>{const r=el('div');r.innerHTML=`<span class="d">${fmtDate(d)}</span>`+by[d].map(o=>o.position+(o.qty>1?' ×'+o.qty:'')+(o.thursday?' <span class="muted">(Thu)</span>':'')).join(' · ');ol.append(r)});if(!t.open.length)ol.append(el('span','muted','All filled.'));d1.append(ol);c.append(d1);
+    if(t.idle.length){const d2=el('details');d2.append(el('summary',null,`On the roster, not served on this team this quarter: ${t.idle.length}`));const pl=el('div','ppl');t.idle.forEach(a=>pl.append(personBtn(a.name,`${a.name} · ${a.last_served?'last '+fmtDate(a.last_served):'never'}`,'idle',a.positions.join(', '))));d2.append(pl);c.append(d2)}
+    const d3=el('details');d3.append(el('summary',null,'Positions on the roster'),el('div','sub',t.positions.map(p=>p[0]+' '+p[1]).join(' · ')));c.append(d3);
+    box.append(c);
+  });
+  document.getElementById('loadsub').textContent=`served 8+ of the last ${W} Sundays, any team · goal for volunteers ≈ 2 a month`;
+  const hv=document.getElementById('heavy');hv.innerHTML='';
+  D.heavy.forEach(h=>{const r=el('div');const hot=h.tier==='vol';
+    r.innerHTML=`<span class="nm">${h.name}</span>${h.tier!=='vol'?'<span class="tag '+h.tier+'">'+(h.tier==='lead'?'Area lead':'Staff')+'</span>':''}<span class="wh">${h.teams.join(' · ')}</span><span class="wh" style="float:right;font-weight:700;color:${hot?'var(--warn)':'var(--mute)'}">${h.sundays} of ${W}</span>`;
+    const bar=el('div','bar');const i=el('i');i.style.width=(h.sundays/W*100)+'%';i.style.background=hot?'var(--warn)':'var(--reach)';bar.append(i);r.append(bar);hv.append(r)});
+  hv.append(el('div','sub','Staff are expected weekly. Red = volunteers well past the ~2-a-month rhythm — care conversations, not removals.'));
+  document.getElementById('timeline').innerHTML=D.call_times.map(t=>{const n=t.name.toLowerCase();const cls=n.includes('production')?'prod':(n.includes('band')||n.includes('worship'))?'wor':n==='service'?'svc':'';return `<div class="tl ${cls}"><div class="t">${t.time}</div><div class="n">${t.name}</div></div>`}).join('');
+}
+function gotoTeam(name){setTab('teams');const t=D.teams.find(x=>x.name===name);const e=t&&document.getElementById('team-'+t.id);if(e){e.scrollIntoView({behavior:'smooth',block:'start'});e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1600)}}
 
-// observations + housekeeping
-$('observations').innerHTML = D.observations.map(function(o){ return '<div class="ob k-' + esc(o.kind) + '"><div class="k">' + esc(o.kind) + '</div><div class="h">' + esc(o.title) + '</div><div class="b">' + esc(o.body) + '</div></div>'; }).join('');
-$('housekeeping').innerHTML = D.housekeeping.map(function(h){ return '<li>' + esc(h) + '</li>'; }).join('');
+function renderSpots(){
+  const dates=D.upcoming.map(u=>u.date);
+  const rows=D.teams.map(t=>{let tot=0;const cells=dates.map(d=>{const os=t.open.filter(o=>o.date===d&&!o.thursday);const n=os.reduce((s,o)=>s+o.qty,0);tot+=n;
+    return `<td class="c ${n===0?'m0':n<=2?'m1':'m2'}" title="${os.map(o=>o.position+(o.qty>1?' ×'+o.qty:'')).join(', ')}">${n||'·'}${n?'<span class="mt">'+os.map(o=>o.position).join(', ').slice(0,60)+'</span>':''}</td>`}).join('');
+    return `<tr><td style="font-weight:600;white-space:nowrap;cursor:pointer" data-team="${t.name}">${t.name}</td>${cells}<td class="c">${tot||'·'}</td></tr>`}).join('');
+  const m=document.getElementById('matrix');m.innerHTML=`<thead><tr><th>Team</th>${dates.map(d=>'<th style="text-align:center">'+fmtDate(d)+'</th>').join('')}<th style="text-align:center">Total</th></tr></thead><tbody>${rows}</tbody>`;
+  m.querySelectorAll('td[data-team]').forEach(td=>td.onclick=()=>gotoTeam(td.dataset.team));
+}
+
+function renderChanges(){
+  const rl=(id,items,fn)=>{const b=document.getElementById(id);b.innerHTML='';items.forEach(x=>b.append(fn(x)))};
+  rl('left',D.left,l=>{const r=el('div');r.innerHTML=`<span class="nm">${l.name}</span><span class="wh">${l.when}</span><div class="tm">${l.teams}</div><div class="tx">${l.what}</div>`;return r});
+  rl('coming',D.coming,l=>{const r=el('div');r.innerHTML=`<span class="nm">${l.name}</span><div class="tx">${l.what}</div>`;return r});
+  rl('joined',D.joined,j=>{const r=el('div');r.innerHTML=`<span class="nm">${j.name}</span><span class="tag new">${j.teams.join(' · ')}</span><span class="wh">${j.served?'served '+j.served+'×':'not scheduled yet'}</span>${j.note?'<div class="tx">'+j.note+'</div>':''}`;const p=byName[j.name];if(p){r.style.cursor='pointer';r.onclick=()=>openDrawer(p)}return r});
+  const pw=document.getElementById('pathway');pw.innerHTML='';
+  D.pathway.forEach(s=>{const st=el('div','step');st.append(el('div','sh',`${s.step} · ${s.people.length}`));const pl=el('div','ppl');
+    s.people.forEach(p=>pl.append(personBtn(p.name,`${p.name} <span class="muted" style="font-size:10px">${p.teams.length?p.teams.join(', ').replace(/ Team| Ministry/g,''):'no team'}</span>`,p.teams.length?'':'notr','card opened '+p.since)));st.append(pl);pw.append(st)});
+  pw.append(el('div','sub','Cards at “Assign to Area Lead” and “Follow-Up” have sat for months — several of those people are already serving.'));
+}
+function renderDecide(){
+  document.getElementById('questions').innerHTML=D.questions.map((q,i)=>`<div class="card q"><span class="n">${i+1}</span><span>${q}</span></div>`).join('');
+  document.getElementById('observations').innerHTML=D.observations.map(o=>`<div class="card ob k-${o.kind}"><div class="k">${o.kind}</div><div class="h">${o.title}</div><div class="b">${o.body}</div></div>`).join('');
+  document.getElementById('housekeeping').innerHTML=D.housekeeping.map(h=>`<li>${h}</li>`).join('');
+}
+function renderGiving(){
+  const ms=list(),th=document.querySelector('#gt thead'),tb=document.querySelector('#gt tbody');th.innerHTML='';tb.innerHTML='';
+  const hr=el('tr');hr.append(el('th',null,'Member'),el('th',null,'Status'));let cols;
+  if(GVIEW==='month')cols=D.months.map((k,i)=>({label:mlabel(k)+(i===L-1?'*':''),idx:[i]}));
+  else{const qs={};D.months.forEach((k,i)=>{const[y,m]=k.split('-');const q=`Q${Math.ceil(+m/3)} ${y}`;(qs[q]=qs[q]||[]).push(i)});cols=Object.entries(qs).map(([q,idx])=>({label:q+(idx.includes(L-1)?'*':''),idx}))}
+  cols.forEach(c=>hr.append(el('th',null,c.label)));th.append(hr);
+  ms.sort((a,b)=>SK.name(a)>SK.name(b)?1:-1).forEach(m=>{const tr=el('tr');tr.onclick=()=>openDrawer(m);const n=el('td');n.append(el('b',null,m.name));const s=el('td');s.append(stChip('give',m));tr.append(n,s);
+    cols.forEach(c=>{const v=Math.max(...c.idx.map(i=>m.give[i]));const td=el('td');const sq=el('i','m'+(v===2?' y':v===1?' h':''));
+      if(GVIEW==='quarter'){const cnt=c.idx.filter(i=>m.give[i]>0).length;td.append(sq,el('span','muted',` ${cnt}/${c.idx.length}`))}else td.append(sq);tr.append(td)});tb.append(tr)});
+  const foot=el('tr');const fd=el('td','sub','* current month or quarter, still in progress');fd.colSpan=cols.length+2;foot.append(fd);tb.append(foot);
+}
+function renderAttendance(){
+  const c=document.getElementById('attchart');c.innerHTML='';const mx=Math.max(...Object.values(D.head),1);
+  D.all_sundays.forEach(d=>{const v=D.head[d];const col=el('div','col');const b=el('div','b'+(v?'':' skip'));if(v)b.style.height=(130*v/mx)+'px';col.append(el('span','v',v?String(v):'—'),b,el('span',null,fmtDate(d)));c.append(col)});
+  const ms=list(),a=document.getElementById('attbands');a.innerHTML='';
+  [['70% and over',`7+ of ${nT} Sundays`],['50–69%',`5–6 of ${nT} Sundays`],['1–49%',`1–4 of ${nT} Sundays`],['Not seen','No check-ins in 13 weeks']].forEach(([b,d])=>a.append(kpiCard('att',b,ms.filter(m=>m.attBand===b).length,ms.length,d)));
+}
+function renderNotes(){
+  const n=document.getElementById('notes');n.innerHTML='';
+  const skipped=D.all_sundays.filter(d=>!D.head[d]).map(fmtDate).join(', ');
+  const items=[
+   ['Credit','Layout, the four behaviors and the suggested-next-step logic come from Halima’s Membership Dashboard. This page adds the Sunday teams view, open spots, changes and decisions from Planning Center Services.'],
+   ['Who is included',`The ${D.people.length} people on “Members (All)” in Planning Center People, tagged Core or Congregation from those lists. Nobody is graded; each behavior shows where a person is so the team can choose a next step.`],
+   ['Attendance',`Check-ins on “Sunday Adult Check-in” over the last 13 Sundays. Sundays with no check-ins at all (${skipped||'none'}) are left out, so each % is out of ${nT}. People serving that day sometimes don’t check in, so their attendance may read low.`],
+   ['Forming',`Formation Night sign-up forms in Planning Center from 2026 (archived included): ${SER.join(', ')}. “Current series” = ${cur}; “Last series” = ${prev}. Sign-ups, because Formation Night attendance isn’t recorded.`],
+   ['Serving',`Scheduled on a Sunday Services team and didn’t decline, in the last ${W} Sundays (${fmtDate(D.window.from)} – ${fmtDate(D.window.to)}). Unanswered requests count, because many people serve without tapping Accept — the Roster check and Changes tabs flag people who never respond. “Give a rest” = volunteers on 8+ of ${W} Sundays (staff not counted).`],
+   ['Praying',`Virtual prayer only: confirmed on a prayer slot in the last 8 weeks, or on a prayer team roster, across ${D.prayer_types.join(', ')}. Altar Ministry counts under Serving.`],
+   ['Giving',MINI?'Yes or no only, per month: whether a gift was recorded in Planning Center Giving. A spouse’s gift on a joint household counts for both. No amounts. “Consistent” = each of the last 3 full months; “Some months” = 1–2 of them or this month; “Lapsed” = earlier this year only. This leadership copy lives only on the Mini.':`Overall number only: Planning Center’s “Members Giving (Last 90 Days)” list ÷ “Members (All)”. Per-person giving never goes on Team Hub (public repo, even password-locked); a leadership copy with it lives on the Mini.`],
+   ['Teams, open spots, changes','Rosters, team leads and open positions come straight from Planning Center Services. Moved-on, coming transitions, observations and housekeeping are written notes from Andrew’s Planning Center history — edit data/serving_review_notes.json in Team Hub to change them.'],
+   ['Reaching','Not tracked yet.'],
+   ['Refreshing','A snapshot, not live. Refresh = run automation/serving-review-pull.mjs in the Planning Center Agent folder, then rebuild + publish Team Hub.'],
+  ];
+  items.forEach(([h,t])=>{n.append(el('h3',null,h));const p=el('p',null,t);p.style.marginTop='0';n.append(p)});
+}
+
+function openDrawer(m){
+  const p=document.getElementById('panel');p.innerHTML='';
+  const x=el('button','close','Close');x.onclick=closeDrawer;p.append(x);
+  p.append(el('h2',null,m.name));
+  p.append(el('div','sub',`${m.seg==='Member'?'Member':m.seg+' member'}${m.is_new?' · recently added':''}${m.tier==='staff'?' · staff':m.tier==='lead'?' · area lead':''}`));
+  const row=(k,v)=>{const r=el('div','row');r.append(el('span','muted',k));const b=el('b');typeof v==='string'?b.textContent=v:b.append(v);r.append(b);p.append(r)};
+  row('Attendance',`${m.att} of ${nT} Sundays (${m.att_pct}%)`);row('Last checked in',fmtDate(m.last_att));
+  row('Forming',m.forming.length?m.forming.join(', '):'No sign-ups in 2026');
+  if(MINI){const mm=el('div','months');m.give.forEach((v,i)=>{const q=el('i','m'+(v===2?' y':v===1?' h':''));q.title=mlabel(D.months[i]);mm.append(q)});row('Giving · '+m.giveStatus,mm)}
+  row('Serving',m.serveActive?`${m.serve} of the last ${W} Sundays: ${m.served_teams.join(', ')}`:`None in ${W} Sundays`+(m.last_served?` (last ${fmtDate(m.last_served)})`:''));
+  row('On rosters',m.teams.join(', ')||'No Sunday team');
+  row('Praying',m.pray.length?m.pray.join(', '):m.pray_roster.length?'On a prayer roster: '+m.pray_roster.join(', '):'Not yet');
+  if(m.step)row('Membership step',m.step);
+  row('Reaching','Coming soon');
+  const h=el('h3',null,'Suggested next steps');h.style.marginTop='18px';p.append(h);
+  const ul=el('ul','actions');m.actions.forEach(([t,d])=>{const li=el('li');li.append(el('b',null,t+': '),d);ul.append(li)});p.append(ul);
+  const a=el('a',null,'Open in Planning Center People →');a.href='https://people.planningcenteronline.com/people/AC'+m.id;a.target='_blank';a.rel='noopener';p.append(a);
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+document.getElementById('drawer').onclick=e=>{if(e.target.id==='drawer')closeDrawer()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+
+const R={overview:renderOverview,members:renderMembers,teams:renderTeams,spots:renderSpots,behaviors:renderBehaviors,changes:renderChanges,decide:renderDecide,giving:renderGiving,attendance:renderAttendance,notes:renderNotes};
+function render(){R[TAB]()}
+function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+t));render();window.scrollTo(0,0);
+  try{history.replaceState(null,'','#'+t)}catch(e){}}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.querySelectorAll('#segbtns button').forEach(b=>b.onclick=()=>{SEG=b.dataset.seg;document.querySelectorAll('#segbtns button').forEach(x=>x.classList.toggle('on',x===b));render()});
+document.querySelectorAll('#gview button').forEach(b=>b.onclick=()=>{GVIEW=b.dataset.v;document.querySelectorAll('#gview button').forEach(x=>x.classList.toggle('on',x===b));render()});
+document.getElementById('q').oninput=e=>{Q=e.target.value.trim().toLowerCase();render()};
+fsel.onchange=e=>{FBEH=e.target.value;render()};
+document.getElementById('mthead').addEventListener('click',e=>{const th=e.target.closest('th[data-sort]');if(!th)return;const k=th.dataset.sort;SORT={k,d:SORT.k===k?-SORT.d:(k==='name'?1:-1)};render()});
+const start=(location.hash||'').slice(1);setTab(R[start]&&(start!=='giving'||MINI)?start:'overview');
 })();
 </script>
 <!--__REFRESH__-->
