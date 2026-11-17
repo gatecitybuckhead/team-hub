@@ -493,7 +493,7 @@ function renderChanges(){
 function renderDecide(){
   document.getElementById('questions').innerHTML=D.questions.map((q,i)=>`<div class="card q"><span class="n">${i+1}</span><span>${q}</span></div>`).join('');
   document.getElementById('observations').innerHTML=D.observations.map(o=>`<div class="card ob k-${o.kind}"><div class="k">${o.kind}</div><div class="h">${o.title}</div><div class="b">${o.body}</div></div>`).join('');
-  document.getElementById('housekeeping').innerHTML=D.housekeeping.map(h=>`<li>${h}</li>`).join('');
+  document.getElementById('housekeeping').innerHTML=D.housekeeping.map(h=>`<li>${h}</li>`).join('')+(D.housekeeping_done||[]).map(h=>`<li style="color:var(--mute);text-decoration:line-through">${h}</li>`).join('');
 }
 function renderGiving(){
   const ms=list(),th=document.querySelector('#gt thead'),tb=document.querySelector('#gt tbody');th.innerHTML='';tb.innerHTML='';

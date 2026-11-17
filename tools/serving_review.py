@@ -277,6 +277,7 @@ def payload(DATA):
         'pathway': pathway,
         'left': notes['left'], 'coming': notes.get('coming', []),
         'observations': notes['observations'], 'housekeeping': notes['housekeeping'],
+        'housekeeping_done': notes.get('housekeeping_done', []),
         'questions': notes.get('questions', []),
     }
 
