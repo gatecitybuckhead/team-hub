@@ -35,7 +35,10 @@ def _payload(src):
         b64 = json.loads(raw)['content']
     except (ValueError, KeyError, TypeError):
         b64 = raw
-    return base64.b64decode(b64)
+    try:
+        return base64.b64decode(b64, validate=True)
+    except ValueError:                         # connector saved raw CSV text (seen 2026-11-17)
+        return raw.encode()
 
 
 def _fmt(v, nf):
