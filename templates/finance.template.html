@@ -344,7 +344,14 @@ for (var i=WEEKS.length-1; i>=0; i--){
     } else { el.style.display = 'none'; }
     drawMix(MS.income_methods);
     drawBig(MS.one_time_gifts);
-    $('msNote').textContent = MS.note || '';
+    $('msNote').textContent = (MS.note || '') + staffSupportLine(MS, true);
+  }
+  /* Staff support funds (11/17/2026): pass-through to staff pay, never in
+     Income. One total across all six funds — never per person. */
+  function staffSupportLine(b, always){
+    if (!b || b.staff_support == null || (!always && !b.staff_support)) return '';
+    return ' Staff support (designated): '+money0(b.staff_support)
+      +' — gifts to the staff support funds, passed through to staff pay; not counted in Income.';
   }
 
   function renderPast(h){
@@ -365,7 +372,7 @@ for (var i=WEEKS.length-1; i>=0; i--){
       ? 'This month is still being imported into the ledger — Spend includes '
         +'pay that went out but isn’t posted yet, and firms up as imports land.'
       : 'Income = gross giving recorded in Planning Center. Spend = what the '
-        +'ledger shows paid out that month.');
+        +'ledger shows paid out that month.') + staffSupportLine(h, false);
   }
 
   function render(){

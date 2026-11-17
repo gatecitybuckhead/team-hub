@@ -916,6 +916,9 @@ renderRunway();
       ['Contractors paid', MS.contractor_paid],
       ['Unposted total added to Spend', (MS.staffing_unbooked||0)+(MS.contractor_unbooked||0)]
     ];
+    /* staff support funds: pass-through to staff pay, NOT in Money in (one total, never per person) */
+    if (MS.staff_support != null)
+      rows.push(['Staff support (designated) — not in Money in', MS.staff_support]);
     (MS.one_time_gifts||[]).forEach(function(g){
       rows.push(['One-time gift in Income ('+fmtDateShort(g.date)+', '+(g.method||'')+')', g.amount]); });
     $('msDetailWrap').style.display = '';
@@ -940,7 +943,8 @@ renderRunway();
       : '';
     $('msNote').textContent = (h.spend > h.spend_booked
       ? 'This month is still being imported into the ledger — Spend includes payroll debited but not yet posted, and firms up as imports land.'
-      : 'Income = gross giving recorded in Planning Center. Spend = what the ledger shows paid out that month.');
+      : 'Income = gross giving recorded in Planning Center. Spend = what the ledger shows paid out that month.')
+      + (h.staff_support ? ' Staff support (designated): '+money(h.staff_support)+' — passed through to staff pay, not in Income.' : '');
   }
   function render(){
     if (sel.value === 'current') return renderCurrent();

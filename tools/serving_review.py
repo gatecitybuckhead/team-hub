@@ -53,6 +53,17 @@ def payload(DATA):
         for r in s['rows']:
             recs.append({'pid': r['person_id'], 'name': r['name'], 'date': s['date'], 'team': r['team'],
                          'position': r['position'], 'status': r['status']})
+    # Sermons count as serving (Andrew 11/17/2026). Planning Center has no preaching
+    # position; the preaching sheet (via serving-review-pull.mjs) is the source.
+    pid_by_name = {}
+    for p in snap['people']:
+        if p.get('status') != 'inactive':
+            pid_by_name.setdefault((p['name'] or '').strip().lower(), p['person_id'])
+    for x in live.get('preaching', []):
+        pid = pid_by_name.get(x['name'].strip().lower())
+        if pid:
+            recs.append({'pid': pid, 'name': P[pid]['name'], 'date': x['date'], 'team': 'Preaching',
+                         'position': 'Preaching', 'status': 'C'})
     recs = [r for r in recs if r['name'] not in NOT_PEOPLE]
     dates = sorted({r['date'] for r in recs})
     W = dates[-WINDOW:]
