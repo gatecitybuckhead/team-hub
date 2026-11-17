@@ -59,7 +59,11 @@ def payload(DATA):
     for p in snap['people']:
         if p.get('status') != 'inactive':
             pid_by_name.setdefault((p['name'] or '').strip().lower(), p['person_id'])
-    for x in live.get('preaching', []):
+    seen_preach = set()
+    for x in live.get('preaching', []) + notes.get('preaching_extra', []):
+        if (x['date'], x['name'].strip().lower()) in seen_preach:
+            continue
+        seen_preach.add((x['date'], x['name'].strip().lower()))
         pid = pid_by_name.get(x['name'].strip().lower())
         if pid:
             recs.append({'pid': pid, 'name': P[pid]['name'], 'date': x['date'], 'team': 'Preaching',
