@@ -14,7 +14,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,sans-serif}
 body.big{font-size:17px}
-.wrap{max-width:1240px;margin:0 auto;padding:16px 16px 70px}
+.wrap{max-width:1240px;margin:0 auto;padding-block:16px 70px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .topbar{font-size:12.5px;color:var(--mute);margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .topbar a{color:var(--mute);text-decoration:none;padding:2px 4px}.topbar a:hover{color:var(--ink)}
 .topbar .cur{color:var(--accent);font-weight:700;padding:2px 4px}
@@ -81,7 +81,7 @@ tbody tr:hover{background:#fafaf7}
 .col .v{font-weight:600;color:var(--ink)}
 .drawer{position:fixed;inset:0;background:rgba(20,20,20,.35);display:none;justify-content:flex-end;z-index:20}
 .drawer.open{display:flex}
-.panel{background:var(--card);width:min(480px,100%);height:100%;overflow:auto;padding:22px}
+.panel{background:var(--card);width:min(480px,100%);height:100%;overflow:auto;padding:calc(22px + env(safe-area-inset-top,0px)) calc(22px + env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) 22px}
 .panel .close{float:right;border:0;background:var(--soft);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
 .row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 .row b{font-weight:600;text-align:right}
@@ -286,6 +286,7 @@ const pct=(n,d)=>d?Math.round(100*n/d):0;
 const chip=(txt,cls)=>el('span','chip '+cls,txt);
 const byName={};D.people.forEach(p=>byName[p.name]=p);
 
+if(D.where==='artifact')document.getElementById('topbar').innerHTML='<span class="cur">Shared snapshot</span><span>· for the team to review together · no per-person giving</span>';
 if(MINI){document.getElementById('minibanner').classList.remove('hide');document.getElementById('givetab').classList.remove('hide');
   document.getElementById('topbar').innerHTML='<span class="cur">People &amp; Teams — leadership copy (Mini)</span>';}
 document.getElementById('asof').textContent=`Planning Center as of ${fmtDate(D.built)} · ${D.people.length} members · attendance over ${nT} tracked Sundays · serving over the last ${W} Sundays (${fmtDate(D.window.from)} – ${fmtDate(D.window.to)})`;
@@ -524,7 +525,7 @@ function renderNotes(){
    ['Giving',MINI?'Yes or no only, per month: whether a gift was recorded in Planning Center Giving. A spouse’s gift on a joint household counts for both. No amounts. “Consistent” = each of the last 3 full months; “Some months” = 1–2 of them or this month; “Lapsed” = earlier this year only. This leadership copy lives only on the Mini.':`Overall number only: Planning Center’s “Members Giving (Last 90 Days)” list ÷ “Members (All)”. Per-person giving never goes on Team Hub (public repo, even password-locked); a leadership copy with it lives on the Mini.`],
    ['Teams, open spots, changes','Rosters, team leads and open positions come straight from Planning Center Services. Moved-on, coming transitions, observations and housekeeping are written notes from Andrew’s Planning Center history — edit data/serving_review_notes.json in Team Hub to change them.'],
    ['Reaching','Not tracked yet.'],
-   ['Refreshing','A snapshot, not live. Refresh = run automation/serving-review-pull.mjs in the Planning Center Agent folder, then rebuild + publish Team Hub.'],
+   ['Refreshing',D.where==='artifact'?'A snapshot, not live: the date at the top shows when it was built. Andrew refreshes it from Planning Center; the same link updates.':'A snapshot, not live. Refresh = run automation/serving-review-pull.mjs in the Planning Center Agent folder, then rebuild + publish Team Hub (and republish the shared artifact).'],
   ];
   items.forEach(([h,t])=>{n.append(el('h3',null,h));const p=el('p',null,t);p.style.marginTop='0';n.append(p)});
 }

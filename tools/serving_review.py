@@ -298,3 +298,19 @@ def add_person_giving(payload, DATA):
     payload['months'] = months
     payload['where'] = 'mini'
     return payload
+
+
+def to_artifact(html):
+    """Team copy → claude.ai artifact page (11/17/2026, Andrew: 'like Halima's').
+    The publish skeleton supplies doctype/html/head/body + charset/viewport, so strip
+    ours; keep <title>, fonts, style, script. Light-only by choice (Halima's look):
+    body background and every color are set explicitly. No refresh pill (its fetch
+    to Team Hub is blocked in the artifact frame)."""
+    import re
+    html = re.sub(r'<!DOCTYPE html>\s*<html[^>]*>\s*<head>\s*', '', html, flags=re.I)
+    html = re.sub(r'<meta charset="utf-8">\s*<meta name="viewport"[^>]*>\s*<meta name="robots"[^>]*>\s*', '', html)
+    html = html.replace('<title>GCB People &amp; Teams</title>',
+                        '<title>GateCity People &amp; Teams</title>\n<meta name="claude:viewport-fit-sides" content="cover">', 1)
+    html = re.sub(r'</head>\s*<body>', '', html, count=1)
+    html = re.sub(r'</body>\s*</html>\s*$', '', html)
+    return html

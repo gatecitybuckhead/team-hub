@@ -595,6 +595,13 @@ try:
     if any('give' in p for p in sp['people']):
         raise SystemExit('GIVING GUARD: serving.html payload carries per-person giving — aborted.')
     inject('serving.template.html', 'serving.html', sp)
+    # Shared claude.ai artifact copy (team payload — NO per-person giving), 11/17/2026.
+    art = serving_review.to_artifact((TPL/'serving.template.html').read_text())
+    art = (art.replace('/*__DATA__*/null', json.dumps(dict(sp, where='artifact'), separators=(',',':')))
+              .replace('<!--__REFRESH__-->', '').replace('__BUILT_AT__', built_at).replace('__BUILT__', built))
+    (OUT/'serving-artifact.html').write_text(art)
+    check_js('serving-artifact.html')
+    print('built serving-artifact.html', f'{len(art)//1024}KB (publish to the shared artifact)')
     # Full copy WITH yes/no giving by month → the Mini only (gated gcb-*.html,
     # Andrew + Hazen; Andrew's call 11/17/2026). Never in encrypt.py's allowlist.
     full_sp = serving_review.add_person_giving(json.loads(json.dumps(sp)), DATA)
