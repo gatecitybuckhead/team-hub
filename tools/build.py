@@ -585,6 +585,17 @@ try:
 except FileNotFoundError as e:
     print(f'skip members.html ({e.filename or e})')
 
+# Serving Teams Review (11/17/2026) — staff tier, NO giving, no per-person declines.
+# Live data: Planning Center Agent/automation/serving-review-pull.mjs; context:
+# data/serving_review_notes.json (hand-written). Skips quietly if either is missing.
+try:
+    import serving_review
+    sp = serving_review.payload(DATA)
+    assert_staff_safe(sp, 'serving.html')
+    inject('serving.template.html', 'serving.html', sp)
+except FileNotFoundError as e:
+    print(f'skip serving.html ({e.filename or e})')
+
 # Leadership builds TWICE (9/29/2026): the public page gets giving TOTALS only
 # plus a link; the full page (names, households, amounts, serving x giving)
 # goes to the Mini's dashboard/ as gcb-leadership.html, behind serve_family's

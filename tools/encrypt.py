@@ -47,6 +47,7 @@ PAGES = {
     'debrief.html':    ('Sunday Debrief', 'staff'),
     'metrics.html':    ('Metrics',        'staff'),
     'members.html':    ('Members',        'staff'),
+    'serving.html':    ('Serving Teams',  'staff'),     # Serving Teams Review (11/17/2026)
     'finance.html':    ('Finance',        'staff'),
     'leadership.html': ('Leadership',     'leadership'),
     'budget.html':     ('Budget',         'leadership'),   # Finance Agent budget page (9/28)
