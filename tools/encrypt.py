@@ -52,6 +52,7 @@ PAGES = {
     'leadership.html': ('Leadership',     'leadership'),
     'budget.html':     ('Budget',         'leadership'),   # Finance Agent budget page (9/28)
     'budget-last.html': ('Budget — last month', 'leadership'),  # prior month, linked from budget.html (10/27)
+    'budget-next.html': ('Budget — next month (draft)', 'leadership'),  # drafted next month (11/23/2026)
 }
 SKEY = {'staff': 'gcbstaff', 'leadership': 'gcbleader'}
 
